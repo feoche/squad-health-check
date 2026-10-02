@@ -55,6 +55,7 @@ Firebase Anonymous Auth     ──► stable uid per browser = participantId
 | `src/lib/firebaseConfig.ts` | Committed public web config object | — |
 | `src/lib/firebase.ts` | `initializeApp`, export `auth`, `db`, `ensureSignedIn(): Promise<uid>` | firebase SDK, config |
 | `src/lib/sessionCode.ts` | `generateSessionCode()` (same alphabet as today), `randomKey()` | — |
+| `src/lib/serialize.ts` | `toFirebaseCategories()` — strip `undefined` fields (Firebase rejects them) | `types.ts` |
 | `src/lib/deriveClientState.ts` | Pure transform `RawSession × uid → ClientSessionState` | `types.ts` |
 | `src/lib/sessionStore.ts` | `createSession`, `joinSession`, `subscribeSession`, `subscribeConnection`, `startVoting`, `submitVote`, `revealVotes`, `nextCategory`, `updateNotes`, `endSession` | firebase.ts, sessionCode, deriveClientState |
 | `database.rules.json` | Security rules (source of truth, pasted into console) | — |
@@ -97,10 +98,11 @@ notes:
 - Every read/write requires `auth != null`.
 - `meta`: writable only on creation (`!data.exists()`), and `facilitatorId`
   must equal `auth.uid`. Readable by any authenticated user.
-- `state`: writable only by `meta/facilitatorId`. Validate `phase` enum and
-  `currentCategoryIndex` integer within `0..categories.length-1`.
-  Creation: allowed together with `meta` in the same multi-path write
-  (`newData.parent().child('meta/facilitatorId').val() == auth.uid`).
+- `state`: writable only by the facilitator, checked as
+  `newData.parent().child('meta/facilitatorId').val() == auth.uid` (works for
+  creation in the same multi-path write as `meta`, and `meta` is immutable).
+  Validate `phase` enum and `currentCategoryIndex` number ≥ 0 (rules can't
+  count children, so no upper bound; the facilitator is trusted).
 - `participants/{uid}`: writable only when `$uid == auth.uid`; `name` is a
   string of length 1–50.
 - `voters/{idx}/{uid}`: writable only when `$uid == auth.uid`, `!data.exists()`,
@@ -148,8 +150,9 @@ recomputes `deriveClientState(raw, uid)` and calls the callback. Returns an
 unsubscribe function.
 
 ### Actions
-- `startVoting`: facilitator sets `state/phase = 'voting'` (from lobby or
-  revealed — same guard as server today).
+- `startVoting`: facilitator sets `state/phase = 'voting'`, from `lobby` only
+  (the old server also allowed `revealed`, but no UI used it, and re-opening a
+  revealed round would cancel live vote listeners).
 - `submitVote(color, trend)`: multi-path update
   `voters/{idx}/{uid}=true` + `votes/{idx}/{randomKey}={color,trend}`.
 - `revealVotes`: facilitator, phase `voting` → `revealed`.
@@ -166,8 +169,10 @@ Semantics preserved from the current server: `totalParticipants` counts every
 participant who has joined (not only online ones).
 
 ### `ClientSessionState` change
-Add `myId: string` so `Lobby` no longer reads `sessionStorage`. All other
-fields keep their current meaning.
+Add `myId: string` (so `Lobby` no longer reads `sessionStorage`) and
+`facilitatorId: string` (so `Lobby` marks the facilitator with 👑 reliably).
+`participants` are sorted by name (RTDB orders by uid, not join order). All
+other fields keep their current meaning.
 
 ## GitHub Pages
 
@@ -214,6 +219,12 @@ Replace Quick Start / Production with:
 2. Local dev: `npm install && npm run dev`.
 3. Deploy: push to `main`; enable Pages (Source: GitHub Actions).
 4. Manual test checklist.
+
+## Known limitations
+
+- Rules cannot count children, so a participant crafting a multi-path write
+  in devtools could add several votes in one round. The results header shows
+  the vote total, which makes this visible. Accepted for an internal tool.
 
 ## Out of scope
 
