@@ -10,13 +10,13 @@ import {
 import { ClientSessionState, VoteColor, VoteTrend } from '../types';
 import VotingPanel from './VotingPanel';
 import ResultsGrid from './ResultsGrid';
+import OpenNotesButton from './OpenNotesButton';
 
 interface Props {
   session: ClientSessionState;
   onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
   onRevealVotes: () => void;
   onNextCategory: () => void;
-  onUpdateNotes: (categoryIndex: number, notes: string) => void;
   onEndSession: () => void;
 }
 
@@ -25,7 +25,6 @@ function VotingView({
   onSubmitVote,
   onRevealVotes,
   onNextCategory,
-  onUpdateNotes,
   onEndSession,
 }: Props) {
   const category = session.categories[session.currentCategoryIndex];
@@ -45,6 +44,7 @@ function VotingView({
           aria-label="Session progress"
         />
         <Badge color={BADGE_COLOR.neutral}>Code: {session.code}</Badge>
+        {session.isFacilitator && <OpenNotesButton code={session.code} />}
       </div>
 
       {/* Category description card */}
@@ -90,10 +90,6 @@ function VotingView({
           }
           onNextCategory={onNextCategory}
           onEndSession={onEndSession}
-          notes={session.notes[session.currentCategoryIndex] || ''}
-          onUpdateNotes={(notes) =>
-            onUpdateNotes(session.currentCategoryIndex, notes)
-          }
         />
       )}
     </div>

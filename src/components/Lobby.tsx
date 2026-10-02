@@ -15,6 +15,7 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
+import OpenNotesButton from './OpenNotesButton';
 
 interface Props {
   session: ClientSessionState;
@@ -71,6 +72,7 @@ function Lobby({ session, onStartVoting }: Props) {
             <Button onClick={onStartVoting} disabled={count < 1}>
               Start Voting ({count} participant{count !== 1 ? 's' : ''})
             </Button>
+            <OpenNotesButton code={session.code} />
           </div>
         ) : (
           <div className="stack stack-center">
