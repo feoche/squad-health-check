@@ -189,11 +189,24 @@ body {
 .vote-matrix th {
   font-weight: normal;
   text-align: center;
+  white-space: nowrap;
 }
 
 .vote-matrix th[scope='row'] {
   width: 130px;
   text-align: right;
+}
+
+.vote-matrix-compact {
+  border-spacing: calc(var(--ods-theme-column-gap) / 2);
+}
+
+.vote-matrix-compact th[scope='row'] {
+  width: 104px;
+}
+
+.vote-matrix-compact .vote-matrix-cell {
+  height: 40px;
 }
 
 .vote-matrix-cell {
@@ -202,6 +215,21 @@ body {
   border: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
   border-radius: var(--ods-theme-border-radius);
   background-color: color-mix(in srgb, var(--cell-color) var(--cell-strength), transparent);
+}
+
+.category-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .table-scroll {
@@ -217,7 +245,7 @@ body {
   }
 
   .vote-matrix th[scope='row'] {
-    width: 90px;
+    width: 104px;
   }
 
   .session-header .grow {

@@ -1,7 +1,6 @@
-import { Badge, Card, Icon, Table, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
-import { countColors, countTrends } from '../lib/exportReport';
-import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
+import VoteMatrix from './VoteMatrix';
 import OpenNotesButton from './OpenNotesButton';
 
 interface Props {
@@ -19,45 +18,22 @@ function SessionFinished({ session }: Props) {
         </Text>
       </div>
 
-      <Card className="card-body table-scroll">
-        <Table>
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Category</th>
-              {COLOR_OPTIONS.map(({ value, label, badge }) => (
-                <th scope="col" key={value}>
-                  <Badge color={badge}>{label}</Badge>
-                </th>
-              ))}
-              {TREND_OPTIONS.map(({ value, label, icon }) => (
-                <th scope="col" key={value}>
-                  <Icon name={icon} aria-label={label} />
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {session.allResults.map((result) => {
-              const cat = session.categories[result.categoryIndex];
-              const cc = countColors(result.votes);
-              const tc = countTrends(result.votes);
-              return (
-                <tr key={result.categoryIndex}>
-                  <td>{result.categoryIndex + 1}</td>
-                  <th scope="row">{cat.name}</th>
-                  <td>{cc.green}</td>
-                  <td>{cc.orange}</td>
-                  <td>{cc.red}</td>
-                  <td>{tc.up}</td>
-                  <td>{tc.stable}</td>
-                  <td>{tc.down}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </Table>
-      </Card>
+      <div className="category-cards">
+        {session.allResults.map((result) => {
+          const cat = session.categories[result.categoryIndex];
+          return (
+            <Card key={result.categoryIndex} className="card-body">
+              <Text preset={TEXT_PRESET.heading4}>
+                {result.categoryIndex + 1}. {cat.name}
+              </Text>
+              <Text preset={TEXT_PRESET.caption}>
+                {result.votes.length} vote{result.votes.length !== 1 ? 's' : ''}
+              </Text>
+              <VoteMatrix votes={result.votes} compact />
+            </Card>
+          );
+        })}
+      </div>
 
       {session.isFacilitator && (
         <div className="stack stack-center">
