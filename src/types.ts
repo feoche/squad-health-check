@@ -19,13 +19,11 @@ export interface CategoryResult {
   categoryIndex: number;
   votes: Vote[];
   notes: string;
-  takeaway: string;
 }
 
 /** Private to the facilitator — never sent to participants (see database.rules.json) */
 export interface FacilitatorNote {
   notes: string;
-  takeaway: string;
 }
 
 export type SessionPhase = 'lobby' | 'voting' | 'revealed' | 'finished';

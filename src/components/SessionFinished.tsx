@@ -8,7 +8,7 @@ interface Props {
   session: ClientSessionState;
 }
 
-/** Shared recap: votes only — notes, takeaways and exports live in the facilitator notes window. */
+/** Shared recap: votes only — notes and exports live in the facilitator notes window. */
 function SessionFinished({ session }: Props) {
   return (
     <div className="page">
@@ -62,7 +62,7 @@ function SessionFinished({ session }: Props) {
       {session.isFacilitator && (
         <div className="stack stack-center">
           <Text preset={TEXT_PRESET.paragraph}>
-            Notes, takeaways and downloads are in your facilitator notes.
+            Notes and downloads are in your facilitator notes.
           </Text>
           <OpenNotesButton code={session.code} />
         </div>

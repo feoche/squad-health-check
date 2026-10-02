@@ -54,7 +54,6 @@
           ".write": "auth != null && root.child('sessions/' + $code + '/meta/facilitatorId').val() === auth.uid",
           "$idx": {
             "notes": { ".validate": "newData.isString() && newData.val().length <= 5000" },
-            "takeaway": { ".validate": "newData.isString() && newData.val().length <= 300" },
             "$other": { ".validate": false }
           }
         },

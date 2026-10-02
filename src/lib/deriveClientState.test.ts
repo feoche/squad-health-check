@@ -85,7 +85,7 @@ describe('deriveClientState', () => {
         state: { phase: 'revealed', currentCategoryIndex: 2 },
         voters: [null, undefined, { fac: true, bob: true }],
         votes: [null, null, { k1: { color: 'green', trend: 'up' }, k2: { color: 'red', trend: 'down' } }],
-        facilitator: [null, { notes: 'about learning' }, { takeaway: 'teamwork ok' }],
+        facilitator: [null, { notes: 'about learning' }, { notes: 'teamwork ok' }],
       }),
       'fac',
     )!;
@@ -93,8 +93,8 @@ describe('deriveClientState', () => {
     expect(s.currentResults).toHaveLength(2);
     expect(s.currentResults).toContainEqual({ color: 'green', trend: 'up' });
     expect(s.facilitatorNotes).toEqual({
-      1: { notes: 'about learning', takeaway: '' },
-      2: { notes: '', takeaway: 'teamwork ok' },
+      1: { notes: 'about learning' },
+      2: { notes: 'teamwork ok' },
     });
   });
 
@@ -122,39 +122,39 @@ describe('deriveClientState', () => {
       raw({
         state: { phase: 'finished', currentCategoryIndex: 1 },
         votes: { '0': { k: { color: 'orange', trend: 'stable' } } },
-        facilitator: { '0': { notes: 'fun notes', takeaway: 'keep it up' } },
+        facilitator: { '0': { notes: 'fun notes' } },
       }),
       'bob',
     )!;
     expect(s.allResults).toEqual([
-      { categoryIndex: 0, votes: [{ color: 'orange', trend: 'stable' }], notes: '', takeaway: '' },
-      { categoryIndex: 1, votes: [], notes: '', takeaway: '' },
-      { categoryIndex: 2, votes: [], notes: '', takeaway: '' },
+      { categoryIndex: 0, votes: [{ color: 'orange', trend: 'stable' }], notes: '' },
+      { categoryIndex: 1, votes: [], notes: '' },
+      { categoryIndex: 2, votes: [], notes: '' },
     ]);
     expect(s.facilitatorNotes).toEqual({});
   });
 
-  it('builds allResults with notes and takeaways for the facilitator when finished', () => {
+  it('builds allResults with notes for the facilitator when finished', () => {
     const s = deriveClientState(
       'ABC234',
       raw({
         state: { phase: 'finished', currentCategoryIndex: 1 },
         votes: { '0': { k: { color: 'orange', trend: 'stable' } } },
-        facilitator: { '0': { notes: 'fun notes', takeaway: 'keep it up' }, '2': { takeaway: 'pair more' } },
+        facilitator: { '0': { notes: 'fun notes' }, '2': { notes: 'pair more' } },
       }),
       'fac',
     )!;
     expect(s.allResults).toEqual([
-      { categoryIndex: 0, votes: [{ color: 'orange', trend: 'stable' }], notes: 'fun notes', takeaway: 'keep it up' },
-      { categoryIndex: 1, votes: [], notes: '', takeaway: '' },
-      { categoryIndex: 2, votes: [], notes: '', takeaway: 'pair more' },
+      { categoryIndex: 0, votes: [{ color: 'orange', trend: 'stable' }], notes: 'fun notes' },
+      { categoryIndex: 1, votes: [], notes: '' },
+      { categoryIndex: 2, votes: [], notes: 'pair more' },
     ]);
   });
 
   it('ignores empty facilitator entries', () => {
     const s = deriveClientState(
       'ABC234',
-      raw({ facilitator: { '0': { notes: '', takeaway: '' } } }),
+      raw({ facilitator: { '0': { notes: '' } } }),
       'fac',
     )!;
     expect(s.facilitatorNotes).toEqual({});
