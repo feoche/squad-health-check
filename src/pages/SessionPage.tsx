@@ -1,5 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link as RouterLink, useParams } from 'react-router-dom';
+import {
+  Button,
+  Card,
+  FormField,
+  FormFieldError,
+  FormFieldLabel,
+  FormFieldLabelSubLabel,
+  Icon,
+  ICON_NAME,
+  Input,
+  Link,
+  Message,
+  MESSAGE_COLOR,
+  MessageBody,
+  MessageIcon,
+  Spinner,
+  SPINNER_SIZE,
+  Text,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 import { ClientSessionState, VoteColor, VoteTrend } from '../types';
 import { ensureSignedIn } from '../lib/firebase';
 import { CODE_PATTERN } from '../lib/sessionCode';
@@ -11,6 +31,15 @@ import SessionFinished from '../components/SessionFinished';
 
 const warn = (err: unknown) => console.warn('[session]', err);
 
+function Connecting() {
+  return (
+    <div className="stack stack-center loading">
+      <Spinner size={SPINNER_SIZE.lg} />
+      <Text preset={TEXT_PRESET.paragraph}>Connecting to session…</Text>
+    </div>
+  );
+}
+
 function SessionView() {
   const { code = '' } = useParams<{ code: string }>();
   const [uid, setUid] = useState<string | null>(null);
@@ -19,6 +48,7 @@ function SessionView() {
   const [checking, setChecking] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
+  const [nameError, setNameError] = useState('');
   const [notFound, setNotFound] = useState(false);
   const [joined, setJoined] = useState(false);
   const [connected, setConnected] = useState(true);
@@ -83,7 +113,12 @@ function SessionView() {
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = name.trim();
-    if (!trimmed || !uid) return;
+    if (!trimmed) {
+      setNameError('Enter your name to join the session.');
+      return;
+    }
+    setNameError('');
+    if (!uid) return;
     setIsJoining(true);
     setError('');
     try {
@@ -123,71 +158,65 @@ function SessionView() {
   }, [session]);
 
   /* ─── Checking / join form ─── */
-  if (checking) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-        <p>Connecting to session…</p>
-      </div>
-    );
-  }
+  if (checking) return <Connecting />;
 
   if (notFound) {
     return (
-      <div className="join-page">
-        <div className="card join-card">
-          <h2>{error}</h2>
-          <Link to="/" className="btn btn-secondary">
+      <div className="page page-narrow">
+        <Card className="card-body stack-center">
+          <Text preset={TEXT_PRESET.heading2}>{error}</Text>
+          <Link as={RouterLink} to="/">
+            <Icon name={ICON_NAME.arrowLeft} />
             Back to home
           </Link>
-        </div>
+        </Card>
       </div>
     );
   }
 
   if (!joined) {
     return (
-      <div className="join-page">
-        <div className="card join-card">
-          <h2>Join Session</h2>
-          <p className="session-code-display">
-            Session: <strong>{code}</strong>
-          </p>
-          {error && <div className="error-message">{error}</div>}
-          <form onSubmit={handleJoin}>
-            <input
-              type="text"
-              placeholder="Enter your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="input"
-              maxLength={50}
-              autoFocus
-              required
-              disabled={!uid}
-            />
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!uid || isJoining || !name.trim()}
-            >
-              {isJoining ? 'Joining…' : 'Join'}
-            </button>
+      <div className="page page-narrow">
+        <Card className="card-body">
+          <Text preset={TEXT_PRESET.heading2}>Join Session</Text>
+          <Text preset={TEXT_PRESET.paragraph}>
+            Session: <Text preset={TEXT_PRESET.code}>{code}</Text>
+          </Text>
+          <form className="stack" onSubmit={handleJoin} noValidate>
+            <FormField invalid={!!nameError}>
+              <FormFieldLabel>
+                Your name
+                <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+              </FormFieldLabel>
+              <Input
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (nameError) setNameError('');
+                }}
+                maxLength={50}
+                autoFocus
+                disabled={!uid}
+              />
+              <FormFieldError>{nameError}</FormFieldError>
+            </FormField>
+            {error && (
+              <Message color={MESSAGE_COLOR.critical} dismissible={false}>
+                <MessageIcon name={ICON_NAME.hexagonExclamation} />
+                <MessageBody>{error}</MessageBody>
+              </Message>
+            )}
+            <Button type="submit" loading={isJoining} disabled={!uid}>
+              Join
+            </Button>
           </form>
-        </div>
+        </Card>
       </div>
     );
   }
 
   /* ─── Loading ─── */
-  if (!session) {
-    return (
-      <div className="loading">
-        <div className="spinner" />
-        <p>Connecting to session…</p>
-      </div>
-    );
-  }
+  if (!session) return <Connecting />;
 
   /* ─── Session views ─── */
   let view: JSX.Element;
@@ -212,12 +241,21 @@ function SessionView() {
       view = <SessionFinished session={session} />;
       break;
     default:
-      view = <div>Unknown session state</div>;
+      view = <Text preset={TEXT_PRESET.paragraph}>Unknown session state</Text>;
   }
 
   return (
     <>
-      {!connected && <div className="connection-banner">Reconnecting…</div>}
+      {!connected && (
+        <Message
+          className="connection-banner"
+          color={MESSAGE_COLOR.warning}
+          dismissible={false}
+        >
+          <MessageIcon name={ICON_NAME.triangleExclamation} />
+          <MessageBody>Reconnecting…</MessageBody>
+        </Message>
+      )}
       {view}
     </>
   );

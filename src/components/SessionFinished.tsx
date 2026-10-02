@@ -1,4 +1,16 @@
+import {
+  Badge,
+  Button,
+  BUTTON_VARIANT,
+  Card,
+  Icon,
+  ICON_NAME,
+  Table,
+  Text,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 import { ClientSessionState, Vote } from '../types';
+import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -192,26 +204,30 @@ function downloadPDF(session: ClientSessionState) {
 
 function SessionFinished({ session }: Props) {
   return (
-    <div className="session-finished">
-      <div className="finished-header">
-        <h2>🎉 Session Complete!</h2>
-        <p>
+    <div className="page">
+      <div className="stack stack-center">
+        <Text preset={TEXT_PRESET.heading2}>Session Complete!</Text>
+        <Text preset={TEXT_PRESET.paragraph}>
           Here&apos;s the summary of all results from the health check.
-        </p>
+        </Text>
       </div>
 
-      <div className="recap-table-container card">
-        <table className="recap-table">
+      <Card className="card-body table-scroll">
+        <Table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>Category</th>
-              <th>🟢</th>
-              <th>🟠</th>
-              <th>🔴</th>
-              <th>↗</th>
-              <th>→</th>
-              <th>↘</th>
+              <th scope="col">#</th>
+              <th scope="col">Category</th>
+              {COLOR_OPTIONS.map(({ value, label, badge }) => (
+                <th scope="col" key={value}>
+                  <Badge color={badge}>{label}</Badge>
+                </th>
+              ))}
+              {TREND_OPTIONS.map(({ value, label, icon }) => (
+                <th scope="col" key={value}>
+                  <Icon name={icon} aria-label={label} />
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -221,48 +237,51 @@ function SessionFinished({ session }: Props) {
               const tc = countTrends(result.votes);
               return (
                 <tr key={result.categoryIndex}>
-                  <td className="row-num">{result.categoryIndex + 1}</td>
-                  <td className="cat-name">{cat.name}</td>
-                  <td className="count green">{cc.green}</td>
-                  <td className="count orange">{cc.orange}</td>
-                  <td className="count red">{cc.red}</td>
-                  <td className="count trend-up">{tc.up}</td>
-                  <td className="count trend-stable">{tc.stable}</td>
-                  <td className="count trend-down">{tc.down}</td>
+                  <td>{result.categoryIndex + 1}</td>
+                  <th scope="row">{cat.name}</th>
+                  <td>{cc.green}</td>
+                  <td>{cc.orange}</td>
+                  <td>{cc.red}</td>
+                  <td>{tc.up}</td>
+                  <td>{tc.stable}</td>
+                  <td>{tc.down}</td>
                 </tr>
               );
             })}
           </tbody>
-        </table>
-      </div>
+        </Table>
+      </Card>
 
       {session.allResults.some((r) => r.notes) && (
-        <div className="recap-notes card">
-          <h3>📝 Discussion Notes</h3>
+        <Card className="card-body">
+          <Text preset={TEXT_PRESET.heading3}>Discussion Notes</Text>
           {session.allResults
             .filter((r) => r.notes)
             .map((result) => (
-              <div key={result.categoryIndex} className="recap-note-item">
-                <h4>{session.categories[result.categoryIndex].name}</h4>
-                <p>{result.notes}</p>
+              <div key={result.categoryIndex} className="stack">
+                <Text preset={TEXT_PRESET.heading5}>
+                  {session.categories[result.categoryIndex].name}
+                </Text>
+                <Text preset={TEXT_PRESET.paragraph} className="pre-wrap">
+                  {result.notes}
+                </Text>
               </div>
             ))}
-        </div>
+        </Card>
       )}
 
-      <div className="download-actions">
-        <button
-          className="btn btn-primary btn-large"
-          onClick={() => downloadMarkdown(session)}
-        >
-          📄 Download Markdown
-        </button>
-        <button
-          className="btn btn-secondary btn-large"
+      <div className="actions">
+        <Button onClick={() => downloadMarkdown(session)}>
+          <Icon name={ICON_NAME.download} />
+          Download Markdown
+        </Button>
+        <Button
+          variant={BUTTON_VARIANT.outline}
           onClick={() => downloadPDF(session)}
         >
-          📑 Download PDF
-        </button>
+          <Icon name={ICON_NAME.download} />
+          Download PDF
+        </Button>
       </div>
     </div>
   );

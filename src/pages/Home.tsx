@@ -1,79 +1,111 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Button,
+  BUTTON_COLOR,
+  BUTTON_VARIANT,
+  Card,
+  FormField,
+  FormFieldError,
+  FormFieldLabel,
+  FormFieldLabelSubLabel,
+  Icon,
+  ICON_NAME,
+  Input,
+  Text,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 
 function Home() {
   const [sessionCode, setSessionCode] = useState('');
+  const [codeError, setCodeError] = useState('');
   const navigate = useNavigate();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (sessionCode.trim()) {
-      navigate(`/session/${sessionCode.trim().toUpperCase()}`);
+    const code = sessionCode.trim().toUpperCase();
+    if (!code) {
+      setCodeError('Enter the session code shared by your facilitator.');
+      return;
     }
+    setCodeError('');
+    navigate(`/session/${code}`);
   };
 
   return (
-    <div className="home-page">
-      <div className="hero">
-        <h2>Welcome to Squad Health Check</h2>
-        <p>
+    <div className="page page-narrow">
+      <div className="stack stack-center">
+        <Text preset={TEXT_PRESET.heading2}>Welcome to Squad Health Check</Text>
+        <Text preset={TEXT_PRESET.paragraph}>
           Run anonymous health check sessions with your team. Vote on
           categories, discuss results, and track your squad's well-being.
-        </p>
+        </Text>
       </div>
 
-      <div className="home-actions">
-        <div className="card">
-          <h3>🎯 Create a New Session</h3>
-          <p>Set up categories and invite your team</p>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate('/create')}
-          >
-            Create Session
-          </button>
-        </div>
+      <div className="grid-2">
+        <Card className="card-body">
+          <Text preset={TEXT_PRESET.heading4}>
+            <Icon name={ICON_NAME.plus} /> Create a New Session
+          </Text>
+          <Text preset={TEXT_PRESET.paragraph}>
+            Set up categories and invite your team
+          </Text>
+          <Button onClick={() => navigate('/create')}>Create Session</Button>
+        </Card>
 
-        <div className="card">
-          <h3>🔗 Join a Session</h3>
-          <p>Enter the session code shared by your facilitator</p>
-          <form onSubmit={handleJoin}>
-            <input
-              type="text"
-              placeholder="Session code (e.g. ABC123)"
-              value={sessionCode}
-              onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
-              maxLength={6}
-              className="input"
-            />
-            <button
+        <Card className="card-body">
+          <Text preset={TEXT_PRESET.heading4}>
+            <Icon name={ICON_NAME.chainLink} /> Join a Session
+          </Text>
+          <form className="stack" onSubmit={handleJoin} noValidate>
+            <FormField invalid={!!codeError}>
+              <FormFieldLabel>
+                Session code
+                <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+              </FormFieldLabel>
+              <Input
+                placeholder="e.g. ABC123"
+                value={sessionCode}
+                onChange={(e) => {
+                  setSessionCode(e.target.value.toUpperCase());
+                  if (codeError) setCodeError('');
+                }}
+                maxLength={6}
+              />
+              <FormFieldError>{codeError}</FormFieldError>
+            </FormField>
+            <Button
               type="submit"
-              className="btn btn-secondary"
-              disabled={!sessionCode.trim()}
+              color={BUTTON_COLOR.primary}
+              variant={BUTTON_VARIANT.outline}
             >
               Join Session
-            </button>
+            </Button>
           </form>
-        </div>
+        </Card>
       </div>
 
-      <div className="card instructions-card">
-        <h3>📋 How it works</h3>
-        <ol>
-          <li>The facilitator creates a session and shares the code / link</li>
-          <li>Team members join using their name</li>
-          <li>
-            For each category, everyone votes a <strong>color</strong>{' '}
-            (🟢 🟠 🔴) and a <strong>trend</strong> (↗ → ↘)
-          </li>
-          <li>Votes are anonymous — results show only aggregate counts</li>
-          <li>After all votes are in, discuss as a team</li>
-          <li>Download a recap (Markdown + PDF) at the end</li>
+      <Card className="card-body">
+        <Text preset={TEXT_PRESET.heading4}>
+          <Icon name={ICON_NAME.list} /> How it works
+        </Text>
+        <ol className="steps">
+          {[
+            'The facilitator creates a session and shares the code / link',
+            'Team members join using their name',
+            'For each category, everyone votes a health color (green, orange, red) and a trend (improving, stable, worsening)',
+            'Votes are anonymous — results show only aggregate counts',
+            'After all votes are in, discuss as a team',
+            'Download a recap (Markdown + PDF) at the end',
+          ].map((step) => (
+            <li key={step}>
+              <Text preset={TEXT_PRESET.paragraph}>{step}</Text>
+            </li>
+          ))}
         </ol>
-      </div>
+      </Card>
     </div>
   );
 }
 
 export default Home;
-
