@@ -50,6 +50,7 @@ npm test        # unit tests
 
 Notes:
 - The facilitator's tab must stay open for auto-reveal and for moving on; reloading it is fine (identity is kept).
+- The facilitator role is tied to the browser that created the session — don't create it from a private window you'll close.
 - Two tabs in the same browser count as the same participant — use another browser or a private window to test alone.
 - Known limitation: a participant tampering via devtools could submit more than one vote per round; the vote total shown in results makes this visible.
 
@@ -59,7 +60,7 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 
 1. A: create a session, enter a name → lobby shows A with 👑 and the share link.
 2. B: open the share link, enter a name → both lobbies list A and B.
-3. A: Start Voting. B: vote → A shows "1/2 voted".
+3. A: Start Voting. B: vote → A shows "1 / 2 votes received".
 4. During voting, Firebase console → Realtime Database → Rules → **Rules Playground**: type *read*, location `/sessions/<CODE>/votes/<current index>`, Authenticated → **Run** → *Denied*. A's UI shows no results yet.
 5. A: vote → round auto-reveals on both sides with 2 votes.
 6. A: type notes → B sees them live.
