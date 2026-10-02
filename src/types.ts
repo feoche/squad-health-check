@@ -19,6 +19,13 @@ export interface CategoryResult {
   categoryIndex: number;
   votes: Vote[];
   notes: string;
+  takeaway: string;
+}
+
+/** Private to the facilitator — never sent to participants (see database.rules.json) */
+export interface FacilitatorNote {
+  notes: string;
+  takeaway: string;
 }
 
 export type SessionPhase = 'lobby' | 'voting' | 'revealed' | 'finished';
@@ -44,6 +51,9 @@ export interface ClientSessionState {
   facilitatorId: string;
   currentResults: Vote[] | null;
   allResults: CategoryResult[];
-  notes: Record<number, string>;
+  /** Facilitator-only notes per category index (empty for participants) */
+  facilitatorNotes: Record<number, FacilitatorNote>;
+  /** Votes of every category whose votes this user has loaded, by index */
+  categoryResults: Record<number, Vote[]>;
 }
 

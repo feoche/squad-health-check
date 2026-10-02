@@ -2,6 +2,7 @@ import {
   Category,
   CategoryResult,
   ClientSessionState,
+  FacilitatorNote,
   SessionPhase,
   Vote,
 } from '../types';
@@ -24,7 +25,9 @@ export interface RawSession {
   participants: Record<string, { name: string }> | null;
   voters: Indexed<Record<string, true>> | null;
   votes: Indexed<Record<string, Vote>> | null;
-  notes: Indexed<string> | null;
+  /** Only listened to by the facilitator — the rules deny everyone else */
+  facilitator: Indexed<Partial<FacilitatorNote>> | null;
+  closed: Indexed<true> | null;
 }
 
 function at<T>(coll: Indexed<T> | null, idx: number): T | undefined {
@@ -52,10 +55,21 @@ export function deriveClientState(
 
   const roundVoters = at(raw.voters, currentCategoryIndex) ?? {};
 
-  const notes: Record<number, string> = {};
+  const isFacilitator = facilitatorId === myId;
+
+  const facilitatorNotes: Record<number, FacilitatorNote> = {};
+  if (isFacilitator) {
+    categories.forEach((_, i) => {
+      const n = at(raw.facilitator, i);
+      if (n?.notes || n?.takeaway) {
+        facilitatorNotes[i] = { notes: n.notes ?? '', takeaway: n.takeaway ?? '' };
+      }
+    });
+  }
+
+  const categoryResults: Record<number, Vote[]> = {};
   categories.forEach((_, i) => {
-    const n = at(raw.notes, i);
-    if (n) notes[i] = n;
+    if (at(raw.votes, i) !== undefined) categoryResults[i] = votesAt(raw, i);
   });
 
   const allResults: CategoryResult[] =
@@ -63,7 +77,8 @@ export function deriveClientState(
       ? categories.map((_, i) => ({
           categoryIndex: i,
           votes: votesAt(raw, i),
-          notes: notes[i] ?? '',
+          notes: facilitatorNotes[i]?.notes ?? '',
+          takeaway: facilitatorNotes[i]?.takeaway ?? '',
         }))
       : [];
 
@@ -76,7 +91,7 @@ export function deriveClientState(
     voteCount: Object.keys(roundVoters).length,
     totalParticipants: participants.length,
     hasVoted: Boolean(roundVoters[myId]),
-    isFacilitator: facilitatorId === myId,
+    isFacilitator,
     myId,
     facilitatorId,
     currentResults:
@@ -84,18 +99,42 @@ export function deriveClientState(
         ? votesAt(raw, currentCategoryIndex)
         : null,
     allResults,
-    notes,
+    facilitatorNotes,
+    categoryResults,
   };
 }
 
 /**
  * Vote indexes the rules allow reading. Listening to any other index gets the
  * listener cancelled with PERMISSION_DENIED, so only these may be attached.
+ * The facilitator may also read categories already closed by "Next category".
  */
-export function readableVoteIndexes(state: SessionStateNode, categoryCount: number): number[] {
-  if (state.phase === 'finished') return Array.from({ length: categoryCount }, (_, i) => i);
-  if (state.phase === 'revealed') return [state.currentCategoryIndex];
-  return [];
+export function readableVoteIndexes(
+  state: SessionStateNode,
+  categoryCount: number,
+  closed: Indexed<true> | null = null,
+  isFacilitator = false,
+): number[] {
+  const all = Array.from({ length: categoryCount }, (_, i) => i);
+  if (state.phase === 'finished') return all;
+  return all.filter(
+    (i) =>
+      (state.phase === 'revealed' && i === state.currentCategoryIndex) ||
+      (isFacilitator && at(closed, i) === true),
+  );
+}
+
+/** Categories listed in the notes-page summary: those already moved past, or all once finished. */
+export function summaryIndexes(
+  session: Pick<ClientSessionState, 'phase' | 'currentCategoryIndex' | 'categories'>,
+): number[] {
+  const count =
+    session.phase === 'finished'
+      ? session.categories.length
+      : session.phase === 'lobby'
+        ? 0
+        : session.currentCategoryIndex;
+  return Array.from({ length: count }, (_, i) => i);
 }
 
 /** The facilitator's tab reveals the round once every participant has voted. */
