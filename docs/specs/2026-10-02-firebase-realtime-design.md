@@ -108,8 +108,8 @@ notes:
 - `voters/{idx}/{uid}`: writable only when `$uid == auth.uid`, `!data.exists()`,
   `state/phase == 'voting'`, and `$idx == state/currentCategoryIndex`, and the
   writer is in `participants`.
-- `votes/{idx}/{key}`: **read** denied while `state/phase == 'voting'` **for
-  the current category index** (past categories remain readable).
+- `votes/{idx}/{key}`: **read** allowed only when `state/phase == 'finished'`, or
+  `state/phase == 'revealed'` and `$idx` is the current category index.
   **Write** only if `!data.exists()`, and the same multi-path update creates
   `voters/{idx}/{auth.uid}` (checked via `newData` of the session root vs
   `root` pre-write: exists after, not before). Validate `color`/`trend` enums.
@@ -142,10 +142,10 @@ the session root. The client therefore subscribes to each child separately.
 
 ### Subscribe
 `subscribeSession` attaches `onValue` listeners to `meta`, `state`,
-`participants`, `voters`, `notes`. It attaches a listener to
-`votes/{currentCategoryIndex}` only when phase ≠ `voting`, plus listeners to
-`votes/{i}` for `i < currentCategoryIndex`. On `finished` it listens to all
-`votes/{i}`. Listeners are re-wired when `state` changes. Every change
+`participants`, `voters`, `notes`. Listeners on
+`votes/{i}` are attached only for indexes the rules allow (the current index
+when `revealed`; all indexes when `finished`). A cancelled listener keeps its
+last data and is re-attached when the phase becomes `finished`. Every change
 recomputes `deriveClientState(raw, uid)` and calls the callback. Returns an
 unsubscribe function.
 
@@ -161,7 +161,7 @@ unsubscribe function.
 - `updateNotes(idx, text)`: facilitator writes `notes/{idx}`.
 - `endSession`: facilitator sets phase `finished`.
 - **Auto-reveal:** inside `SessionPage`, when `isFacilitator` and
-  `phase == 'voting'` and `voteCount === totalParticipants && totalParticipants > 0`,
+  `phase == 'voting'` and `voteCount >= totalParticipants && totalParticipants > 0`,
   call `revealVotes()`. Idempotent; if the facilitator is offline the round
   waits.
 
