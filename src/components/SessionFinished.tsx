@@ -2,6 +2,7 @@ import { Badge, Card, Icon, Table, Text, TEXT_PRESET } from '@ovhcloud/ods-react
 import { ClientSessionState } from '../types';
 import { countColors, countTrends } from '../lib/exportReport';
 import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
+import OpenNotesButton from './OpenNotesButton';
 
 interface Props {
   session: ClientSessionState;
@@ -57,6 +58,15 @@ function SessionFinished({ session }: Props) {
           </tbody>
         </Table>
       </Card>
+
+      {session.isFacilitator && (
+        <div className="stack stack-center">
+          <Text preset={TEXT_PRESET.paragraph}>
+            Notes, takeaways and downloads are in your facilitator notes.
+          </Text>
+          <OpenNotesButton code={session.code} />
+        </div>
+      )}
     </div>
   );
 }

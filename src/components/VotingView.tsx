@@ -10,6 +10,7 @@ import {
 import { ClientSessionState, VoteColor, VoteTrend } from '../types';
 import VotingPanel from './VotingPanel';
 import ResultsGrid from './ResultsGrid';
+import OpenNotesButton from './OpenNotesButton';
 
 interface Props {
   session: ClientSessionState;
@@ -43,6 +44,7 @@ function VotingView({
           aria-label="Session progress"
         />
         <Badge color={BADGE_COLOR.neutral}>Code: {session.code}</Badge>
+        {session.isFacilitator && <OpenNotesButton code={session.code} />}
       </div>
 
       {/* Category description card */}
