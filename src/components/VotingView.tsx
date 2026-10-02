@@ -16,7 +16,6 @@ interface Props {
   onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
   onRevealVotes: () => void;
   onNextCategory: () => void;
-  onUpdateNotes: (categoryIndex: number, notes: string) => void;
   onEndSession: () => void;
 }
 
@@ -25,7 +24,6 @@ function VotingView({
   onSubmitVote,
   onRevealVotes,
   onNextCategory,
-  onUpdateNotes,
   onEndSession,
 }: Props) {
   const category = session.categories[session.currentCategoryIndex];
@@ -90,10 +88,6 @@ function VotingView({
           }
           onNextCategory={onNextCategory}
           onEndSession={onEndSession}
-          notes={session.notes[session.currentCategoryIndex] || ''}
-          onUpdateNotes={(notes) =>
-            onUpdateNotes(session.currentCategoryIndex, notes)
-          }
         />
       )}
     </div>

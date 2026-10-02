@@ -2,14 +2,10 @@ import {
   Badge,
   Button,
   Card,
-  CARD_COLOR,
-  FormField,
-  FormFieldLabel,
   Icon,
   ICON_NAME,
   ProgressBar,
   Text,
-  Textarea,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { Vote } from '../types';
@@ -21,8 +17,6 @@ interface Props {
   isLastCategory: boolean;
   onNextCategory: () => void;
   onEndSession: () => void;
-  notes: string;
-  onUpdateNotes: (notes: string) => void;
 }
 
 function ResultRow({
@@ -49,8 +43,6 @@ function ResultsGrid({
   isLastCategory,
   onNextCategory,
   onEndSession,
-  notes,
-  onUpdateNotes,
 }: Props) {
   const total = votes.length;
 
@@ -85,28 +77,6 @@ function ResultsGrid({
           />
         ))}
       </div>
-
-      {isFacilitator ? (
-        <FormField>
-          <FormFieldLabel>Discussion Notes</FormFieldLabel>
-          <Textarea
-            placeholder="Write down key discussion points…"
-            value={notes}
-            onChange={(e) => onUpdateNotes(e.target.value)}
-            rows={4}
-            maxLength={5000}
-          />
-        </FormField>
-      ) : (
-        <div className="stack">
-          <Text preset={TEXT_PRESET.heading5}>Discussion Notes</Text>
-          <Card className="card-body card-compact" color={CARD_COLOR.neutral}>
-            <Text preset={TEXT_PRESET.paragraph} className="pre-wrap">
-              {notes || 'No notes yet…'}
-            </Text>
-          </Card>
-        </div>
-      )}
 
       {isFacilitator && (
         <div className="actions">

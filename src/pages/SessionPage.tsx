@@ -147,12 +147,6 @@ function SessionView() {
   const handleNextCategory = useCallback(() => {
     if (session) store.nextCategory(session).catch(warn);
   }, [session]);
-  const handleUpdateNotes = useCallback(
-    (categoryIndex: number, notes: string) => {
-      if (session) store.updateNotes(session, categoryIndex, notes).catch(warn);
-    },
-    [session],
-  );
   const handleEndSession = useCallback(() => {
     if (session) store.endSession(session).catch(warn);
   }, [session]);
@@ -232,7 +226,6 @@ function SessionView() {
           onSubmitVote={handleSubmitVote}
           onRevealVotes={handleRevealVotes}
           onNextCategory={handleNextCategory}
-          onUpdateNotes={handleUpdateNotes}
           onEndSession={handleEndSession}
         />
       );
