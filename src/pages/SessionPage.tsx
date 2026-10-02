@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Link as RouterLink, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -10,13 +10,10 @@ import {
   Icon,
   ICON_NAME,
   Input,
-  Link,
   Message,
   MESSAGE_COLOR,
   MessageBody,
   MessageIcon,
-  Spinner,
-  SPINNER_SIZE,
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
@@ -28,17 +25,9 @@ import * as store from '../lib/sessionStore';
 import Lobby from '../components/Lobby';
 import VotingView from '../components/VotingView';
 import SessionFinished from '../components/SessionFinished';
+import { Connecting, SessionNotice } from '../components/SessionStatus';
 
 const warn = (err: unknown) => console.warn('[session]', err);
-
-function Connecting() {
-  return (
-    <div className="stack stack-center loading">
-      <Spinner size={SPINNER_SIZE.lg} />
-      <Text preset={TEXT_PRESET.paragraph}>Connecting to session…</Text>
-    </div>
-  );
-}
 
 function SessionView() {
   const { code = '' } = useParams<{ code: string }>();
@@ -154,19 +143,7 @@ function SessionView() {
   /* ─── Checking / join form ─── */
   if (checking) return <Connecting />;
 
-  if (notFound) {
-    return (
-      <div className="page page-narrow">
-        <Card className="card-body stack-center">
-          <Text preset={TEXT_PRESET.heading2}>{error}</Text>
-          <Link as={RouterLink} to="/">
-            <Icon name={ICON_NAME.arrowLeft} />
-            Back to home
-          </Link>
-        </Card>
-      </div>
-    );
-  }
+  if (notFound) return <SessionNotice title={error} backTo="/" backLabel="Back to home" />;
 
   if (!joined) {
     return (

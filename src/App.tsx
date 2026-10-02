@@ -3,6 +3,7 @@ import { Link, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import Home from './pages/Home';
 import CreateSession from './pages/CreateSession';
 import SessionPage from './pages/SessionPage';
+import FacilitatorNotesPage from './pages/FacilitatorNotesPage';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/create" element={<CreateSession />} />
           <Route path="/session/:code" element={<SessionPage />} />
+          <Route path="/session/:code/notes" element={<FacilitatorNotesPage />} />
         </Routes>
       </main>
     </div>

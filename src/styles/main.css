@@ -127,6 +127,11 @@ body {
 
 /* ─── Feature-specific layout ─── */
 
+.summary-item + .summary-item {
+  border-top: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
+  padding-top: calc(var(--ods-theme-row-gap) * 2);
+}
+
 .steps {
   padding-left: calc(var(--ods-theme-padding-horizontal) * 3);
 }
