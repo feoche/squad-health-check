@@ -18,7 +18,7 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 2. **Build → Authentication → Get started → Sign-in method → Anonymous → Enable.**
 3. **Authentication → Settings → Authorized domains** → add `<your-user>.github.io`.
 4. **Build → Realtime Database → Create database** → choose a location → **locked mode**.
-5. **Realtime Database → Rules** → paste [`database.rules.json`](database.rules.json) → **Publish**. Repeat whenever that file changes.
+5. **Realtime Database → Rules** → paste [`database.rules.json`](database.rules.json) → **Publish**. Repeat whenever that file changes. Publish rule changes **before** pushing the app to `main` — the app may depend on them.
 6. **Project settings → Your apps → Web (`</>`)** → register → copy the config into [`src/lib/firebaseConfig.ts`](src/lib/firebaseConfig.ts).
 
 The web config is public by design; access is controlled by the rules. Optionally restrict the API key to your Pages domain in Google Cloud console → APIs & Services → Credentials.
@@ -61,7 +61,7 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 1. A: create a session, enter a name → lobby shows A with 👑 and the share link.
 2. B: open the share link, enter a name → both lobbies list A and B.
 3. A: Start Voting. B: vote → A shows "1 / 2 votes received".
-4. During voting, Firebase console → Realtime Database → Rules → **Rules Playground**: type *read*, location `/sessions/<CODE>/votes/<current index>`, Authenticated → **Run** → *Denied*. A's UI shows no results yet.
+4. During voting, Firebase console → Realtime Database → Rules → **Rules Playground**: type *read*, location `/sessions/<CODE>/votes/<current index>`, Authenticated → **Run** → *Denied*. A's UI shows no results yet. Also try *write* `true` at `/sessions/<CODE>/closed/<current index>` as A's UID → *Denied*.
 5. A: vote → round auto-reveals on both sides with 2 votes.
 6. A: click **Facilitator notes** → a separate window "Facilitator notes — <CODE>" opens; type notes and a takeaway → B's screen shows no notes. Rules Playground: *read* `/sessions/<CODE>/facilitator`, Authenticated with B's UID → *Denied*.
 7. B: reload → B lands back in the session without re-entering a name; same for A (still facilitator).
