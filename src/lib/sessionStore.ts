@@ -109,7 +109,11 @@ export function subscribeSession(
             (raw.votes as Record<string, Record<string, Vote>>)[String(i)] = snap.val() ?? {};
             emit();
           },
-          warnCancelled(`votes/${i}`),
+          (err: Error) => {
+            // Expected once the round is closed: keep cached data, re-attach when finished
+            voteUnsubs.delete(i);
+            warnCancelled(`votes/${i}`)(err);
+          },
         ),
       );
     }
