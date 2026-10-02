@@ -14,6 +14,7 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { ClientSessionState } from '../types';
 import OpenNotesButton from './OpenNotesButton';
 
@@ -37,6 +38,17 @@ function Lobby({ session, onStartVoting }: Props) {
           <Text preset={TEXT_PRESET.heading1} as="p" className="session-code">
             {session.code}
           </Text>
+        </div>
+
+        <div className="stack stack-center">
+          <QRCodeSVG
+            value={shareUrl}
+            size={192}
+            marginSize={2}
+            className="session-qr"
+            title="Scan to join the session"
+          />
+          <Text preset={TEXT_PRESET.caption}>Scan to join</Text>
         </div>
 
         <FormField>

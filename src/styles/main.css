@@ -132,6 +132,11 @@ body {
   padding-left: calc(var(--ods-theme-padding-horizontal) * 3);
 }
 
+.session-qr {
+  border-radius: var(--ods-theme-border-radius, 8px);
+  background: #fff;
+}
+
 .session-code {
   letter-spacing: 0.2em;
   font-family: var(--ods-theme-font-family-code);
