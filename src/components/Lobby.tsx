@@ -1,5 +1,4 @@
 import { ClientSessionState } from '../types';
-import { useNetworkOrigin } from '../hooks/useNetworkOrigin';
 
 interface Props {
   session: ClientSessionState;
@@ -7,12 +6,8 @@ interface Props {
 }
 
 function Lobby({ session, onStartVoting }: Props) {
-  const networkOrigin = useNetworkOrigin();
-  const shareUrl = `${networkOrigin}/session/${session.code}`;
-  const storedRaw = sessionStorage.getItem('shc-session');
-  const myId: string | null = storedRaw
-    ? JSON.parse(storedRaw).participantId
-    : null;
+  const myId = session.myId;
+  const shareUrl = `${window.location.origin}${window.location.pathname}#/session/${session.code}`;
 
   const handleCopyLink = async () => {
     try {
@@ -58,10 +53,7 @@ function Lobby({ session, onStartVoting }: Props) {
               <div key={p.id} className="participant-badge">
                 {p.name}
                 {p.id === myId && <span className="you-tag"> (You)</span>}
-                {session.isFacilitator && p.id === session.participants[0]?.id && p.id !== myId && (
-                  <span className="facilitator-tag"> 👑</span>
-                )}
-                {p.id === myId && session.isFacilitator && (
+                {p.id === session.facilitatorId && (
                   <span className="facilitator-tag"> 👑</span>
                 )}
               </div>

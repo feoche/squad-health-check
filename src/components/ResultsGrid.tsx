@@ -90,6 +90,7 @@ function ResultsGrid({
             value={notes}
             onChange={(e) => onUpdateNotes(e.target.value)}
             rows={4}
+            maxLength={5000}
           />
         ) : (
           <div className="notes-display">
