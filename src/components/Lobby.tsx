@@ -1,3 +1,19 @@
+import {
+  Badge,
+  BADGE_COLOR,
+  Button,
+  Card,
+  Clipboard,
+  ClipboardControl,
+  ClipboardTrigger,
+  FormField,
+  FormFieldLabel,
+  Icon,
+  ICON_NAME,
+  Spinner,
+  Text,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 
 interface Props {
@@ -8,82 +24,65 @@ interface Props {
 function Lobby({ session, onStartVoting }: Props) {
   const myId = session.myId;
   const shareUrl = `${window.location.origin}${window.location.pathname}#/session/${session.code}`;
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-    } catch {
-      /* fallback */
-      const input = document.createElement('input');
-      input.value = shareUrl;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
-    }
-  };
+  const count = session.participants.length;
 
   return (
-    <div className="lobby">
-      <div className="card lobby-card">
-        <h2>🏥 Session Lobby</h2>
+    <div className="page page-narrow">
+      <Card className="card-body">
+        <Text preset={TEXT_PRESET.heading2}>Session Lobby</Text>
 
-        <div className="lobby-code">
-          <span className="label">Session Code</span>
-          <span className="code">{session.code}</span>
+        <div className="stack stack-center">
+          <Text preset={TEXT_PRESET.label}>Session Code</Text>
+          <Text preset={TEXT_PRESET.heading1} as="p" className="session-code">
+            {session.code}
+          </Text>
         </div>
 
-        <div className="lobby-share">
-          <input
-            type="text"
-            readOnly
-            value={shareUrl}
-            className="input share-input"
-            onClick={(e) => (e.target as HTMLInputElement).select()}
-          />
-          <button className="btn btn-secondary" onClick={handleCopyLink}>
-            📋 Copy Link
-          </button>
-        </div>
+        <FormField>
+          <FormFieldLabel>Share link</FormFieldLabel>
+          <Clipboard value={shareUrl}>
+            <ClipboardControl />
+            <ClipboardTrigger labelCopy="Copy link" />
+          </Clipboard>
+        </FormField>
 
-        <div className="participants-section">
-          <h3>Participants ({session.participants.length})</h3>
-          <div className="participants-list">
+        <div className="stack">
+          <Text preset={TEXT_PRESET.heading4}>Participants ({count})</Text>
+          <div className="inline wrap">
             {session.participants.map((p) => (
-              <div key={p.id} className="participant-badge">
+              <Badge
+                key={p.id}
+                color={p.id === myId ? BADGE_COLOR.primary : BADGE_COLOR.neutral}
+              >
+                {p.id === session.facilitatorId && <Icon name={ICON_NAME.crown} />}
                 {p.name}
-                {p.id === myId && <span className="you-tag"> (You)</span>}
-                {p.id === session.facilitatorId && (
-                  <span className="facilitator-tag"> 👑</span>
-                )}
-              </div>
+                {p.id === myId && ' (You)'}
+              </Badge>
             ))}
           </div>
         </div>
 
-        <div className="lobby-info">
-          <p>📋 {session.categories.length} categories to review</p>
-        </div>
+        <Text preset={TEXT_PRESET.paragraph}>
+          {session.categories.length} categories to review
+        </Text>
 
         {session.isFacilitator ? (
-          <button
-            className="btn btn-primary btn-large"
-            onClick={onStartVoting}
-            disabled={session.participants.length < 1}
-          >
-            Start Voting ({session.participants.length} participant
-            {session.participants.length !== 1 ? 's' : ''})
-          </button>
+          <div className="actions">
+            <Button onClick={onStartVoting} disabled={count < 1}>
+              Start Voting ({count} participant{count !== 1 ? 's' : ''})
+            </Button>
+          </div>
         ) : (
-          <div className="waiting-message">
-            <div className="spinner" />
-            <p>Waiting for the facilitator to start the session…</p>
+          <div className="stack stack-center">
+            <Spinner />
+            <Text preset={TEXT_PRESET.paragraph}>
+              Waiting for the facilitator to start the session…
+            </Text>
           </div>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
 
 export default Lobby;
-

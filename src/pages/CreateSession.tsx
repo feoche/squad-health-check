@@ -1,5 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Button,
+  Message,
+  MESSAGE_COLOR,
+  MessageBody,
+  MessageIcon,
+  ICON_NAME,
+  Text,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 import { Category } from '../types';
 import { defaultCategories } from '../data/defaultCategories';
 import CategoryEditor from '../components/CategoryEditor';
@@ -14,7 +24,10 @@ function CreateSession() {
   const navigate = useNavigate();
 
   const handleCreate = async () => {
-    if (categories.length === 0) return;
+    if (categories.length === 0) {
+      setError('Add at least one category before starting the session.');
+      return;
+    }
     setIsCreating(true);
     setError('');
     try {
@@ -27,26 +40,27 @@ function CreateSession() {
   };
 
   return (
-    <div className="create-session-page">
-      <h2>Create New Session</h2>
-      <p className="subtitle">
-        Customise the categories for your health check, then start the session.
-      </p>
+    <div className="page">
+      <div className="stack">
+        <Text preset={TEXT_PRESET.heading2}>Create New Session</Text>
+        <Text preset={TEXT_PRESET.paragraph}>
+          Customise the categories for your health check, then start the session.
+        </Text>
+      </div>
 
       <CategoryEditor categories={categories} onChange={setCategories} />
 
-      {error && <div className="error-message">{error}</div>}
+      {error && (
+        <Message color={MESSAGE_COLOR.critical} dismissible={false}>
+          <MessageIcon name={ICON_NAME.hexagonExclamation} />
+          <MessageBody>{error}</MessageBody>
+        </Message>
+      )}
 
-      <div className="create-actions">
-        <button
-          className="btn btn-primary btn-large"
-          onClick={handleCreate}
-          disabled={categories.length === 0 || isCreating}
-        >
-          {isCreating
-            ? 'Creating…'
-            : `Start Session (${categories.length} categories)`}
-        </button>
+      <div className="actions">
+        <Button onClick={handleCreate} loading={isCreating}>
+          Start Session ({categories.length} categories)
+        </Button>
       </div>
     </div>
   );

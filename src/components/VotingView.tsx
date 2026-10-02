@@ -1,3 +1,12 @@
+import {
+  Badge,
+  BADGE_COLOR,
+  Card,
+  CARD_COLOR,
+  ProgressBar,
+  Text,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 import { ClientSessionState, VoteColor, VoteTrend } from '../types';
 import VotingPanel from './VotingPanel';
 import ResultsGrid from './ResultsGrid';
@@ -22,41 +31,43 @@ function VotingView({
   const category = session.categories[session.currentCategoryIndex];
 
   return (
-    <div className="session-view">
+    <div className="page">
       {/* Progress bar */}
       <div className="session-header">
-        <div className="session-progress">
+        <Text preset={TEXT_PRESET.label}>
           Category {session.currentCategoryIndex + 1} of{' '}
           {session.categories.length}
-        </div>
-        <div className="session-progress-bar">
-          <div
-            className="session-progress-fill"
-            style={{
-              width: `${((session.currentCategoryIndex + 1) / session.categories.length) * 100}%`,
-            }}
-          />
-        </div>
-        <div className="session-code-badge">Code: {session.code}</div>
+        </Text>
+        <ProgressBar
+          className="grow"
+          value={session.currentCategoryIndex + 1}
+          max={session.categories.length}
+          aria-label="Session progress"
+        />
+        <Badge color={BADGE_COLOR.neutral}>Code: {session.code}</Badge>
       </div>
 
       {/* Category description card */}
-      <div className="category-card card">
-        <h2>{category.name}</h2>
+      <Card className="card-body">
+        <Text preset={TEXT_PRESET.heading2}>{category.name}</Text>
         {category.nameFr && (
-          <p className="category-fr-name">{category.nameFr}</p>
+          <Text preset={TEXT_PRESET.caption}>{category.nameFr}</Text>
         )}
-        <div className="category-descriptions">
-          <div className="description positive">
-            <span className="description-icon">🟢</span>
-            <p>{category.positiveDescription}</p>
-          </div>
-          <div className="description negative">
-            <span className="description-icon">🔴</span>
-            <p>{category.negativeDescription}</p>
-          </div>
+        <div className="grid-2">
+          <Card className="card-body card-compact" color={CARD_COLOR.success}>
+            <Badge className="self-start" color={BADGE_COLOR.success}>Green</Badge>
+            <Text preset={TEXT_PRESET.paragraph}>
+              {category.positiveDescription}
+            </Text>
+          </Card>
+          <Card className="card-body card-compact" color={CARD_COLOR.critical}>
+            <Badge className="self-start" color={BADGE_COLOR.critical}>Red</Badge>
+            <Text preset={TEXT_PRESET.paragraph}>
+              {category.negativeDescription}
+            </Text>
+          </Card>
         </div>
-      </div>
+      </Card>
 
       {/* Voting or Results */}
       {session.phase === 'voting' && (
@@ -90,4 +101,3 @@ function VotingView({
 }
 
 export default VotingView;
-

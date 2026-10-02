@@ -1,4 +1,19 @@
+import {
+  Badge,
+  Button,
+  Card,
+  CARD_COLOR,
+  FormField,
+  FormFieldLabel,
+  Icon,
+  ICON_NAME,
+  ProgressBar,
+  Text,
+  Textarea,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 import { Vote } from '../types';
+import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
 
 interface Props {
   votes: Vote[];
@@ -8,6 +23,24 @@ interface Props {
   onEndSession: () => void;
   notes: string;
   onUpdateNotes: (notes: string) => void;
+}
+
+function ResultRow({
+  label,
+  count,
+  total,
+}: {
+  label: React.ReactNode;
+  count: number;
+  total: number;
+}) {
+  return (
+    <div className="result-row">
+      <div className="result-label">{label}</div>
+      <ProgressBar className="grow" value={count} max={Math.max(total, 1)} />
+      <Text preset={TEXT_PRESET.label}>{count}</Text>
+    </div>
+  );
 }
 
 function ResultsGrid({
@@ -20,101 +53,78 @@ function ResultsGrid({
   onUpdateNotes,
 }: Props) {
   const total = votes.length;
-  const colorCounts = {
-    green: votes.filter((v) => v.color === 'green').length,
-    orange: votes.filter((v) => v.color === 'orange').length,
-    red: votes.filter((v) => v.color === 'red').length,
-  };
-  const trendCounts = {
-    up: votes.filter((v) => v.trend === 'up').length,
-    stable: votes.filter((v) => v.trend === 'stable').length,
-    down: votes.filter((v) => v.trend === 'down').length,
-  };
-
-  const pct = (n: number) => (total ? (n / total) * 100 : 0);
 
   return (
-    <div className="results-grid">
-      <h3>Results ({total} votes)</h3>
+    <Card className="card-body">
+      <Text preset={TEXT_PRESET.heading3}>Results ({total} votes)</Text>
 
-      <div className="results-section">
-        <h4>Health Color</h4>
-        <div className="result-bars">
-          {([
-            { key: 'green', label: '🟢 Green', count: colorCounts.green, cls: 'green' },
-            { key: 'orange', label: '🟠 Orange', count: colorCounts.orange, cls: 'orange' },
-            { key: 'red', label: '🔴 Red', count: colorCounts.red, cls: 'red' },
-          ] as const).map(({ key, label, count, cls }) => (
-            <div className="result-bar-row" key={key}>
-              <span className="result-label">{label}</span>
-              <div className="result-bar">
-                <div
-                  className={`result-bar-fill ${cls}`}
-                  style={{ width: `${pct(count)}%` }}
-                />
-              </div>
-              <span className="result-count">{count}</span>
-            </div>
-          ))}
-        </div>
+      <div className="stack">
+        <Text preset={TEXT_PRESET.heading5}>Health Color</Text>
+        {COLOR_OPTIONS.map(({ value, label, badge }) => (
+          <ResultRow
+            key={value}
+            label={<Badge color={badge}>{label}</Badge>}
+            count={votes.filter((v) => v.color === value).length}
+            total={total}
+          />
+        ))}
       </div>
 
-      <div className="results-section">
-        <h4>Trend</h4>
-        <div className="result-bars">
-          {([
-            { key: 'up', label: '↗ Improving', count: trendCounts.up, cls: 'trend-up' },
-            { key: 'stable', label: '→ Stable', count: trendCounts.stable, cls: 'trend-stable' },
-            { key: 'down', label: '↘ Worsening', count: trendCounts.down, cls: 'trend-down' },
-          ] as const).map(({ key, label, count, cls }) => (
-            <div className="result-bar-row" key={key}>
-              <span className="result-label">{label}</span>
-              <div className="result-bar">
-                <div
-                  className={`result-bar-fill ${cls}`}
-                  style={{ width: `${pct(count)}%` }}
-                />
-              </div>
-              <span className="result-count">{count}</span>
-            </div>
-          ))}
-        </div>
+      <div className="stack">
+        <Text preset={TEXT_PRESET.heading5}>Trend</Text>
+        {TREND_OPTIONS.map(({ value, label, icon }) => (
+          <ResultRow
+            key={value}
+            label={
+              <Text preset={TEXT_PRESET.span}>
+                <Icon name={icon} /> {label}
+              </Text>
+            }
+            count={votes.filter((v) => v.trend === value).length}
+            total={total}
+          />
+        ))}
       </div>
 
-      <div className="results-section notes-section">
-        <h4>Discussion Notes</h4>
-        {isFacilitator ? (
-          <textarea
-            className="input textarea notes-textarea"
+      {isFacilitator ? (
+        <FormField>
+          <FormFieldLabel>Discussion Notes</FormFieldLabel>
+          <Textarea
             placeholder="Write down key discussion points…"
             value={notes}
             onChange={(e) => onUpdateNotes(e.target.value)}
             rows={4}
             maxLength={5000}
           />
-        ) : (
-          <div className="notes-display">
-            {notes || <em>No notes yet…</em>}
-          </div>
-        )}
-      </div>
+        </FormField>
+      ) : (
+        <div className="stack">
+          <Text preset={TEXT_PRESET.heading5}>Discussion Notes</Text>
+          <Card className="card-body card-compact" color={CARD_COLOR.neutral}>
+            <Text preset={TEXT_PRESET.paragraph} className="pre-wrap">
+              {notes || 'No notes yet…'}
+            </Text>
+          </Card>
+        </div>
+      )}
 
       {isFacilitator && (
-        <div className="results-actions">
+        <div className="actions">
           {!isLastCategory ? (
-            <button className="btn btn-primary btn-large" onClick={onNextCategory}>
-              Next Category →
-            </button>
+            <Button onClick={onNextCategory}>
+              Next Category
+              <Icon name={ICON_NAME.arrowRight} />
+            </Button>
           ) : (
-            <button className="btn btn-primary btn-large" onClick={onEndSession}>
-              Finish Session ✓
-            </button>
+            <Button onClick={onEndSession}>
+              Finish Session
+              <Icon name={ICON_NAME.check} />
+            </Button>
           )}
         </div>
       )}
-    </div>
+    </Card>
   );
 }
 
 export default ResultsGrid;
-
