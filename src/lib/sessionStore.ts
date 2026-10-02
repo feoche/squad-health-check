@@ -7,7 +7,7 @@ import {
   set,
   update,
 } from 'firebase/database';
-import { Category, ClientSessionState, Vote } from '../types';
+import { Category, ClientSessionState, FacilitatorNote, Vote } from '../types';
 import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, randomKey } from './sessionCode';
 import { toFirebaseCategories } from './serialize';
@@ -83,10 +83,14 @@ export function subscribeSession(
     participants: null,
     voters: null,
     votes: {},
-    notes: null,
+    facilitator: undefined,
+    closed: null,
   };
   const unsubs: Unsubscribe[] = [];
   const voteUnsubs = new Map<number, Unsubscribe>();
+  let facilitatorListening = false;
+
+  const isFacilitator = () => raw.meta?.facilitatorId === uid;
 
   const emit = () => {
     const state = deriveClientState(code, raw, uid);
@@ -99,7 +103,13 @@ export function subscribeSession(
   /* Attach vote listeners only where the rules allow reading (see readableVoteIndexes) */
   const syncVoteListeners = () => {
     if (!raw.meta || !raw.state) return;
-    for (const i of readableVoteIndexes(raw.state, raw.meta.categories.length)) {
+    const readable = readableVoteIndexes(
+      raw.state,
+      raw.meta.categories.length,
+      raw.closed,
+      isFacilitator(),
+    );
+    for (const i of readable) {
       if (voteUnsubs.has(i)) continue;
       voteUnsubs.set(
         i,
@@ -110,7 +120,7 @@ export function subscribeSession(
             emit();
           },
           (err: Error) => {
-            // Expected once the round is closed: keep cached data, re-attach when finished
+            // Expected for participants once the round is closed: keep cached data, re-attach when finished
             voteUnsubs.delete(i);
             warnCancelled(`votes/${i}`)(err);
           },
@@ -119,13 +129,14 @@ export function subscribeSession(
     }
   };
 
-  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'notes') => {
+  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'facilitator' | 'closed') => {
     unsubs.push(
       onValue(
         sessionRef(code, key),
         (snap: DataSnapshot) => {
           (raw as unknown as Record<string, unknown>)[key] = snap.val();
-          if (key === 'meta' || key === 'state') syncVoteListeners();
+          if (key === 'meta') syncFacilitatorListeners();
+          if (key === 'meta' || key === 'state' || key === 'closed') syncVoteListeners();
           emit();
         },
         warnCancelled(key),
@@ -133,11 +144,18 @@ export function subscribeSession(
     );
   };
 
+  /* Facilitator-only nodes: a participant's listener would be cancelled with PERMISSION_DENIED */
+  const syncFacilitatorListeners = () => {
+    if (facilitatorListening || !isFacilitator()) return;
+    facilitatorListening = true;
+    listen('facilitator');
+    listen('closed');
+  };
+
   listen('meta');
   listen('state');
   listen('participants');
   listen('voters');
-  listen('notes');
 
   return () => {
     unsubs.forEach((u) => u());
@@ -170,10 +188,16 @@ export async function revealVotes(s: ClientSessionState): Promise<void> {
   await writeState(s, { phase: 'revealed' });
 }
 
+/** Closing the round in the same write keeps the facilitator's vote listener readable. */
 export async function nextCategory(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator || s.phase !== 'revealed') return;
-  if (s.currentCategoryIndex >= s.categories.length - 1) return;
-  await writeState(s, { phase: 'voting', currentCategoryIndex: s.currentCategoryIndex + 1 });
+  const idx = s.currentCategoryIndex;
+  if (idx >= s.categories.length - 1) return;
+  await update(sessionRef(s.code), {
+    'state/phase': 'voting',
+    'state/currentCategoryIndex': idx + 1,
+    [`closed/${idx}`]: true,
+  });
 }
 
 export async function endSession(s: ClientSessionState): Promise<void> {
@@ -181,13 +205,16 @@ export async function endSession(s: ClientSessionState): Promise<void> {
   await writeState(s, { phase: 'finished' });
 }
 
-export async function updateNotes(
+export type NoteField = keyof FacilitatorNote;
+
+export async function updateFacilitatorNote(
   s: ClientSessionState,
   categoryIndex: number,
-  notes: string,
+  field: NoteField,
+  value: string,
 ): Promise<void> {
   if (!s.isFacilitator) return;
-  await set(sessionRef(s.code, `notes/${categoryIndex}`), notes);
+  await set(sessionRef(s.code, `facilitator/${categoryIndex}/${field}`), value);
 }
 
 /* ─── Participant action ─── */
