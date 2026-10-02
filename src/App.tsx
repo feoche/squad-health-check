@@ -1,4 +1,5 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route, Link as RouterLink } from 'react-router-dom';
+import { Link, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import Home from './pages/Home';
 import CreateSession from './pages/CreateSession';
 import SessionPage from './pages/SessionPage';
@@ -7,8 +8,10 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <Link to="/" className="app-logo-link">
-          <h1>🏥 Squad Health Check</h1>
+        <Link as={RouterLink} to="/">
+          <Text preset={TEXT_PRESET.heading4} as="span">
+            Squad Health Check
+          </Text>
         </Link>
       </header>
       <main className="app-main">
@@ -23,4 +26,3 @@ function App() {
 }
 
 export default App;
-
