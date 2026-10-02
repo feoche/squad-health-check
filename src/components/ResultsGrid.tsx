@@ -4,11 +4,10 @@ import {
   Card,
   Icon,
   ICON_NAME,
-  ProgressBar,
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
-import { Vote } from '../types';
+import { Vote, VoteColor, VoteTrend } from '../types';
 import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
 
 interface Props {
@@ -19,21 +18,58 @@ interface Props {
   onEndSession: () => void;
 }
 
-function ResultRow({
-  label,
-  count,
-  total,
-}: {
-  label: React.ReactNode;
-  count: number;
-  total: number;
-}) {
+/** Votes cross-tabulated by health color (rows) and trend (columns). */
+function VoteMatrix({ votes }: { votes: Vote[] }) {
+  const count = (color: VoteColor, trend: VoteTrend) =>
+    votes.filter((v) => v.color === color && v.trend === trend).length;
+  const max = Math.max(
+    1,
+    ...COLOR_OPTIONS.flatMap((c) => TREND_OPTIONS.map((t) => count(c.value, t.value))),
+  );
+
   return (
-    <div className="result-row">
-      <div className="result-label">{label}</div>
-      <ProgressBar className="grow" value={count} max={Math.max(total, 1)} />
-      <Text preset={TEXT_PRESET.label}>{count}</Text>
-    </div>
+    <table className="vote-matrix">
+      <thead>
+        <tr>
+          <td />
+          {TREND_OPTIONS.map(({ value, label, icon }) => (
+            <th key={value} scope="col">
+              <Text preset={TEXT_PRESET.span}>
+                <Icon name={icon} /> {label} ({votes.filter((v) => v.trend === value).length})
+              </Text>
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {COLOR_OPTIONS.map(({ value: color, label, badge }) => (
+          <tr key={color}>
+            <th scope="row">
+              <Badge color={badge}>
+                {label} ({votes.filter((v) => v.color === color).length})
+              </Badge>
+            </th>
+            {TREND_OPTIONS.map(({ value: trend }) => {
+              const n = count(color, trend);
+              return (
+                <td
+                  key={trend}
+                  className="vote-matrix-cell"
+                  style={
+                    {
+                      '--cell-color': `var(--ods-color-${badge}-300)`,
+                      '--cell-strength': `${(n / max) * 100}%`,
+                    } as React.CSSProperties
+                  }
+                >
+                  <Text preset={n ? TEXT_PRESET.heading4 : TEXT_PRESET.caption}>{n}</Text>
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
@@ -50,32 +86,8 @@ function ResultsGrid({
     <Card className="card-body">
       <Text preset={TEXT_PRESET.heading3}>Results ({total} votes)</Text>
 
-      <div className="stack">
-        <Text preset={TEXT_PRESET.heading5}>Health Color</Text>
-        {COLOR_OPTIONS.map(({ value, label, badge }) => (
-          <ResultRow
-            key={value}
-            label={<Badge color={badge}>{label}</Badge>}
-            count={votes.filter((v) => v.color === value).length}
-            total={total}
-          />
-        ))}
-      </div>
-
-      <div className="stack">
-        <Text preset={TEXT_PRESET.heading5}>Trend</Text>
-        {TREND_OPTIONS.map(({ value, label, icon }) => (
-          <ResultRow
-            key={value}
-            label={
-              <Text preset={TEXT_PRESET.span}>
-                <Icon name={icon} /> {label}
-              </Text>
-            }
-            count={votes.filter((v) => v.trend === value).length}
-            total={total}
-          />
-        ))}
+      <div className="table-scroll">
+        <VoteMatrix votes={votes} />
       </div>
 
       {isFacilitator && (
