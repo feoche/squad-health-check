@@ -18,6 +18,10 @@ import { QRCodeSVG } from 'qrcode.react';
 import { ClientSessionState } from '../types';
 import OpenNotesButton from './OpenNotesButton';
 
+// Always share the published app, even from a local dev server, so the link
+// and QR code work for participants on other devices.
+const PUBLIC_APP_URL = 'https://feoche.github.io/squad-health-check/';
+
 interface Props {
   session: ClientSessionState;
   onStartVoting: () => void;
@@ -25,7 +29,7 @@ interface Props {
 
 function Lobby({ session, onStartVoting }: Props) {
   const myId = session.myId;
-  const shareUrl = `${window.location.origin}${window.location.pathname}#/session/${session.code}`;
+  const shareUrl = `${PUBLIC_APP_URL}#/session/${session.code}`;
   const count = session.participants.length;
 
   return (
