@@ -1,55 +1,29 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { io } from 'socket.io-client';
 import { Category } from '../types';
 import { defaultCategories } from '../data/defaultCategories';
 import CategoryEditor from '../components/CategoryEditor';
-
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
-  `${window.location.protocol}//${window.location.hostname}:3001`;
+import { createSession, describeError } from '../lib/sessionStore';
 
 function CreateSession() {
   const [categories, setCategories] = useState<Category[]>([
     ...defaultCategories,
   ]);
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleCreate = () => {
+  const handleCreate = async () => {
     if (categories.length === 0) return;
     setIsCreating(true);
-
-    const socket = io(SOCKET_URL);
-
-    socket.on('connect_error', () => {
+    setError('');
+    try {
+      const code = await createSession(categories);
+      navigate(`/session/${code}`);
+    } catch (err) {
+      setError(describeError(err));
       setIsCreating(false);
-      alert('Could not connect to the server. Make sure the backend is running.');
-      socket.disconnect();
-    });
-
-    socket.emit(
-      'create-session',
-      { categories },
-      (response: { success: boolean; code: string; participantId: string }) => {
-        if (response.success) {
-          sessionStorage.setItem(
-            'shc-session',
-            JSON.stringify({
-              code: response.code,
-              participantId: response.participantId,
-              isFacilitator: true,
-            }),
-          );
-          socket.disconnect();
-          navigate(`/session/${response.code}`);
-        } else {
-          setIsCreating(false);
-          alert('Failed to create session');
-          socket.disconnect();
-        }
-      },
-    );
+    }
   };
 
   return (
@@ -60,6 +34,8 @@ function CreateSession() {
       </p>
 
       <CategoryEditor categories={categories} onChange={setCategories} />
+
+      {error && <div className="error-message">{error}</div>}
 
       <div className="create-actions">
         <button
@@ -77,4 +53,3 @@ function CreateSession() {
 }
 
 export default CreateSession;
-

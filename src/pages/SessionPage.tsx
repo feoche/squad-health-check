@@ -1,119 +1,150 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { io, Socket } from 'socket.io-client';
+import { useState, useEffect, useCallback } from 'react';
+import { Link, useParams } from 'react-router-dom';
 import { ClientSessionState, VoteColor, VoteTrend } from '../types';
+import { ensureSignedIn } from '../lib/firebase';
+import { CODE_PATTERN } from '../lib/sessionCode';
+import { shouldAutoReveal } from '../lib/deriveClientState';
+import * as store from '../lib/sessionStore';
 import Lobby from '../components/Lobby';
 import VotingView from '../components/VotingView';
 import SessionFinished from '../components/SessionFinished';
 
-const SOCKET_URL =
-  import.meta.env.VITE_SOCKET_URL ||
-  `${window.location.protocol}//${window.location.hostname}:3001`;
+const warn = (err: unknown) => console.warn('[session]', err);
 
-function SessionPage() {
-  const { code } = useParams<{ code: string }>();
-  const socketRef = useRef<Socket | null>(null);
+function SessionView() {
+  const { code = '' } = useParams<{ code: string }>();
+  const [uid, setUid] = useState<string | null>(null);
   const [session, setSession] = useState<ClientSessionState | null>(null);
   const [name, setName] = useState('');
+  const [checking, setChecking] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
+  const [notFound, setNotFound] = useState(false);
   const [joined, setJoined] = useState(false);
+  const [connected, setConnected] = useState(true);
 
-  /* Read stored session data for auto-rejoin */
-  const storedRaw = sessionStorage.getItem('shc-session');
-  const stored: { code?: string; participantId?: string; name?: string; isFacilitator?: boolean } | null =
-    storedRaw ? JSON.parse(storedRaw) : null;
-
-  /* Connect socket and listen for state updates */
+  /* Sign in, check the session exists, and auto-rejoin if this browser already joined */
   useEffect(() => {
-    const sock = io(SOCKET_URL);
-    socketRef.current = sock;
-
-    sock.on('session-updated', (state: ClientSessionState) => {
-      setSession(state);
-    });
-
-    sock.on('connect', () => {
-      /* Auto-rejoin on reconnect when we have stored credentials */
-      if (stored && stored.code === code && stored.participantId) {
-        const rejoinName = stored.name || 'Participant';
-        setName(rejoinName);
-        sock.emit(
-          'join-session',
-          { code, name: rejoinName, participantId: stored.participantId },
-          (res: any) => {
-            if (res.success) {
-              sessionStorage.setItem(
-                'shc-session',
-                JSON.stringify({ ...stored, participantId: res.participantId }),
-              );
-              setSession(res.state);
-              setJoined(true);
-            }
-          },
-        );
+    let cancelled = false;
+    setChecking(true);
+    setNotFound(false);
+    if (!CODE_PATTERN.test(code)) {
+      setNotFound(true);
+      setError('Session not found');
+      setChecking(false);
+      return;
+    }
+    (async () => {
+      try {
+        const id = await ensureSignedIn();
+        if (!(await store.sessionExists(code))) {
+          if (!cancelled) {
+            setNotFound(true);
+            setError('Session not found');
+          }
+          return;
+        }
+        const existingName = await store.getParticipantName(code, id);
+        if (cancelled) return;
+        setUid(id);
+        if (existingName) {
+          setName(existingName);
+          setJoined(true);
+        }
+      } catch (err) {
+        if (!cancelled) setError(store.describeError(err));
+      } finally {
+        if (!cancelled) setChecking(false);
       }
-    });
-
+    })();
     return () => {
-      sock.disconnect();
+      cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code]);
 
+  /* Live session state once joined */
+  useEffect(() => {
+    if (!joined || !uid) return;
+    return store.subscribeSession(code, uid, setSession);
+  }, [joined, uid, code]);
+
+  /* Connection banner (only after Firebase is known to be configured) */
+  useEffect(() => {
+    if (!uid) return;
+    return store.subscribeConnection(setConnected);
+  }, [uid]);
+
+  /* Facilitator's tab auto-reveals when everyone has voted */
+  useEffect(() => {
+    if (session && shouldAutoReveal(session)) store.revealVotes(session).catch(warn);
+  }, [session]);
+
   /* ─── Join handler ─── */
-  const handleJoin = (e: React.FormEvent) => {
+  const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const sock = socketRef.current;
-    if (!name.trim() || !sock) return;
+    const trimmed = name.trim();
+    if (!trimmed || !uid) return;
     setIsJoining(true);
     setError('');
-
-    sock.emit(
-      'join-session',
-      { code, name: name.trim(), participantId: stored?.participantId },
-      (res: any) => {
-        setIsJoining(false);
-        if (res.success) {
-          sessionStorage.setItem(
-            'shc-session',
-            JSON.stringify({
-              code,
-              participantId: res.participantId,
-              name: name.trim(),
-              isFacilitator: stored?.code === code && stored?.isFacilitator,
-            }),
-          );
-          setSession(res.state);
-          setJoined(true);
-        } else {
-          setError(res.error || 'Failed to join session');
-        }
-      },
-    );
+    try {
+      await store.joinSession(code, uid, trimmed);
+      setJoined(true);
+    } catch (err) {
+      setError(store.describeError(err));
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   /* ─── Actions (memoised) ─── */
-  const emit = useCallback(
-    (ev: string, data?: any) => socketRef.current?.emit(ev, data),
-    [],
-  );
-
-  const handleStartVoting = useCallback(() => emit('start-voting'), [emit]);
+  const handleStartVoting = useCallback(() => {
+    if (session) store.startVoting(session).catch(warn);
+  }, [session]);
   const handleSubmitVote = useCallback(
-    (color: VoteColor, trend: VoteTrend) => emit('submit-vote', { color, trend }),
-    [emit],
+    (color: VoteColor, trend: VoteTrend) => {
+      if (session) store.submitVote(session, { color, trend }).catch(warn);
+    },
+    [session],
   );
-  const handleRevealVotes = useCallback(() => emit('reveal-votes'), [emit]);
-  const handleNextCategory = useCallback(() => emit('next-category'), [emit]);
+  const handleRevealVotes = useCallback(() => {
+    if (session) store.revealVotes(session).catch(warn);
+  }, [session]);
+  const handleNextCategory = useCallback(() => {
+    if (session) store.nextCategory(session).catch(warn);
+  }, [session]);
   const handleUpdateNotes = useCallback(
-    (categoryIndex: number, notes: string) =>
-      emit('update-notes', { categoryIndex, notes }),
-    [emit],
+    (categoryIndex: number, notes: string) => {
+      if (session) store.updateNotes(session, categoryIndex, notes).catch(warn);
+    },
+    [session],
   );
-  const handleEndSession = useCallback(() => emit('end-session'), [emit]);
+  const handleEndSession = useCallback(() => {
+    if (session) store.endSession(session).catch(warn);
+  }, [session]);
 
-  /* ─── Join form ─── */
+  /* ─── Checking / join form ─── */
+  if (checking) {
+    return (
+      <div className="loading">
+        <div className="spinner" />
+        <p>Connecting to session…</p>
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div className="join-page">
+        <div className="card join-card">
+          <h2>{error}</h2>
+          <Link to="/" className="btn btn-secondary">
+            Back to home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!joined) {
     return (
       <div className="join-page">
@@ -130,13 +161,15 @@ function SessionPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="input"
+              maxLength={50}
               autoFocus
               required
+              disabled={!uid}
             />
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={isJoining || !name.trim()}
+              disabled={!uid || isJoining || !name.trim()}
             >
               {isJoining ? 'Joining…' : 'Join'}
             </button>
@@ -157,13 +190,14 @@ function SessionPage() {
   }
 
   /* ─── Session views ─── */
+  let view: JSX.Element;
   switch (session.phase) {
     case 'lobby':
-      return <Lobby session={session} onStartVoting={handleStartVoting} />;
-
+      view = <Lobby session={session} onStartVoting={handleStartVoting} />;
+      break;
     case 'voting':
     case 'revealed':
-      return (
+      view = (
         <VotingView
           session={session}
           onSubmitVote={handleSubmitVote}
@@ -173,15 +207,26 @@ function SessionPage() {
           onEndSession={handleEndSession}
         />
       );
-
+      break;
     case 'finished':
-      return <SessionFinished session={session} />;
-
+      view = <SessionFinished session={session} />;
+      break;
     default:
-      return <div>Unknown session state</div>;
+      view = <div>Unknown session state</div>;
   }
+
+  return (
+    <>
+      {!connected && <div className="connection-banner">Reconnecting…</div>}
+      {view}
+    </>
+  );
+}
+
+/* Remount per code so navigating between sessions resets all state */
+function SessionPage() {
+  const { code = '' } = useParams<{ code: string }>();
+  return <SessionView key={code} />;
 }
 
 export default SessionPage;
-
-

@@ -240,6 +240,20 @@ body {
   font-size: 0.9rem;
 }
 
+.connection-banner {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--color-orange-light);
+  color: var(--color-orange);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    HOME PAGE
    ═══════════════════════════════════════════════════════════════ */
