@@ -39,6 +39,9 @@ export interface ClientSessionState {
   totalParticipants: number;
   hasVoted: boolean;
   isFacilitator: boolean;
+  /** Current user's participant id (Firebase anonymous uid) */
+  myId: string;
+  facilitatorId: string;
   currentResults: Vote[] | null;
   allResults: CategoryResult[];
   notes: Record<number, string>;
