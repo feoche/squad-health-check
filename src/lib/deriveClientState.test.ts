@@ -92,13 +92,22 @@ describe('deriveClientState', () => {
     expect(s.notes).toEqual({ 1: 'about learning', 2: 'about teamwork' });
   });
 
-  it('returns an empty result list when revealed with no votes', () => {
+  it('returns an empty result list when revealed with a loaded, empty round', () => {
     const s = deriveClientState(
       'ABC234',
-      raw({ state: { phase: 'revealed', currentCategoryIndex: 0 } }),
+      raw({ state: { phase: 'revealed', currentCategoryIndex: 0 }, votes: { '0': {} } }),
       'fac',
     )!;
     expect(s.currentResults).toEqual([]);
+  });
+
+  it('returns null results when revealed but votes have not loaded', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({ state: { phase: 'revealed', currentCategoryIndex: 0 }, votes: null }),
+      'fac',
+    )!;
+    expect(s.currentResults).toBeNull();
   });
 
   it('builds allResults with notes for every category when finished', () => {

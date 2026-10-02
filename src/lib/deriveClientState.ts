@@ -79,7 +79,10 @@ export function deriveClientState(
     isFacilitator: facilitatorId === myId,
     myId,
     facilitatorId,
-    currentResults: phase === 'revealed' ? votesAt(raw, currentCategoryIndex) : null,
+    currentResults:
+      phase === 'revealed' && at(raw.votes, currentCategoryIndex) !== undefined
+        ? votesAt(raw, currentCategoryIndex)
+        : null,
     allResults,
     notes,
   };
