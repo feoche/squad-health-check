@@ -110,10 +110,6 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
-.pre-wrap {
-  white-space: pre-wrap;
-}
-
 .loading {
   padding: calc(var(--ods-theme-padding-vertical) * 8) 0;
 }
