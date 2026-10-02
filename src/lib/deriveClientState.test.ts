@@ -177,6 +177,27 @@ describe('deriveClientState', () => {
       2: [{ color: 'green', trend: 'up' }],
     });
   });
+
+  describe('facilitatorNotesLoaded', () => {
+    it('is false for the facilitator until the notes snapshot arrived', () => {
+      const s = deriveClientState('ABC234', raw({ facilitator: undefined }), 'fac')!;
+      expect(s.facilitatorNotesLoaded).toBe(false);
+    });
+
+    it('is true for the facilitator once the notes snapshot arrived empty', () => {
+      const s = deriveClientState('ABC234', raw({ facilitator: null }), 'fac')!;
+      expect(s.facilitatorNotesLoaded).toBe(true);
+    });
+
+    it('is always false for participants', () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({ facilitator: { '0': { notes: 'x' } } }),
+        'bob',
+      )!;
+      expect(s.facilitatorNotesLoaded).toBe(false);
+    });
+  });
 });
 
 describe('readableVoteIndexes', () => {
@@ -248,3 +269,4 @@ describe('shouldAutoReveal', () => {
     expect(shouldAutoReveal({ ...base, phase: 'revealed' })).toBe(false);
   });
 });
+

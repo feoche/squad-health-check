@@ -23,6 +23,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     currentResults: null,
     allResults,
     facilitatorNotes: {},
+    facilitatorNotesLoaded: true,
     categoryResults: {},
   };
 }

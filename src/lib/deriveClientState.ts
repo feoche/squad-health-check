@@ -26,11 +26,11 @@ export interface RawSession {
   voters: Indexed<Record<string, true>> | null;
   votes: Indexed<Record<string, Vote>> | null;
   /** Only listened to by the facilitator — the rules deny everyone else */
-  facilitator: Indexed<Partial<FacilitatorNote>> | null;
+  facilitator: Indexed<Partial<FacilitatorNote>> | null | undefined;
   closed: Indexed<true> | null;
 }
 
-function at<T>(coll: Indexed<T> | null, idx: number): T | undefined {
+function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
   if (!coll) return undefined;
   return (coll as Record<string, T | null | undefined>)[String(idx)] ?? undefined;
 }
@@ -100,6 +100,7 @@ export function deriveClientState(
         : null,
     allResults,
     facilitatorNotes,
+    facilitatorNotesLoaded: isFacilitator && raw.facilitator !== undefined,
     categoryResults,
   };
 }

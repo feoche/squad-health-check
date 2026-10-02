@@ -98,6 +98,7 @@ function FacilitatorNotesView() {
       />
     );
   }
+  if (!session.facilitatorNotesLoaded) return <Connecting />;
 
   const { phase, currentCategoryIndex: current, categories } = session;
   const phaseBadge = PHASE_BADGE[phase];

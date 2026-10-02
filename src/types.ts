@@ -53,6 +53,8 @@ export interface ClientSessionState {
   allResults: CategoryResult[];
   /** Facilitator-only notes per category index (empty for participants) */
   facilitatorNotes: Record<number, FacilitatorNote>;
+  /** True once the facilitator's notes have loaded (always false for participants) */
+  facilitatorNotesLoaded: boolean;
   /** Votes of every category whose votes this user has loaded, by index */
   categoryResults: Record<number, Vote[]>;
 }

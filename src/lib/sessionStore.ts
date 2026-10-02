@@ -83,7 +83,7 @@ export function subscribeSession(
     participants: null,
     voters: null,
     votes: {},
-    facilitator: null,
+    facilitator: undefined,
     closed: null,
   };
   const unsubs: Unsubscribe[] = [];
