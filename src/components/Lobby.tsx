@@ -14,8 +14,13 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { ClientSessionState } from '../types';
 import OpenNotesButton from './OpenNotesButton';
+
+// Always share the published app, even from a local dev server, so the link
+// and QR code work for participants on other devices.
+const PUBLIC_APP_URL = 'https://feoche.github.io/squad-health-check/';
 
 interface Props {
   session: ClientSessionState;
@@ -24,7 +29,7 @@ interface Props {
 
 function Lobby({ session, onStartVoting }: Props) {
   const myId = session.myId;
-  const shareUrl = `${window.location.origin}${window.location.pathname}#/session/${session.code}`;
+  const shareUrl = `${PUBLIC_APP_URL}#/session/${session.code}`;
   const count = session.participants.length;
 
   return (
@@ -37,6 +42,17 @@ function Lobby({ session, onStartVoting }: Props) {
           <Text preset={TEXT_PRESET.heading1} as="p" className="session-code">
             {session.code}
           </Text>
+        </div>
+
+        <div className="stack stack-center">
+          <QRCodeSVG
+            value={shareUrl}
+            size={192}
+            marginSize={2}
+            className="session-qr"
+            title="Scan to join the session"
+          />
+          <Text preset={TEXT_PRESET.caption}>Scan to join</Text>
         </div>
 
         <FormField>

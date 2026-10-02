@@ -61,8 +61,8 @@ export function deriveClientState(
   if (isFacilitator) {
     categories.forEach((_, i) => {
       const n = at(raw.facilitator, i);
-      if (n?.notes || n?.takeaway) {
-        facilitatorNotes[i] = { notes: n.notes ?? '', takeaway: n.takeaway ?? '' };
+      if (n?.notes) {
+        facilitatorNotes[i] = { notes: n.notes };
       }
     });
   }
@@ -78,7 +78,6 @@ export function deriveClientState(
           categoryIndex: i,
           votes: votesAt(raw, i),
           notes: facilitatorNotes[i]?.notes ?? '',
-          takeaway: facilitatorNotes[i]?.takeaway ?? '',
         }))
       : [];
 

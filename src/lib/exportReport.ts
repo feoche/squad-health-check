@@ -76,9 +76,6 @@ export function generateMarkdown(session: ClientSessionState, date = new Date())
     md += `**Votes (${result.votes.length}):** 🟢 ${cc.green} | 🟠 ${cc.orange} | 🔴 ${cc.red}  \n`;
     md += `**Trend:** ↗ ${tc.up} | → ${tc.stable} | ↘ ${tc.down}\n\n`;
 
-    if (result.takeaway) {
-      md += `**Takeaway:** ${result.takeaway}\n\n`;
-    }
     if (result.notes) {
       md += `**Discussion Notes:**\n\n${result.notes}\n\n`;
     }
@@ -161,11 +158,11 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
     },
   });
 
-  /* Takeaways and notes */
+  /* Notes */
   let y = (doc as any).lastAutoTable.finalY + 12;
 
   for (const result of session.allResults) {
-    if (!result.notes && !result.takeaway) continue;
+    if (!result.notes) continue;
     const cat = session.categories[result.categoryIndex];
 
     if (y > 260) {
@@ -178,20 +175,10 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
     doc.text(cat.name, 14, y);
     y += 6;
     doc.setFontSize(9);
-
-    if (result.takeaway) {
-      const lines = doc.splitTextToSize(`Takeaway: ${result.takeaway}`, 180);
-      doc.text(lines, 14, y);
-      y += lines.length * 4.5 + 2;
-    }
-
     doc.setFont('helvetica', 'normal');
-    if (result.notes) {
-      const lines = doc.splitTextToSize(result.notes, 180);
-      doc.text(lines, 14, y);
-      y += lines.length * 4.5;
-    }
-    y += 10;
+    const lines = doc.splitTextToSize(result.notes, 180);
+    doc.text(lines, 14, y);
+    y += lines.length * 4.5 + 10;
   }
 
   doc.save(`squad-health-check-${session.code}.pdf`);

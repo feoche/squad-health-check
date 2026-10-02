@@ -32,31 +32,27 @@ const empty = (categoryIndex: number): CategoryResult => ({
   categoryIndex,
   votes: [],
   notes: '',
-  takeaway: '',
 });
 
 describe('generateMarkdown', () => {
-  it('puts the takeaway before the discussion notes', () => {
+  it('includes the discussion notes', () => {
     const md = generateMarkdown(
       finished([
         {
           categoryIndex: 0,
           votes: [{ color: 'green', trend: 'up' }],
           notes: 'we laughed a lot',
-          takeaway: 'keep Friday demos',
         },
         empty(1),
       ]),
     );
     const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Learning'));
-    expect(fun).toContain('**Takeaway:** keep Friday demos');
+    expect(fun).toContain('**Discussion Notes:**');
     expect(fun).toContain('we laughed a lot');
-    expect(fun.indexOf('**Takeaway:**')).toBeLessThan(fun.indexOf('**Discussion Notes:**'));
   });
 
-  it('omits takeaway and notes when empty', () => {
+  it('omits notes when empty', () => {
     const md = generateMarkdown(finished([empty(0), empty(1)]));
-    expect(md).not.toContain('Takeaway');
     expect(md).not.toContain('Discussion Notes');
   });
 

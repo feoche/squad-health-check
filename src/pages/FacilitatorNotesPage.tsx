@@ -28,7 +28,7 @@ import VoteSummary from '../components/VoteSummary';
 
 const warn = (err: unknown) => console.warn('[notes]', err);
 
-const EMPTY_NOTE: FacilitatorNote = { notes: '', takeaway: '' };
+const EMPTY_NOTE: FacilitatorNote = { notes: '' };
 
 const PHASE_BADGE: Record<SessionPhase, { label: string; color: BadgeColor }> = {
   lobby: { label: 'Lobby', color: BADGE_COLOR.neutral },

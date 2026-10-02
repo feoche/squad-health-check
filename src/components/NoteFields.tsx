@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FormField, FormFieldLabel, Input, Textarea } from '@ovhcloud/ods-react';
+import { FormField, FormFieldLabel, Textarea } from '@ovhcloud/ods-react';
 import { FacilitatorNote } from '../types';
 import { NoteField } from '../lib/sessionStore';
 
@@ -37,7 +37,6 @@ interface Props {
 
 function NoteFields({ note, onChange }: Props) {
   const notes = useSyncedValue(note.notes);
-  const takeaway = useSyncedValue(note.takeaway);
 
   return (
     <div className="stack">
@@ -54,20 +53,6 @@ function NoteFields({ note, onChange }: Props) {
           }}
           rows={5}
           maxLength={5000}
-        />
-      </FormField>
-      <FormField>
-        <FormFieldLabel>Takeaway</FormFieldLabel>
-        <Input
-          placeholder="One-line conclusion…"
-          value={takeaway.value}
-          onFocus={takeaway.onFocus}
-          onBlur={takeaway.onBlur}
-          onChange={(e) => {
-            takeaway.setValue(e.target.value);
-            onChange('takeaway', e.target.value);
-          }}
-          maxLength={300}
         />
       </FormField>
     </div>
