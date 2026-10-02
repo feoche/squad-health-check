@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { ClientSessionState, VoteColor, VoteTrend } from '../types';
 import { ensureSignedIn } from '../lib/firebase';
+import { CODE_PATTERN } from '../lib/sessionCode';
 import { shouldAutoReveal } from '../lib/deriveClientState';
 import * as store from '../lib/sessionStore';
 import Lobby from '../components/Lobby';
@@ -10,7 +11,7 @@ import SessionFinished from '../components/SessionFinished';
 
 const warn = (err: unknown) => console.warn('[session]', err);
 
-function SessionPage() {
+function SessionView() {
   const { code = '' } = useParams<{ code: string }>();
   const [uid, setUid] = useState<string | null>(null);
   const [session, setSession] = useState<ClientSessionState | null>(null);
@@ -18,6 +19,7 @@ function SessionPage() {
   const [checking, setChecking] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState('');
+  const [notFound, setNotFound] = useState(false);
   const [joined, setJoined] = useState(false);
   const [connected, setConnected] = useState(true);
 
@@ -25,11 +27,21 @@ function SessionPage() {
   useEffect(() => {
     let cancelled = false;
     setChecking(true);
+    setNotFound(false);
+    if (!CODE_PATTERN.test(code)) {
+      setNotFound(true);
+      setError('Session not found');
+      setChecking(false);
+      return;
+    }
     (async () => {
       try {
         const id = await ensureSignedIn();
         if (!(await store.sessionExists(code))) {
-          if (!cancelled) setError('Session not found');
+          if (!cancelled) {
+            setNotFound(true);
+            setError('Session not found');
+          }
           return;
         }
         const existingName = await store.getParticipantName(code, id);
@@ -120,6 +132,19 @@ function SessionPage() {
     );
   }
 
+  if (notFound) {
+    return (
+      <div className="join-page">
+        <div className="card join-card">
+          <h2>{error}</h2>
+          <Link to="/" className="btn btn-secondary">
+            Back to home
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   if (!joined) {
     return (
       <div className="join-page">
@@ -196,6 +221,12 @@ function SessionPage() {
       {view}
     </>
   );
+}
+
+/* Remount per code so navigating between sessions resets all state */
+function SessionPage() {
+  const { code = '' } = useParams<{ code: string }>();
+  return <SessionView key={code} />;
 }
 
 export default SessionPage;
