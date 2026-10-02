@@ -9,8 +9,8 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 - **Customisable categories** — Pre-loaded with the classic Spotify categories, fully editable
 - **Facilitator controls** — One person controls the flow (reveal, next category, end)
 - **Auto-reveal** — Votes are revealed when everyone has voted (from the facilitator's open tab)
-- **Private facilitator notes** — Notes and a one-line takeaway per category, in a separate window that stays out of the screen share; only the facilitator can read them (enforced by database rules)
-- **Recap export** — The facilitator downloads results, takeaways and notes as **Markdown** or **PDF** at the end
+- **Private facilitator notes** — Notes per category, in a separate window that stays out of the screen share; only the facilitator can read them (enforced by database rules)
+- **Recap export** — The facilitator downloads results and notes as **Markdown** or **PDF** at the end
 
 ## Firebase setup (once, ~10 min)
 
@@ -44,7 +44,7 @@ npm test        # unit tests
 3. For each category:
    - Everyone votes a **color** (🟢 happy / 🟠 issues / 🔴 needs fixing) and a **trend** (↗ / → / ↘)
    - Votes are revealed when everyone has voted (or the facilitator forces reveal)
-   - Team discusses; the facilitator writes notes and a takeaway in the **Facilitator notes** window (share the session window, not this one)
+   - Team discusses; the facilitator writes notes in the **Facilitator notes** window (share the session window, not this one)
    - Facilitator clicks "Next Category"
 4. At the end, everyone sees the vote recap; the facilitator **downloads the report** (with notes) from the notes window
 
@@ -63,9 +63,9 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 3. A: Start Voting. B: vote → A shows "1 / 2 votes received".
 4. During voting, Firebase console → Realtime Database → Rules → **Rules Playground**: type *read*, location `/sessions/<CODE>/votes/<current index>`, Authenticated → **Run** → *Denied*. A's UI shows no results yet. Also try *write* `true` at `/sessions/<CODE>/closed/<current index>` as A's UID → *Denied*.
 5. A: vote → round auto-reveals on both sides with 2 votes.
-6. A: click **Facilitator notes** → a separate window "Facilitator notes — <CODE>" opens; type notes and a takeaway → B's screen shows no notes. Rules Playground: *read* `/sessions/<CODE>/facilitator`, Authenticated with B's UID → *Denied*.
+6. A: click **Facilitator notes** → a separate window "Facilitator notes — <CODE>" opens; type notes → B's screen shows no notes. Rules Playground: *read* `/sessions/<CODE>/facilitator`, Authenticated with B's UID → *Denied*.
 7. B: reload → B lands back in the session without re-entering a name; same for A (still facilitator).
-8. A: Next Category → the previous category appears in the notes window's summary with its results, even after reloading the notes window. Continue … Finish Session → both see the vote recap without notes; Markdown and PDF downloads (with takeaways and notes) work from A's notes window.
+8. A: Next Category → the previous category appears in the notes window's summary with its results, even after reloading the notes window. Continue … Finish Session → both see the vote recap without notes; Markdown and PDF downloads (with notes) work from A's notes window.
 9. Open `…/#/session/ZZZZZZ` → "Session not found".
 10. B: open `…/#/session/<CODE>/notes` → "Only the facilitator can open notes"; B's console shows no `PERMISSION_DENIED` for `facilitator` or `closed`.
 
