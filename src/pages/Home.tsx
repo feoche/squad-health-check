@@ -19,29 +19,29 @@ import { t } from '../lib/i18n';
 
 function Home() {
   const [sessionCode, setSessionCode] = useState('');
-  const [codeError, setCodeError] = useState('');
+  const [codeMissing, setCodeMissing] = useState(false);
   const navigate = useNavigate();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     const code = sessionCode.trim().toUpperCase();
     if (!code) {
-      setCodeError(t.home.codeMissing);
+      setCodeMissing(true);
       return;
     }
-    setCodeError('');
+    setCodeMissing(false);
     navigate(`/session/${code}`);
   };
 
   return (
-    <div className="page page-narrow">
-      <div className="stack stack-center">
+    <div className="page page-narrow home">
+      <div className="stack stack-center home__intro">
         <Text preset={TEXT_PRESET.heading2}>{t.home.welcome}</Text>
         <Text preset={TEXT_PRESET.paragraph}>{t.home.intro}</Text>
       </div>
 
-      <div className="grid-2">
-        <Card className="card-body">
+      <div className="grid-2 home__actions">
+        <Card className="card-body home__create">
           <Text preset={TEXT_PRESET.heading4}>
             <Icon name={ICON_NAME.plus} /> {t.home.createTitle}
           </Text>
@@ -49,12 +49,12 @@ function Home() {
           <Button onClick={() => navigate('/create')}>{t.home.createButton}</Button>
         </Card>
 
-        <Card className="card-body">
+        <Card className="card-body home__join">
           <Text preset={TEXT_PRESET.heading4}>
             <Icon name={ICON_NAME.chainLink} /> {t.home.joinTitle}
           </Text>
-          <form className="stack" onSubmit={handleJoin} noValidate>
-            <FormField invalid={!!codeError}>
+          <form className="stack home__join-form" onSubmit={handleJoin} noValidate>
+            <FormField invalid={codeMissing}>
               <FormFieldLabel>
                 {t.home.sessionCode}
                 <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
@@ -64,11 +64,11 @@ function Home() {
                 value={sessionCode}
                 onChange={(e) => {
                   setSessionCode(e.target.value.toUpperCase());
-                  if (codeError) setCodeError('');
+                  setCodeMissing(false);
                 }}
                 maxLength={6}
               />
-              <FormFieldError>{codeError}</FormFieldError>
+              <FormFieldError>{t.home.codeMissing}</FormFieldError>
             </FormField>
             <Button
               type="submit"
@@ -81,11 +81,11 @@ function Home() {
         </Card>
       </div>
 
-      <Card className="card-body">
+      <Card className="card-body home__how-it-works">
         <Text preset={TEXT_PRESET.heading4}>
           <Icon name={ICON_NAME.list} /> {t.home.howItWorks}
         </Text>
-        <ol className="steps">
+        <ol className="steps home__steps">
           {t.home.steps.map((step) => (
             <li key={step}>
               <Text preset={TEXT_PRESET.paragraph}>{step}</Text>

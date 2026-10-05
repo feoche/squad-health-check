@@ -13,7 +13,7 @@ import { t } from '../lib/i18n';
 
 export function Connecting() {
   return (
-    <div className="stack stack-center loading">
+    <div className="stack stack-center connecting">
       <Spinner size={SPINNER_SIZE.lg} />
       <Text preset={TEXT_PRESET.paragraph}>{t.connecting}</Text>
     </div>
@@ -28,10 +28,10 @@ interface NoticeProps {
 
 export function SessionNotice({ title, backTo, backLabel }: NoticeProps) {
   return (
-    <div className="page page-narrow">
-      <Card className="card-body stack-center">
+    <div className="page page-narrow session-notice">
+      <Card className="card-body stack-center session-notice__card">
         <Text preset={TEXT_PRESET.heading2}>{title}</Text>
-        <Link as={RouterLink} to={backTo}>
+        <Link className="session-notice__back" as={RouterLink} to={backTo}>
           <Icon name={ICON_NAME.arrowLeft} />
           {backLabel}
         </Link>

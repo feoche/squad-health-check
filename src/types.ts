@@ -19,6 +19,12 @@ export interface Vote {
   trend: VoteTrend;
 }
 
+/** A voter's private copy of their vote, which lets them edit it while the round is open */
+export interface Ballot extends Vote {
+  /** Key of the anonymous vote under votes/{index} */
+  key: string;
+}
+
 export interface CategoryResult {
   categoryIndex: number;
   votes: Vote[];
@@ -54,6 +60,8 @@ export interface ClientSessionState {
   /** Ids of the eligible voters who voted in the current round, in participant order */
   voterIds: string[];
   hasVoted: boolean;
+  /** The current user's vote in the current round, once their ballot has loaded */
+  myVote: Vote | null;
   isFacilitator: boolean;
   /** Current user's participant id (Firebase anonymous uid) */
   myId: string;

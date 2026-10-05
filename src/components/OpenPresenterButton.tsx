@@ -18,7 +18,7 @@ function OpenPresenterButton({ code, className }: { code: string; className?: st
 
   return (
     <Button
-      className={className}
+      className={className ? `open-presenter-button ${className}` : 'open-presenter-button'}
       size={BUTTON_SIZE.sm}
       variant={BUTTON_VARIANT.ghost}
       onClick={open}

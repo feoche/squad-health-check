@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { FormField, FormFieldLabel, Textarea } from '@ovhcloud/ods-react';
+import { FormField, FormFieldLabel, Text, TEXT_PRESET, Textarea } from '@ovhcloud/ods-react';
 import { FacilitatorNote } from '../types';
 import { NoteField } from '../lib/sessionStore';
 import { t } from '../lib/i18n';
@@ -43,9 +43,12 @@ function NoteFields({ note, onChange }: Props) {
 
   return (
     <div className="stack note-fields">
-      <FormField>
-        <FormFieldLabel>{t.notes.discussion}</FormFieldLabel>
+      <FormField className="note-fields__field">
+        <FormFieldLabel>
+          <Text preset={TEXT_PRESET.heading4} as="span">{t.notes.discussion}</Text>
+        </FormFieldLabel>
         <Textarea
+          className="note-fields__textarea"
           placeholder={t.notes.placeholder}
           value={notes.value}
           onFocus={notes.onFocus}

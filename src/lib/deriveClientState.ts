@@ -1,4 +1,5 @@
 import {
+  Ballot,
   Category,
   CategoryResult,
   ClientSessionState,
@@ -30,6 +31,8 @@ export interface RawSession {
   /** Only listened to by the facilitator — the rules deny everyone else */
   facilitator: Indexed<Partial<FacilitatorNote>> | null | undefined;
   closed: Indexed<true> | null;
+  /** The current user's own ballots, by category index */
+  ballots: Record<string, Ballot | null>;
 }
 
 export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
@@ -39,6 +42,10 @@ export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | und
 
 function votesAt(raw: RawSession, idx: number): Vote[] {
   return Object.values(at(raw.votes, idx) ?? {});
+}
+
+function myVote(ballot: Ballot | null | undefined): Vote | null {
+  return ballot ? { color: ballot.color, trend: ballot.trend } : null;
 }
 
 export function deriveClientState(
@@ -101,6 +108,7 @@ export function deriveClientState(
     eligibleVoters,
     voterIds,
     hasVoted: Boolean(roundVoters[myId]),
+    myVote: myVote(raw.ballots[String(currentCategoryIndex)]),
     isFacilitator,
     myId,
     facilitatorId,

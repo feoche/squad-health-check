@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Badge,
+  BUTTON_VARIANT,
   Button,
   FormField,
   FormFieldError,
@@ -13,20 +14,26 @@ import {
   Text,
   TEXT_PRESET,
   Tile,
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
 } from '@ovhcloud/ods-react';
-import { Category, VoteColor, VoteTrend } from '../types';
+import { Category, Vote, VoteColor, VoteTrend } from '../types';
 import { COLOR_OPTIONS, TREND_OPTIONS_WORST_FIRST, colorDescription } from './voteOptions';
 import { t } from '../lib/i18n';
 
 interface Props {
   category: Category;
   onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
+  /** The vote being edited: its picks are preselected */
+  initialVote?: Vote | null;
+  onCancel?: () => void;
 }
 
 /** The vote form. Render it with a key per category so picks never carry over. */
-function VotingPanel({ category, onSubmitVote }: Props) {
-  const [selectedColor, setSelectedColor] = useState<VoteColor | null>(null);
-  const [selectedTrend, setSelectedTrend] = useState<VoteTrend | null>(null);
+function VotingPanel({ category, onSubmitVote, initialVote, onCancel }: Props) {
+  const [selectedColor, setSelectedColor] = useState<VoteColor | null>(initialVote?.color ?? null);
+  const [selectedTrend, setSelectedTrend] = useState<VoteTrend | null>(initialVote?.trend ?? null);
   const [submitted, setSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,24 +48,24 @@ function VotingPanel({ category, onSubmitVote }: Props) {
   const trendMissing = submitted && !selectedTrend;
 
   return (
-    <form className="stack" onSubmit={handleSubmit} noValidate>
-      <FormField invalid={colorMissing}>
-        <FormFieldLabel className="vote-field-label">{t.voting.healthColor}</FormFieldLabel>
+    <form className="stack voting-panel" onSubmit={handleSubmit} noValidate>
+      <FormField className="voting-panel__field voting-panel__field--color" invalid={colorMissing}>
+        <FormFieldLabel className="voting-panel__field-label">{t.voting.healthColor}</FormFieldLabel>
         <RadioGroup
-          className="tile-options"
+          className="voting-panel__options voting-panel__options--color"
           orientation="horizontal"
           value={selectedColor ?? undefined}
           onValueChange={({ value }) => setSelectedColor(value as VoteColor)}
         >
           {COLOR_OPTIONS.map((option) => (
             <Tile key={option.value} selected={selectedColor === option.value}>
-              <Radio className="tile-radio-root" value={option.value}>
-                <div className="tile-radio">
+              <Radio className="voting-panel__radio" value={option.value}>
+                <div className="voting-panel__radio-body">
                   <RadioControl />
                   <RadioLabel>
                     <Badge color={option.badge}>{option.label}</Badge>
                   </RadioLabel>
-                  <Text className="tile-radio-description" preset={TEXT_PRESET.paragraph}>
+                  <Text className="voting-panel__description" preset={TEXT_PRESET.paragraph}>
                     {colorDescription(category, option)}
                   </Text>
                 </div>
@@ -69,33 +76,43 @@ function VotingPanel({ category, onSubmitVote }: Props) {
         <FormFieldError>{t.voting.pickColor}</FormFieldError>
       </FormField>
 
-      <FormField invalid={trendMissing}>
-        <FormFieldLabel className="vote-field-label">{t.voting.trend}</FormFieldLabel>
+      <FormField className="voting-panel__field voting-panel__field--trend" invalid={trendMissing}>
+        <FormFieldLabel className="voting-panel__field-label">{t.voting.trend}</FormFieldLabel>
         <RadioGroup
-          className="tile-options tile-options-trend"
+          className="voting-panel__options voting-panel__options--trend"
           orientation="horizontal"
           value={selectedTrend ?? undefined}
           onValueChange={({ value }) => setSelectedTrend(value as VoteTrend)}
         >
           {TREND_OPTIONS_WORST_FIRST.map(({ value, label, icon }) => (
-            <Tile key={value} selected={selectedTrend === value}>
-              <Radio className="tile-radio-root" value={value}>
-                <div className="tile-radio">
-                  <RadioControl />
-                  <RadioLabel>
-                    <Icon name={icon} />
-                    <span>{label}</span>
-                  </RadioLabel>
-                </div>
-              </Radio>
-            </Tile>
+            <Tooltip key={value}>
+              <TooltipTrigger asChild>
+                <Tile selected={selectedTrend === value}>
+                  <Radio className="voting-panel__radio" value={value}>
+                    <div className="voting-panel__radio-body">
+                      <RadioControl />
+                      <RadioLabel>
+                        <Icon name={icon} />
+                        <span className="voting-panel__trend-caption visually-hidden">{label}</span>
+                      </RadioLabel>
+                    </div>
+                  </Radio>
+                </Tile>
+              </TooltipTrigger>
+              <TooltipContent>{label}</TooltipContent>
+            </Tooltip>
           ))}
         </RadioGroup>
         <FormFieldError>{t.voting.pickTrend}</FormFieldError>
       </FormField>
 
-      <div className="actions vote-submit">
-        <Button type="submit">{t.voting.submit}</Button>
+      <div className="actions voting-panel__submit">
+        {onCancel && (
+          <Button type="button" variant={BUTTON_VARIANT.outline} onClick={onCancel}>
+            {t.voting.cancelEdit}
+          </Button>
+        )}
+        <Button type="submit">{initialVote ? t.voting.update : t.voting.submit}</Button>
       </div>
     </form>
   );

@@ -8,19 +8,23 @@ import { t } from '../lib/i18n';
 function VoteSummary({ votes }: { votes: Vote[] }) {
   const color = COLOR_OPTIONS.find((o) => o.value === dominantColor(votes));
   const trend = TREND_OPTIONS.find((o) => o.value === dominantTrend(votes));
-  if (!color || !trend) return <Text preset={TEXT_PRESET.caption}>{t.results.noVotes}</Text>;
+  if (!color || !trend) return (
+      <Text preset={TEXT_PRESET.caption} className="vote-summary vote-summary--empty">
+        {t.results.noVotes}
+      </Text>
+    );;
 
   const colors = countColors(votes);
   const trends = countTrends(votes);
 
   return (
-    <div className="inline wrap">
+    <div className="inline wrap vote-summary">
       <Text preset={TEXT_PRESET.label}>{t.results.mostly}</Text>
-      <Badge color={color.badge}>{color.label}</Badge>
-      <Text preset={TEXT_PRESET.span}>
+      <Badge className="vote-summary__color" color={color.badge}>{color.label}</Badge>
+      <Text preset={TEXT_PRESET.span} className="vote-summary__trend">
         <Icon name={trend.icon} /> {trend.label}
       </Text>
-      <Text preset={TEXT_PRESET.caption}>
+      <Text preset={TEXT_PRESET.caption} className="vote-summary__counts">
         {COLOR_OPTIONS.map((o) => `${o.label} ${colors[o.value]}`).join(' · ')}
         {' — '}
         {TREND_OPTIONS.map((o) => `${o.label} ${trends[o.value]}`).join(' · ')}

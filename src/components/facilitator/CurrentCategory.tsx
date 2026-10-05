@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState, VoteColor, VoteTrend } from '../../types';
 import { t } from '../../lib/i18n';
@@ -17,20 +17,32 @@ interface Props {
 function CurrentCategory({ session, onSubmitVote, children }: Props) {
   const { categories, currentCategoryIndex: index } = session;
   const voting = session.phase === 'voting' && session.facilitatorVotes;
+  /* Tied to the round, so moving on to the next category ends the edit */
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const isEditing = session.hasVoted && session.myVote !== null && editingIndex === index;
 
   return (
-    <Card className="card-body">
-      <Text preset={TEXT_PRESET.heading3}>
+    <Card className="card-body current-category">
+      <Text preset={TEXT_PRESET.heading3} className="current-category__title">
         {localizeCategory(categories[index]).title}{' '}
-        <span className="category-position">
+        <span className="current-category__position">
           ({t.categoryPosition(index + 1, categories.length)})
         </span>
       </Text>
       {voting &&
-        (session.hasVoted ? (
-          <VoteSubmitted />
+        (session.hasVoted && !isEditing ? (
+          <VoteSubmitted onEdit={session.myVote ? () => setEditingIndex(index) : undefined} />
         ) : (
-          <VotingPanel key={index} category={categories[index]} onSubmitVote={onSubmitVote} />
+          <VotingPanel
+            key={`${index}-${isEditing}`}
+            category={categories[index]}
+            initialVote={isEditing ? session.myVote : null}
+            onCancel={isEditing ? () => setEditingIndex(null) : undefined}
+            onSubmitVote={(color, trend) => {
+              setEditingIndex(null);
+              onSubmitVote(color, trend);
+            }}
+          />
         ))}
       {children}
     </Card>

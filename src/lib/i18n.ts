@@ -5,9 +5,54 @@ export type Lang = 'en' | 'fr';
 export const detectLang = (locale: string): Lang =>
   locale.toLowerCase().startsWith('fr') ? 'fr' : 'en';
 
-export const LANG: Lang = detectLang(
-  typeof navigator !== 'undefined' ? navigator.language : 'en',
-);
+const LANG_STORAGE_KEY = 'lang';
+
+/** Language picked with the navbar switch, if any (storage may be missing or blocked) */
+function storedLang(): Lang | null {
+  try {
+    const value = localStorage.getItem(LANG_STORAGE_KEY);
+    return value === 'en' || value === 'fr' ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Current UI language; a live binding, so readers always see the latest switch */
+export let LANG: Lang =
+  storedLang() ?? detectLang(typeof navigator !== 'undefined' ? navigator.language : 'en');
+
+const listeners = new Set<() => void>();
+
+/** Notifies on every language switch (see useLang) */
+export function subscribeLang(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
+function applyLang(lang: Lang) {
+  if (lang === LANG) return;
+  LANG = lang;
+  t = messagesFor(lang);
+  if (typeof document !== 'undefined') document.documentElement.lang = lang;
+  listeners.forEach((listener) => listener());
+}
+
+/** Switches the UI language in place and remembers it for next visits */
+export function switchLang(lang: Lang) {
+  try {
+    localStorage.setItem(LANG_STORAGE_KEY, lang);
+  } catch {
+    /* Storage blocked: the switch still applies until the page is reloaded */
+  }
+  applyLang(lang);
+}
+
+// Other windows of the app (the presenter screen) follow the switch
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === LANG_STORAGE_KEY) applyLang(storedLang() ?? LANG);
+  });
+}
 
 const plural = (n: number, word: string) => `${n} ${word}${n !== 1 ? 's' : ''}`;
 
@@ -25,13 +70,18 @@ const en = {
   sessionNotFound: 'Session not found',
   connecting: 'Connecting to session…',
   reconnecting: 'Reconnecting…',
+  switchLang: 'Passer en français',
 
   colors: { green: 'Green', orange: 'Orange', red: 'Red' },
-  colorFallbacks: { green: 'Happy with it', orange: 'Issues to handle', red: 'Needs improvement' },
+  colorFallbacks: {
+    green: 'All good: we are happy with how things are.',
+    orange: 'Some problems, but nothing alarming.',
+    red: 'Things are not working: this needs fixing.',
+  },
   trends: { up: 'Improving', stable: 'Stable', down: 'Getting worse' },
 
   home: {
-    welcome: 'Welcome to Squad Health Check',
+    welcome: 'Squad Health Check',
     intro:
       "Run anonymous health check sessions with your team. Vote on categories, discuss results, and track your squad's well-being.",
     createTitle: 'Create a New Session',
@@ -76,8 +126,6 @@ const en = {
     negativeMissing: 'Describe what an unhealthy (red) state looks like.',
     addTitle: 'Add New Category',
     add: 'Add Category',
-    moveUp: (name: string) => `Move ${name} up`,
-    moveDown: (name: string) => `Move ${name} down`,
     edit: (name: string) => `Edit ${name}`,
     remove: (name: string) => `Remove ${name}`,
   },
@@ -111,6 +159,9 @@ const en = {
     pickColor: 'Pick a health color.',
     pickTrend: 'Pick a trend.',
     submit: 'Submit Vote',
+    update: 'Update Vote',
+    cancelEdit: 'Cancel',
+    edit: 'Edit my vote',
     submitted: 'Vote submitted!',
     votesReceivedLabel: 'Votes received',
     revealNowCount: (n: number, total: number) => `Reveal Votes Now (${n}/${total})`,
@@ -132,6 +183,7 @@ const en = {
 
   presenter: {
     open: 'Presenter window',
+    hint: 'Share the presenter window with the team and keep this one to yourself.',
     allowPopups: 'Allow pop-ups for this site to open the presenter window.',
     documentTitle: (code: string) => `Presenter — ${code}`,
     onlyFacilitator: 'Only the facilitator can open the presenter view',
@@ -139,15 +191,19 @@ const en = {
   },
 
   intro: {
-    title: 'Welcome to our squad health check',
+    title: 'Squad Health Check',
     what: 'A quick look at how the squad is doing. For each category, everyone picks a health colour and a trend, then we discuss the results together.',
     colorsTitle: 'Health colours',
     trendsTitle: 'Trend',
     trendsHint: 'Compared with how things were recently.',
-    anonymous: 'Votes are anonymous: only totals are shown, never who voted what.',
+    /** Sentence split around its bold part: [before, bold, after] */
+    categoryCount: (n: number): [string, string, string] => [
+      'We have ',
+      `${n} ${n !== 1 ? 'categories' : 'category'}`,
+      ' to tackle together.',
+    ],
   },
   participant: {
-    intro: 'The workshop is starting — watch the shared screen.',
     waitingOthers: 'Waiting for the others…',
     resultsOnScreen: 'The results are on the shared screen.',
   },
@@ -155,6 +211,12 @@ const en = {
     startWorkshop: (n: number) => `Start workshop (${plural(n, 'voter')})`,
     needVoter: 'At least one person must vote before the workshop can start.',
     introHint: 'The introduction is on the shared screen. Start the first category when the team is ready.',
+    introScriptTitle: 'Introduction to read out',
+    introScript: [
+      "Thanks for joining this Squad Health Check. It's a quick, honest look at how we feel about our work. It's not an evaluation, and there are no wrong answers.",
+      "For each category, vote on your phone with a colour (green: all good, orange: some problems, red: needs to change) and a trend (improving, stable or getting worse).",
+      "Votes are anonymous. After each one, we'll discuss the results, especially where we disagree. Let's start!",
+    ],
     startFirst: 'Start first category',
     facilitatorVotes: 'I take part in the vote',
     facilitatorVotesHint: 'Can only be changed before the workshop starts.',
@@ -211,13 +273,18 @@ const fr: Messages = {
   sessionNotFound: 'Session introuvable',
   connecting: 'Connexion à la session…',
   reconnecting: 'Reconnexion…',
+  switchLang: 'Switch to English',
 
   colors: { green: 'Vert', orange: 'Orange', red: 'Rouge' },
-  colorFallbacks: { green: 'Satisfaits', orange: 'Problèmes à traiter', red: 'À améliorer' },
+  colorFallbacks: {
+    green: 'Tout va bien : nous sommes satisfaits de la situation.',
+    orange: "Quelques problèmes, mais rien d'alarmant.",
+    red: 'Ça ne va pas : il faut y remédier.',
+  },
   trends: { up: 'En amélioration', stable: 'Stable', down: 'En dégradation' },
 
   home: {
-    welcome: 'Bienvenue sur Squad Health Check',
+    welcome: 'Squad Health Check',
     intro:
       "Animez des bilans de santé anonymes avec votre équipe. Votez sur des catégories, discutez des résultats et suivez le bien-être de votre squad.",
     createTitle: 'Créer une session',
@@ -262,8 +329,6 @@ const fr: Messages = {
     negativeMissing: 'Décrivez à quoi ressemble un état problématique (rouge).',
     addTitle: 'Nouvelle catégorie',
     add: 'Ajouter une catégorie',
-    moveUp: (name) => `Monter ${name}`,
-    moveDown: (name) => `Descendre ${name}`,
     edit: (name) => `Modifier ${name}`,
     remove: (name) => `Supprimer ${name}`,
   },
@@ -296,6 +361,9 @@ const fr: Messages = {
     pickColor: 'Choisissez une couleur de santé.',
     pickTrend: 'Choisissez une tendance.',
     submit: 'Voter',
+    update: 'Modifier le vote',
+    cancelEdit: 'Annuler',
+    edit: 'Modifier mon vote',
     submitted: 'Vote envoyé !',
     votesReceivedLabel: 'Votes reçus',
     revealNowCount: (n, total) => `Révéler les votes (${n}/${total})`,
@@ -317,22 +385,26 @@ const fr: Messages = {
 
   presenter: {
     open: 'Fenêtre de présentation',
+    hint: "Partagez la fenêtre de présentation avec l'équipe et gardez celle-ci pour vous.",
     allowPopups: "Autorisez les pop-ups pour ce site afin d'ouvrir la fenêtre de présentation.",
     documentTitle: (code) => `Présentation — ${code}`,
     onlyFacilitator: 'Seul le facilitateur peut ouvrir la vue de présentation',
-    joinTitle: 'Rejoignez le bilan de santé',
+    joinTitle: 'Rejoignez le Squad Health Check',
   },
 
   intro: {
-    title: 'Bienvenue dans notre bilan de santé de squad',
+    title: 'Squad Health Check',
     what: "Un rapide tour de l'état de la squad. Pour chaque catégorie, chacun choisit une couleur de santé et une tendance, puis nous discutons ensemble des résultats.",
     colorsTitle: 'Couleurs de santé',
     trendsTitle: 'Tendance',
     trendsHint: 'Par rapport à la situation récente.',
-    anonymous: 'Les votes sont anonymes : seuls les totaux sont affichés, jamais qui a voté quoi.',
+    categoryCount: (n) => [
+      'Nous avons ',
+      `${n}`,
+      ` catégorie${n !== 1 ? 's' : ''} à aborder ensemble.`,
+    ],
   },
   participant: {
-    intro: "L'atelier commence — regardez l'écran partagé.",
     waitingOthers: 'En attente des autres…',
     resultsOnScreen: "Les résultats sont sur l'écran partagé.",
   },
@@ -340,6 +412,12 @@ const fr: Messages = {
     startWorkshop: (n) => `Lancer l'atelier (${n} votant${n !== 1 ? 's' : ''})`,
     needVoter: "Au moins une personne doit voter pour lancer l'atelier.",
     introHint: "L'introduction est sur l'écran partagé. Lancez la première catégorie quand l'équipe est prête.",
+    introScriptTitle: "Introduction à lire",
+    introScript: [
+      "Merci de participer à ce Squad Health Check. C'est un regard rapide et honnête sur la façon dont nous vivons notre travail. Ce n'est pas une évaluation, et il n'y a pas de mauvaise réponse.",
+      "Pour chaque catégorie, votez sur votre téléphone avec une couleur (vert : tout va bien, orange : quelques problèmes, rouge : il faut changer) et une tendance (en amélioration, stable ou en dégradation).",
+      "Les votes sont anonymes. Après chacun, nous discuterons des résultats, surtout là où nous ne sommes pas d'accord. C'est parti !",
+    ],
     startFirst: 'Lancer la première catégorie',
     facilitatorVotes: 'Je participe au vote',
     facilitatorVotesHint: "Modifiable uniquement avant le début de l'atelier.",
@@ -382,5 +460,5 @@ const fr: Messages = {
 
 export const messagesFor = (lang: Lang): Messages => (lang === 'fr' ? fr : en);
 
-/** Messages in the user's language */
-export const t = messagesFor(LANG);
+/** Messages in the current language; a live binding swapped by switchLang */
+export let t = messagesFor(LANG);

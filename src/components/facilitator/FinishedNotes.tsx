@@ -18,10 +18,10 @@ interface Props {
 function FinishedNotes({ session, onChangeNote }: Props) {
   return (
     <>
-      <Card className="card-body">
+      <Card className="card-body finished-notes">
         <Text preset={TEXT_PRESET.heading3}>{t.facilitator.allNotes}</Text>
         {summaryIndexes(session).map((i) => (
-          <div key={i} className="stack summary-item">
+          <div key={i} className="stack finished-notes__item">
             <Text preset={TEXT_PRESET.heading5}>
               {i + 1}. {localizeCategory(session.categories[i]).title}
             </Text>
@@ -38,7 +38,7 @@ function FinishedNotes({ session, onChangeNote }: Props) {
         ))}
       </Card>
 
-      <div className="actions">
+      <div className="actions finished-notes__exports">
         <Button onClick={() => downloadMarkdown(session)}>
           <Icon name={ICON_NAME.download} />
           {t.notes.downloadMarkdown}

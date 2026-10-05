@@ -6,6 +6,8 @@ import CreateSession from './pages/CreateSession';
 import SessionPage from './pages/SessionPage';
 import PresenterPage from './pages/PresenterPage';
 import { HeaderSlotContext } from './components/HeaderSlot';
+import LangSwitch from './components/LangSwitch';
+import { useLang } from './lib/useLang';
 
 /* The notes window became the facilitator view; old links and open popups land there */
 function NotesRedirect() {
@@ -14,6 +16,8 @@ function NotesRedirect() {
 }
 
 function App() {
+  // Messages are read at render time: a language switch re-renders the whole tree in place
+  useLang();
   const headerRef = useRef<HTMLElement>(null);
   const [headerSlot, setHeaderSlot] = useState<HTMLDivElement | null>(null);
 
@@ -34,15 +38,16 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header" ref={headerRef}>
-        <Link className="app-header-brand" as={RouterLink} to="/">
+      <header className="app__header" ref={headerRef}>
+        <Link className="app__brand" as={RouterLink} to="/">
           <Text preset={TEXT_PRESET.heading4} as="h1">
             Squad Health Check
           </Text>
         </Link>
-        <div className="app-header-slot" ref={setHeaderSlot} />
+        <div className="app__header-slot" ref={setHeaderSlot} />
+        <LangSwitch />
       </header>
-      <main className="app-main">
+      <main className="app__main">
         <HeaderSlotContext.Provider value={headerSlot}>
           <Routes>
             <Route path="/" element={<Home />} />

@@ -5,6 +5,7 @@ import { ensureSignedIn } from '../lib/firebase';
 import { CODE_PATTERN } from '../lib/sessionCode';
 import * as store from '../lib/sessionStore';
 import { t } from '../lib/i18n';
+import { useLang } from '../lib/useLang';
 import { Connecting, SessionNotice } from '../components/SessionStatus';
 import PresenterView from '../components/PresenterView';
 
@@ -13,7 +14,10 @@ function PresenterScreen() {
   const { code = '' } = useParams<{ code: string }>();
   const [uid, setUid] = useState<string | null>(null);
   const [session, setSession] = useState<ClientSessionState | null>(null);
-  const [error, setError] = useState('');
+  const [notFound, setNotFound] = useState(false);
+  /** Kept raw and described at render time, so it follows language switches */
+  const [error, setError] = useState<unknown>(null);
+  const lang = useLang();
 
   /* Distinct title so this window is easy to pick in the screen-share dialog */
   useEffect(() => {
@@ -22,24 +26,24 @@ function PresenterScreen() {
     return () => {
       document.title = previous;
     };
-  }, [code]);
+  }, [code, lang]);
 
   useEffect(() => {
     let cancelled = false;
     if (!CODE_PATTERN.test(code)) {
-      setError(t.sessionNotFound);
+      setNotFound(true);
       return;
     }
     (async () => {
       try {
         const id = await ensureSignedIn();
         if (!(await store.sessionExists(code))) {
-          if (!cancelled) setError(t.sessionNotFound);
+          if (!cancelled) setNotFound(true);
           return;
         }
         if (!cancelled) setUid(id);
       } catch (err) {
-        if (!cancelled) setError(store.describeError(err));
+        if (!cancelled) setError(err);
       }
     })();
     return () => {
@@ -52,7 +56,10 @@ function PresenterScreen() {
     return store.subscribeSession(code, uid, setSession);
   }, [uid, code]);
 
-  if (error) return <SessionNotice title={error} backTo="/" backLabel={t.backToHome} />;
+  if (notFound || error != null) {
+    const title = notFound ? t.sessionNotFound : store.describeError(error);
+    return <SessionNotice title={title} backTo="/" backLabel={t.backToHome} />;
+  }
   if (!session) return <Connecting />;
   if (!session.isFacilitator) {
     return (
