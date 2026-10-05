@@ -11,6 +11,7 @@ import { ClientSessionState } from '../../types';
 import { canStartWorkshop } from '../../lib/deriveClientState';
 import { t } from '../../lib/i18n';
 import OpenPresenterButton from '../OpenPresenterButton';
+import LiveRound from './LiveRound';
 import type { FacilitatorActions } from './FacilitatorView';
 
 interface Props {
@@ -18,7 +19,7 @@ interface Props {
   actions: FacilitatorActions;
 }
 
-/** The one action that moves the session forward in each phase. */
+/** The round's vote count, then the one action that moves the session forward in each phase. */
 function FacilitatorControls({ session, actions }: Props) {
   const { phase, voteCount, totalVoters } = session;
   const isLastCategory = session.currentCategoryIndex === session.categories.length - 1;
@@ -26,6 +27,8 @@ function FacilitatorControls({ session, actions }: Props) {
 
   return (
     <Card className="card-body">
+      {(phase === 'voting' || phase === 'revealed') && <LiveRound session={session} />}
+
       {phase === 'lobby' && (
         <>
           <Button onClick={actions.startWorkshop} disabled={!canStart}>
@@ -47,7 +50,7 @@ function FacilitatorControls({ session, actions }: Props) {
 
       {phase === 'voting' && (
         <Button
-          variant={BUTTON_VARIANT.outline}
+          variant={voteCount > 0 ? BUTTON_VARIANT.default : BUTTON_VARIANT.outline}
           onClick={actions.reveal}
           disabled={voteCount === 0}
         >

@@ -1,4 +1,4 @@
-import { Badge, Card, CARD_COLOR, type CardColor, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_SIZE, Card, CARD_COLOR, type CardColor, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Category, VoteColor } from '../types';
 import { COLOR_OPTIONS, colorDescription } from './voteOptions';
 import { t } from '../lib/i18n';
@@ -9,14 +9,23 @@ const CARD_COLORS: Record<VoteColor, CardColor> = {
   red: CARD_COLOR.critical,
 };
 
-/** The three health colours, described for a category or, without one, in general terms. */
-function ColorCards({ category }: { category?: Category }) {
+/**
+ * The three health colours, described for a category or, without one, in general terms.
+ * `large` sizes them for the shared screen, where they are what the voters read.
+ */
+function ColorCards({ category, large = false }: { category?: Category; large?: boolean }) {
   return (
-    <div className="grid-3">
+    <div className={large ? 'grid-3 color-cards-large' : 'grid-3'}>
       {COLOR_OPTIONS.map((option) => (
         <Card key={option.value} className="card-body card-compact" color={CARD_COLORS[option.value]}>
-          <Badge className="self-start" color={option.badge}>{option.label}</Badge>
-          <Text preset={TEXT_PRESET.paragraph}>
+          <Badge
+            className="self-start color-card-badge"
+            color={option.badge}
+            size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}
+          >
+            {option.label}
+          </Badge>
+          <Text preset={TEXT_PRESET.paragraph} className="color-card-text">
             {category ? colorDescription(category, option) : t.colorFallbacks[option.value]}
           </Text>
         </Card>

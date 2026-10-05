@@ -42,7 +42,7 @@ function NoteFields({ note, onChange }: Props) {
   const notes = useSyncedValue(note.notes);
 
   return (
-    <div className="stack">
+    <div className="stack note-fields">
       <FormField>
         <FormFieldLabel>{t.notes.discussion}</FormFieldLabel>
         <Textarea

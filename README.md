@@ -4,10 +4,12 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 
 ## Features
 
-- **Three views** — a **presenter** window to screen-share (progress, category, colours, vote count, results), a phone-first **voting** view for participants, and a **facilitator** view (compact or dashboard) only the session creator can open
+- **Three views** — a **presenter** window to screen-share (progress, category, colours, vote count, results), a phone-first **voting** view for participants, and a **facilitator** dashboard view only the session creator can open
 - **Introduction step** — a built-in presentation of the workshop between the lobby and the first category
 - **Facilitator controls** — The facilitator drives the flow (start, reveal, next, end) from their own window and may opt out of voting in the lobby
+- **Live results for the facilitator** — The facilitator's view fills the vote matrix as votes arrive, once they have voted (or from the start when they don't vote); the shared screen still waits for the reveal
 - **Auto-reveal** — Votes are revealed when every voter has voted (from the facilitator's open window)
+- **Participant cap** — At most 15 people (facilitator included) can join a session (enforced by database rules)
 - **Private facilitator notes** — A note per category in the facilitator view, never on the shared screen; only the facilitator can read them (enforced by database rules)
 - **Recap export** — The facilitator edits the notes of every category at the end and downloads results and notes as **Markdown** or **PDF**
 

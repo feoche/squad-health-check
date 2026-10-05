@@ -77,6 +77,11 @@ body {
   white-space: nowrap;
 }
 
+.session-code-button {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
 .show-mobile {
   display: none;
 }
@@ -172,6 +177,46 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
+.color-cards-large {
+  grid-template-columns: 1fr;
+}
+
+/* One colour per line: badge on the left, description beside it, on the same baseline */
+.color-cards-large .card-compact {
+  flex-direction: row;
+  align-items: baseline;
+  padding: calc(var(--ods-theme-padding-vertical) * 3) calc(var(--ods-theme-padding-horizontal) * 3);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+}
+
+.color-cards-large .color-card-badge {
+  flex: 0 0 9rem;
+  justify-content: center;
+  align-self: baseline;
+  font-size: 1.75rem;
+}
+
+.color-cards-large .color-card-text {
+  font-size: 2rem;
+  line-height: 1.35;
+}
+
+/* Once results are shown, the colours shrink so they and the vote matrix fit on one screen */
+.presenter-revealed .color-cards-large .card-compact {
+  padding: calc(var(--ods-theme-padding-vertical) * 1.5) calc(var(--ods-theme-padding-horizontal) * 2);
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.presenter-revealed .color-cards-large .color-card-badge {
+  flex-basis: 6rem;
+  font-size: clamp(0.875rem, 1.8vh, 1.25rem);
+}
+
+.presenter-revealed .color-cards-large .color-card-text {
+  font-size: clamp(1rem, 2.2vh, 1.5rem);
+  line-height: 1.3;
+}
+
 .loading {
   padding: calc(var(--ods-theme-padding-vertical) * 8) 0;
 }
@@ -210,9 +255,11 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 1.5);
 }
 
+/* ODS centres horizontal radio groups: stretch so every tile in a row is as tall */
 .tile-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
@@ -221,10 +268,23 @@ body {
   width: 100%;
 }
 
+/* Half a dashboard is too narrow for three described colours side by side */
+.dashboard-round .tile-options:not(.tile-options-trend) {
+  grid-template-columns: 1fr;
+}
+
+.tile-radio-root,
+.tile-radio {
+  height: 100%;
+  box-sizing: border-box;
+}
+
 .tile-radio {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
+  /* Tiles stretch to the tallest one; keep rows packed instead of spreading them out */
+  align-content: start;
   gap: var(--ods-theme-row-gap) var(--ods-theme-column-gap);
   padding: calc(var(--ods-theme-padding-vertical) * 2);
 }
@@ -234,16 +294,44 @@ body {
   grid-column: 2;
 }
 
+/* Radio centred on the first line, so it lines up with arrow and text however they wrap */
+.tile-options-trend .tile-radio {
+  align-items: start;
+}
+
+.tile-options-trend .tile-radio > [data-ods='radio-control'] {
+  margin-top: calc((1lh - 16px) / 2);
+}
+
+/* Arrow and text share a baseline; a label too long for the tile drops whole onto
+   the next line instead of wrapping beside the arrow */
+.tile-options-trend [data-ods='radio-label'] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--ods-theme-column-gap);
+}
+
+.tile-options-trend [data-ods='radio-label'] > [data-ods='icon'] {
+  line-height: inherit;
+}
+
+/* Voters read the colour descriptions on their phone, so give them a little more size */
+.participant-round .tile-radio-description,
+.participant-round .color-card-text {
+  font-size: 1.125rem;
+}
+
 .vote-progress {
   width: 250px;
   max-width: 100%;
 }
 
 .vote-matrix {
-  width: 100%;
+  --cell-size: 88px;
+  margin-inline: auto;
   border-collapse: separate;
   border-spacing: var(--ods-theme-column-gap);
-  table-layout: fixed;
 }
 
 .vote-matrix th {
@@ -251,25 +339,31 @@ body {
   text-align: center;
 }
 
+.vote-matrix-trend {
+  font-size: 2rem;
+}
+
+.vote-matrix-compact .vote-matrix-trend {
+  font-size: 1.5rem;
+}
+
 .vote-matrix th[scope='row'] {
-  width: 130px;
   text-align: right;
+  white-space: nowrap;
 }
 
 .vote-matrix-compact {
+  --cell-size: 44px;
   border-spacing: calc(var(--ods-theme-column-gap) / 2);
 }
 
-.vote-matrix-compact th[scope='row'] {
-  width: 104px;
-}
-
-.vote-matrix-compact .vote-matrix-cell {
-  height: 40px;
+.vote-matrix th[scope='col'],
+.vote-matrix-cell {
+  width: var(--cell-size);
 }
 
 .vote-matrix-cell {
-  height: 64px;
+  height: var(--cell-size);
   text-align: center;
   border: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
   border-radius: var(--ods-theme-border-radius);
@@ -288,6 +382,16 @@ body {
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: calc(var(--ods-theme-column-gap) * 3);
   align-items: start;
+}
+
+/* During a round: two equal columns whose cards end level */
+.dashboard-round {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.dashboard-round > .stack > :first-child {
+  flex: 1;
 }
 
 .visually-hidden {
@@ -316,11 +420,6 @@ body {
 }
 
 @media (max-width: 640px) {
-  /* Phones stay on the layout they have (Compact is their default) */
-  .layout-toggle {
-    display: none;
-  }
-
   .grid-2,
   .tile-options {
     grid-template-columns: 1fr;
@@ -328,10 +427,6 @@ body {
 
   .grid-3 {
     grid-template-columns: 1fr;
-  }
-
-  .vote-matrix th[scope='row'] {
-    width: 104px;
   }
 
   .app-header {
@@ -405,24 +500,20 @@ body {
 
   .tile-options-trend {
     grid-template-columns: repeat(3, 1fr);
-    align-items: stretch;
   }
 
-  .tile-options-trend .tile-radio-root,
+  /* Radio and icon on top, label below; rows start at the top so a label
+     wrapping onto two lines doesn't push its tile's radio out of line */
   .tile-options-trend .tile-radio {
-    height: 100%;
-    box-sizing: border-box;
-  }
-
-  /* Radio and icon on top, label below, so every trend tile reads the same */
-  .tile-options-trend .tile-radio {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    align-content: center;
+    grid-template-columns: 1fr auto auto 1fr;
+    width: 100%;
+    align-content: start;
     gap: calc(var(--ods-theme-row-gap) / 2) var(--ods-theme-column-gap);
     text-align: center;
+  }
+
+  .tile-options-trend .tile-radio > [data-ods='radio-control'] {
+    grid-column: 2;
   }
 
   .tile-options-trend [data-ods='radio-label'] {
@@ -430,7 +521,7 @@ body {
   }
 
   .tile-options-trend [data-ods='radio-label'] > :last-child {
-    flex-basis: 100%;
+    grid-column: 1 / -1;
   }
 
   .vote-submit {
@@ -439,10 +530,27 @@ body {
     padding-block: var(--ods-theme-padding-vertical);
     background: var(--ods-theme-background-color);
   }
+}
 
-  .vote-submit > * {
-    flex: 1;
-  }
+/* Sets the submit apart from the last choices */
+.vote-submit {
+  margin-top: calc(var(--ods-theme-row-gap) * 2);
+}
+
+.vote-submit > * {
+  flex: 1;
+}
+
+/* Notes grow with their card (the round dashboard levels the cards) */
+.note-fields,
+.note-fields > *,
+.note-fields textarea {
+  flex: 1;
+}
+
+.category-position {
+  font-weight: normal;
+  color: var(--ods-color-neutral-600);
 }
 
 .category-header {

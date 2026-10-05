@@ -32,3 +32,6 @@ export const TREND_OPTIONS: {
   { value: 'stable', label: t.trends.stable, icon: ICON_NAME.arrowRight },
   { value: 'down', label: t.trends.down, icon: ICON_NAME.arrowDownRight },
 ];
+
+/** Worsening first, improving last, for scales read left to right. */
+export const TREND_OPTIONS_WORST_FIRST = [...TREND_OPTIONS].reverse();

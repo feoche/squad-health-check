@@ -19,6 +19,7 @@ const en = {
   votes: (n: number) => plural(n, 'vote'),
   votesReceived: (n: number, total: number) => `${n} / ${total} votes received`,
   categoryOf: (i: number, n: number) => `Category ${i} of ${n}`,
+  categoryPosition: (i: number, n: number) => `category ${i} of ${n}`,
   loadingResults: 'Loading results…',
   backToHome: 'Back to home',
   sessionNotFound: 'Session not found',
@@ -126,6 +127,7 @@ const en = {
   finished: {
     title: 'Session Complete!',
     intro: "Here's the summary of all results from the health check.",
+    participantIntro: 'Thanks for taking part! The summary is on the shared screen.',
   },
 
   presenter: {
@@ -150,16 +152,12 @@ const en = {
     resultsOnScreen: 'The results are on the shared screen.',
   },
   facilitator: {
-    layout: 'Layout',
-    compact: 'Compact',
-    full: 'Full',
     startWorkshop: (n: number) => `Start workshop (${plural(n, 'voter')})`,
     needVoter: 'At least one person must vote before the workshop can start.',
     introHint: 'The introduction is on the shared screen. Start the first category when the team is ready.',
     startFirst: 'Start first category',
     facilitatorVotes: 'I take part in the vote',
     facilitatorVotesHint: 'Can only be changed before the workshop starts.',
-    myVote: 'My vote',
     voted: 'voted',
     waiting: 'waiting',
     allNotes: 'Notes per category',
@@ -179,6 +177,7 @@ const en = {
     notAllowed: 'Not allowed — the session may have changed. Try reloading.',
     generic: 'Something went wrong. Check your connection and try again.',
     createFailed: 'Could not create a session. Please try again.',
+    sessionFull: (max: number) => `This session is full (${max} participants maximum).`,
   },
 
   report: {
@@ -206,6 +205,7 @@ const fr: Messages = {
   votes: (n) => plural(n, 'vote'),
   votesReceived: (n, total) => `${n} / ${total} votes reçus`,
   categoryOf: (i, n) => `Catégorie ${i} sur ${n}`,
+  categoryPosition: (i, n) => `catégorie ${i} sur ${n}`,
   loadingResults: 'Chargement des résultats…',
   backToHome: "Retour à l'accueil",
   sessionNotFound: 'Session introuvable',
@@ -312,6 +312,7 @@ const fr: Messages = {
   finished: {
     title: 'Session terminée !',
     intro: 'Voici le récapitulatif de tous les résultats du bilan.',
+    participantIntro: "Merci pour votre participation ! Le récapitulatif est sur l'écran partagé.",
   },
 
   presenter: {
@@ -336,16 +337,12 @@ const fr: Messages = {
     resultsOnScreen: "Les résultats sont sur l'écran partagé.",
   },
   facilitator: {
-    layout: 'Affichage',
-    compact: 'Compact',
-    full: 'Complet',
     startWorkshop: (n) => `Lancer l'atelier (${n} votant${n !== 1 ? 's' : ''})`,
     needVoter: "Au moins une personne doit voter pour lancer l'atelier.",
     introHint: "L'introduction est sur l'écran partagé. Lancez la première catégorie quand l'équipe est prête.",
     startFirst: 'Lancer la première catégorie',
     facilitatorVotes: 'Je participe au vote',
     facilitatorVotesHint: "Modifiable uniquement avant le début de l'atelier.",
-    myVote: 'Mon vote',
     voted: 'a voté',
     waiting: 'en attente',
     allNotes: 'Notes par catégorie',
@@ -365,6 +362,7 @@ const fr: Messages = {
     notAllowed: 'Action refusée — la session a peut-être changé. Rechargez la page.',
     generic: 'Une erreur est survenue. Vérifiez votre connexion et réessayez.',
     createFailed: 'Impossible de créer la session. Veuillez réessayer.',
+    sessionFull: (max) => `Cette session est complète (${max} participants maximum).`,
   },
 
   report: {

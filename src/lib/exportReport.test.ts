@@ -25,6 +25,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     myId: 'fac',
     facilitatorId: 'fac',
     currentResults: null,
+    liveResults: null,
     allResults,
     facilitatorNotes: {},
     facilitatorNotesLoaded: true,

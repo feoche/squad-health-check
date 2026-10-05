@@ -13,8 +13,6 @@ import { ClientSessionState, VoteColor, VoteTrend } from '../types';
 import ColorCards from './ColorCards';
 import IntroContent from './IntroContent';
 import ParticipantBadges from './ParticipantBadges';
-import ResultsGrid from './ResultsGrid';
-import SessionFinished from './SessionFinished';
 import SessionProgress from './SessionProgress';
 import VoteSubmitted from './VoteSubmitted';
 import VotingPanel from './VotingPanel';
@@ -30,7 +28,16 @@ interface Props {
 function ParticipantView({ session, onSubmitVote }: Props) {
   const { phase, categories, currentCategoryIndex } = session;
 
-  if (phase === 'finished') return <SessionFinished session={session} />;
+  if (phase === 'finished') {
+    return (
+      <div className="page page-narrow">
+        <div className="stack stack-center">
+          <Text preset={TEXT_PRESET.heading2}>{t.finished.title}</Text>
+          <Text preset={TEXT_PRESET.paragraph}>{t.finished.participantIntro}</Text>
+        </div>
+      </div>
+    );
+  }
 
   if (phase === 'lobby') {
     return (
@@ -70,7 +77,7 @@ function ParticipantView({ session, onSubmitVote }: Props) {
   const isPicking = phase === 'voting' && !session.hasVoted;
 
   return (
-    <div className="page">
+    <div className="page participant-round">
       <SessionProgress session={session} />
 
       <div className="category-header">
@@ -87,16 +94,9 @@ function ParticipantView({ session, onSubmitVote }: Props) {
       {phase === 'voting' && session.hasVoted && <VoteSubmitted />}
 
       {phase === 'revealed' && (
-        <>
-          <Text preset={TEXT_PRESET.paragraph} className="stack-center">
-            {t.participant.resultsOnScreen}
-          </Text>
-          {session.currentResults ? (
-            <ResultsGrid votes={session.currentResults} />
-          ) : (
-            <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
-          )}
-        </>
+        <Text preset={TEXT_PRESET.paragraph} className="stack-center">
+          {t.participant.resultsOnScreen}
+        </Text>
       )}
     </div>
   );

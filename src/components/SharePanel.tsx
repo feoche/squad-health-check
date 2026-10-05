@@ -8,11 +8,8 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { sessionUrl } from '../lib/sessionUrl';
 import { t } from '../lib/i18n';
-
-// Always share the published app, even from a local dev server, so the link
-// and QR code work for participants on other devices.
-const PUBLIC_APP_URL = 'https://feoche.github.io/squad-health-check/';
 
 /** Session code, QR code and copyable link — everything needed to join. */
 function SharePanel({
@@ -23,7 +20,7 @@ function SharePanel({
   /** The shared screen shows the link without a copy button. */
   copyable?: boolean;
 }) {
-  const shareUrl = `${PUBLIC_APP_URL}#/session/${code}`;
+  const shareUrl = sessionUrl(code);
 
   return (
     <>

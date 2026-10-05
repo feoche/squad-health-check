@@ -59,6 +59,8 @@ export interface ClientSessionState {
   myId: string;
   facilitatorId: string;
   currentResults: Vote[] | null;
+  /** Facilitator only: the round's votes as they arrive, once readable (see readableVoteIndexes) */
+  liveResults: Vote[] | null;
   allResults: CategoryResult[];
   /** Facilitator-only notes per category index (empty for participants) */
   facilitatorNotes: Record<number, FacilitatorNote>;
