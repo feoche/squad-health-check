@@ -17,17 +17,17 @@ function SessionProgress({ session, copyable = true }: Props) {
 
   return (
     <HeaderSlot>
-      <div className="header-progress">
+      <div className="session-progress">
         {inRound && (
           <>
-            <Text preset={TEXT_PRESET.label} className="header-progress-label">
+            <Text preset={TEXT_PRESET.label} className="session-progress__label">
               <span className="hide-mobile">{t.categoryOf(index + 1, categories.length)}</span>
               <span className="show-mobile">
                 {index + 1}/{categories.length}
               </span>
             </Text>
             <ProgressBar
-              className="header-progress-bar"
+              className="session-progress__bar"
               value={index + 1}
               max={categories.length}
               aria-label={t.voting.sessionProgress}
@@ -37,7 +37,7 @@ function SessionProgress({ session, copyable = true }: Props) {
         {copyable ? (
           <SessionCodeButton code={session.code} />
         ) : (
-          <Badge color={BADGE_COLOR.neutral}>
+          <Badge className="session-progress__code" color={BADGE_COLOR.neutral}>
             <span>{t.code(session.code)}</span>
           </Badge>
         )}

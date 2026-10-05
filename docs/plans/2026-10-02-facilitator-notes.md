@@ -18,7 +18,7 @@ Steps use checkbox (`- [ ]`) syntax for tracking.
 - The screen-share view (`SessionPage`) never renders notes or takeaways and has no download buttons.
 - UI uses ODS components and ODS design tokens only (see `src/styles/main.css` header).
 - Router is `HashRouter`; app URLs are `${origin}${pathname}#/…` (see `Lobby.tsx` share link).
-- Commits: plain conventional messages, no co-author or tool attribution lines; never commit `.claude/`.
+- Commits: plain conventional messages, no co-author or tool attribution lines.
 
 ## Review Focus
 

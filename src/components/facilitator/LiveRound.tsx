@@ -7,11 +7,14 @@ function LiveRound({ session }: { session: ClientSessionState }) {
   const voted = new Set(session.voterIds);
 
   return (
-    <div className="inline wrap">
+    <div className="inline wrap live-round">
       {session.eligibleVoters.map((p) => {
         const hasVoted = voted.has(p.id);
         return (
-          <Badge key={p.id} color={hasVoted ? BADGE_COLOR.success : BADGE_COLOR.neutral}>
+          <Badge
+            key={p.id}
+            className={hasVoted ? 'live-round__voter live-round__voter--voted' : 'live-round__voter'}
+            color={hasVoted ? BADGE_COLOR.success : BADGE_COLOR.neutral}>
             {hasVoted && <Icon name={ICON_NAME.check} />}
             {p.id === session.facilitatorId && <Icon name={ICON_NAME.crown} />}
             {p.name}

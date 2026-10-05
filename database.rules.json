@@ -50,8 +50,21 @@
           "$idx": {
             ".read": "auth != null && (root.child('sessions/' + $code + '/state/phase').val() === 'finished' || (root.child('sessions/' + $code + '/state/phase').val() === 'revealed' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx) || (root.child('sessions/' + $code + '/meta/facilitatorId').val() === auth.uid && (root.child('sessions/' + $code + '/closed/' + $idx).exists() || (root.child('sessions/' + $code + '/state/phase').val() === 'voting' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx && (root.child('sessions/' + $code + '/voters/' + $idx + '/' + auth.uid).exists() || root.child('sessions/' + $code + '/state/facilitatorVotes').val() === false)))))",
             "$key": {
-              ".write": "auth != null && !data.exists() && !root.child('sessions/' + $code + '/voters/' + $idx + '/' + auth.uid).exists() && newData.parent().parent().parent().child('voters/' + $idx + '/' + auth.uid).exists()",
+              ".write": "auth != null && ((!data.exists() && !root.child('sessions/' + $code + '/voters/' + $idx + '/' + auth.uid).exists() && newData.parent().parent().parent().child('voters/' + $idx + '/' + auth.uid).exists()) || (data.exists() && newData.exists() && root.child('sessions/' + $code + '/ballots/' + $idx + '/' + auth.uid + '/key').val() === $key && root.child('sessions/' + $code + '/state/phase').val() === 'voting' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx))",
               ".validate": "$key.length === 20 && newData.hasChildren(['color', 'trend'])",
+              "color": { ".validate": "newData.val() === 'green' || newData.val() === 'orange' || newData.val() === 'red'" },
+              "trend": { ".validate": "newData.val() === 'up' || newData.val() === 'stable' || newData.val() === 'down'" },
+              "$other": { ".validate": false }
+            }
+          }
+        },
+        "ballots": {
+          "$idx": {
+            "$uid": {
+              ".read": "auth != null && $uid === auth.uid",
+              ".write": "auth != null && $uid === auth.uid && newData.exists() && root.child('sessions/' + $code + '/state/phase').val() === 'voting' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx && ((data.exists() && newData.child('key').val() === data.child('key').val()) || (!data.exists() && !root.child('sessions/' + $code + '/voters/' + $idx + '/' + auth.uid).exists() && newData.parent().parent().parent().child('voters/' + $idx + '/' + auth.uid).exists()))",
+              ".validate": "newData.hasChildren(['key', 'color', 'trend'])",
+              "key": { ".validate": "newData.isString() && newData.val().length === 20" },
               "color": { ".validate": "newData.val() === 'green' || newData.val() === 'orange' || newData.val() === 'red'" },
               "trend": { ".validate": "newData.val() === 'up' || newData.val() === 'stable' || newData.val() === 'down'" },
               "$other": { ".validate": false }

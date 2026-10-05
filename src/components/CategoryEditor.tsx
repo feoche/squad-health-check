@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { DragEvent, useState } from 'react';
 import {
   Badge,
   BADGE_COLOR,
@@ -27,6 +27,7 @@ import {
 import { Category } from '../types';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
+import { moveItem } from '../lib/moveItem';
 
 interface Props {
   categories: Category[];
@@ -64,6 +65,9 @@ function CategoryEditor({ categories, onChange }: Props) {
   const [editForm, setEditForm] = useState<Category>({ ...emptyCategory });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isAdding, setIsAdding] = useState(false);
+  /** Current position of the card being dragged; it follows the card as the list reorders */
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const canDrag = editingIndex === null;
 
   const startEdit = (i: number) => {
     setEditingIndex(i);
@@ -116,12 +120,14 @@ function CategoryEditor({ categories, onChange }: Props) {
     if (editingIndex === i) setEditingIndex(null);
   };
 
-  const move = (i: number, dir: -1 | 1) => {
-    const j = i + dir;
-    if (j < 0 || j >= categories.length) return;
-    const updated = [...categories];
-    [updated[i], updated[j]] = [updated[j], updated[i]];
-    onChange(updated);
+  /* Reorders live while hovering, so the list shows where the card will land */
+  const dragOver = (e: DragEvent, i: number) => {
+    if (dragIndex === null) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (i === dragIndex) return;
+    onChange(moveItem(categories, dragIndex, i));
+    setDragIndex(i);
   };
 
   const setField = (field: keyof Category, value: string) => {
@@ -133,7 +139,7 @@ function CategoryEditor({ categories, onChange }: Props) {
 
   const renderForm = (onSave: () => void, onCancel: () => void) => (
     <form
-      className="stack"
+      className="stack category-editor__form"
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
@@ -160,7 +166,11 @@ function CategoryEditor({ categories, onChange }: Props) {
         />
       </FormField>
       <Divider />
-      <Message color={MESSAGE_COLOR.information} dismissible={false}>
+      <Message
+        className="category-editor__hint"
+        color={MESSAGE_COLOR.information}
+        dismissible={false}
+      >
         <MessageIcon name={ICON_NAME.circleInfo} />
         <MessageBody>{t.editor.lengthHint}</MessageBody>
       </Message>
@@ -224,7 +234,7 @@ function CategoryEditor({ categories, onChange }: Props) {
           rows={2}
         />
       </FormField>
-      <div className="inline">
+      <div className="inline category-editor__form-actions">
         <Button type="submit" size={BUTTON_SIZE.sm}>
           {t.save}
         </Button>
@@ -241,45 +251,41 @@ function CategoryEditor({ categories, onChange }: Props) {
   );
 
   return (
-    <div className="stack">
+    <div className="stack category-editor">
       {categories.map((cat, i) => {
         const { title, subtitle } = localizeCategory(cat);
         return (
           <Card
             key={i}
-            className="card-body card-compact"
+            className={`card-body card-compact category-editor__item${
+              canDrag ? ' category-editor__item--draggable' : ''
+            }${dragIndex === i ? ' category-editor__item--dragging' : ''}${
+              editingIndex === i ? ' category-editor__item--editing' : ''
+            }`}
             color={editingIndex === i ? CARD_COLOR.primary : CARD_COLOR.neutral}
+            draggable={canDrag}
+            onDragStart={(e) => {
+              e.dataTransfer.effectAllowed = 'move';
+              e.dataTransfer.setData('text/plain', title);
+              setDragIndex(i);
+            }}
+            onDragOver={(e) => dragOver(e, i)}
+            onDrop={(e) => e.preventDefault()}
+            onDragEnd={() => setDragIndex(null)}
           >
             {editingIndex === i ? (
               renderForm(saveEdit, () => setEditingIndex(null))
             ) : (
-              <div className="category-row">
-                <Badge color={BADGE_COLOR.primary}>{i + 1}</Badge>
-                <div className="grow">
+              <div className="category-editor__row">
+                <Icon name={ICON_NAME.dragDrop} className="category-editor__drag-handle" aria-hidden />
+                <Badge className="category-editor__position" color={BADGE_COLOR.primary}>{i + 1}</Badge>
+                <div className="grow category-editor__label">
                   <Text preset={TEXT_PRESET.label}>{title}</Text>
                   {subtitle && (
                     <Text preset={TEXT_PRESET.caption}> ({subtitle})</Text>
                   )}
                 </div>
-                <div className="inline">
-                  <Button
-                    size={BUTTON_SIZE.xs}
-                    variant={BUTTON_VARIANT.ghost}
-                    onClick={() => move(i, -1)}
-                    disabled={i === 0}
-                    aria-label={t.editor.moveUp(title)}
-                  >
-                    <Icon name={ICON_NAME.arrowUp} />
-                  </Button>
-                  <Button
-                    size={BUTTON_SIZE.xs}
-                    variant={BUTTON_VARIANT.ghost}
-                    onClick={() => move(i, 1)}
-                    disabled={i === categories.length - 1}
-                    aria-label={t.editor.moveDown(title)}
-                  >
-                    <Icon name={ICON_NAME.arrowDown} />
-                  </Button>
+                <div className="inline category-editor__item-actions">
                   <Button
                     size={BUTTON_SIZE.xs}
                     variant={BUTTON_VARIANT.ghost}
@@ -305,7 +311,7 @@ function CategoryEditor({ categories, onChange }: Props) {
       })}
 
       {isAdding ? (
-        <Card className="card-body">
+        <Card className="card-body category-editor__new">
           <Text preset={TEXT_PRESET.heading4}>{t.editor.addTitle}</Text>
           {renderForm(saveAdd, () => {
             setIsAdding(false);
@@ -313,7 +319,7 @@ function CategoryEditor({ categories, onChange }: Props) {
           })}
         </Card>
       ) : (
-        <div>
+        <div className="category-editor__add">
           <Button variant={BUTTON_VARIANT.outline} onClick={startAdd}>
             <Icon name={ICON_NAME.plus} />
             {t.editor.add}

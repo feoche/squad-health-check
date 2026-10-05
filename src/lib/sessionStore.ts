@@ -7,7 +7,7 @@ import {
   set,
   update,
 } from 'firebase/database';
-import { Category, ClientSessionState, FacilitatorNote, Vote } from '../types';
+import { Ballot, Category, ClientSessionState, FacilitatorNote, Vote } from '../types';
 import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, randomKey } from './sessionCode';
 import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
@@ -25,7 +25,15 @@ function isPermissionDenied(err: unknown): boolean {
   return /permission.denied/i.test(`${e?.code ?? ''} ${e?.message ?? ''}`);
 }
 
+/** An error worded by the app; its text is read when shown, in the language of the moment */
+export class AppError extends Error {
+  constructor(readonly text: () => string) {
+    super(text());
+  }
+}
+
 export function describeError(err: unknown): string {
+  if (err instanceof AppError) return err.text();
   if (isPermissionDenied(err)) return t.errors.notAllowed;
   if (err instanceof Error) return err.message;
   return t.errors.generic;
@@ -54,7 +62,7 @@ export async function createSession(categories: Category[]): Promise<string> {
       if (!isPermissionDenied(err)) throw err;
     }
   }
-  throw new Error(t.errors.createFailed);
+  throw new AppError(() => t.errors.createFailed);
 }
 
 export async function sessionExists(code: string): Promise<boolean> {
@@ -75,7 +83,7 @@ export async function getParticipantName(code: string, uid: string): Promise<str
 export async function joinSession(code: string, uid: string, name: string): Promise<void> {
   for (let attempt = 0; attempt < MAX_PARTICIPANTS; attempt++) {
     const [slot] = freeSlots((await get(sessionRef(code, 'slots'))).val());
-    if (slot === undefined) throw new Error(t.errors.sessionFull(MAX_PARTICIPANTS));
+    if (slot === undefined) throw new AppError(() => t.errors.sessionFull(MAX_PARTICIPANTS));
     try {
       await update(sessionRef(code), {
         [`slots/${slot}`]: uid,
@@ -86,7 +94,7 @@ export async function joinSession(code: string, uid: string, name: string): Prom
       if (!isPermissionDenied(err)) throw err;
     }
   }
-  throw new Error(t.errors.generic);
+  throw new AppError(() => t.errors.generic);
 }
 
 /* ─── Subscriptions ─── */
@@ -104,9 +112,11 @@ export function subscribeSession(
     votes: {},
     facilitator: undefined,
     closed: null,
+    ballots: {},
   };
   const unsubs: Unsubscribe[] = [];
   const voteUnsubs = new Map<number, Unsubscribe>();
+  let ballotListener: { index: number; unsubscribe: Unsubscribe } | null = null;
   let facilitatorListening = false;
 
   const isFacilitator = () => raw.meta?.facilitatorId === uid;
@@ -149,6 +159,24 @@ export function subscribeSession(
     }
   };
 
+  /* Only the round being voted matters: a ballot can't be edited once the round is over */
+  const syncBallotListener = () => {
+    const index = raw.state?.currentCategoryIndex;
+    if (index === undefined || ballotListener?.index === index) return;
+    ballotListener?.unsubscribe();
+    ballotListener = {
+      index,
+      unsubscribe: onValue(
+        sessionRef(code, `ballots/${index}/${uid}`),
+        (snap: DataSnapshot) => {
+          raw.ballots[String(index)] = snap.val() as Ballot | null;
+          emit();
+        },
+        warnCancelled(`ballots/${index}`),
+      ),
+    };
+  };
+
   const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'facilitator' | 'closed') => {
     unsubs.push(
       onValue(
@@ -156,6 +184,7 @@ export function subscribeSession(
         (snap: DataSnapshot) => {
           (raw as unknown as Record<string, unknown>)[key] = snap.val();
           if (key === 'meta') syncFacilitatorListeners();
+          if (key === 'state') syncBallotListener();
           if (key !== 'participants' && key !== 'facilitator') syncVoteListeners();
           emit();
         },
@@ -180,6 +209,7 @@ export function subscribeSession(
   return () => {
     unsubs.forEach((u) => u());
     voteUnsubs.forEach((u) => u());
+    ballotListener?.unsubscribe();
   };
 }
 
@@ -250,12 +280,28 @@ export async function updateFacilitatorNote(
 
 /* ─── Participant action ─── */
 
-/** Voter flag and anonymous vote are written atomically; rules require both. */
+/**
+ * Voter flag, anonymous vote and private ballot are written atomically; rules require them together.
+ * Once voted, the ballot's key lets the voter overwrite their vote until the round is revealed.
+ */
 export async function submitVote(s: ClientSessionState, vote: Vote): Promise<void> {
-  if (s.phase !== 'voting' || s.hasVoted) return;
+  if (s.phase !== 'voting') return;
   const idx = s.currentCategoryIndex;
+  const { color, trend } = vote;
+  if (s.hasVoted) {
+    const ballot = await get(sessionRef(s.code, `ballots/${idx}/${s.myId}`));
+    if (!ballot.exists()) return;
+    const { key } = ballot.val() as Ballot;
+    await update(sessionRef(s.code), {
+      [`votes/${idx}/${key}`]: { color, trend },
+      [`ballots/${idx}/${s.myId}`]: { key, color, trend },
+    });
+    return;
+  }
+  const key = randomKey();
   await update(sessionRef(s.code), {
     [`voters/${idx}/${s.myId}`]: true,
-    [`votes/${idx}/${randomKey()}`]: { color: vote.color, trend: vote.trend },
+    [`votes/${idx}/${key}`]: { color, trend },
+    [`ballots/${idx}/${s.myId}`]: { key, color, trend },
   });
 }

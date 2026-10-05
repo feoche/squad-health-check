@@ -7,15 +7,19 @@ import { t } from '../lib/i18n';
 function ResultsGrid({ votes, inline = false }: { votes: Vote[]; inline?: boolean }) {
   const content = (
     <>
-      <Text preset={inline ? TEXT_PRESET.heading4 : TEXT_PRESET.heading3}>
+      <Text preset={inline ? TEXT_PRESET.heading5 : TEXT_PRESET.heading3} className="results-grid__title">
         {t.results.title(votes.length)}
       </Text>
-      <div className="table-scroll">
+      <div className="table-scroll results-grid__matrix">
         <VoteMatrix votes={votes} />
       </div>
     </>
   );
-  return inline ? content : <Card className="card-body">{content}</Card>;
+  return inline ? (
+    <div className="stack results-grid results-grid--inline">{content}</div>
+  ) : (
+    <Card className="card-body results-grid">{content}</Card>
+  );
 }
 
 export default ResultsGrid;

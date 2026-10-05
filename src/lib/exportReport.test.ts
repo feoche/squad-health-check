@@ -4,7 +4,7 @@ import { dominantColor, dominantTrend, generateMarkdown } from './exportReport';
 
 const categories = [
   { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
-  { name: 'Learning', nameFr: 'Apprentissage', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
+  { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
 ];
 
 function finished(allResults: CategoryResult[]): ClientSessionState {
@@ -21,6 +21,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     eligibleVoters: participants,
     voterIds: [],
     hasVoted: false,
+    myVote: null,
     isFacilitator: true,
     myId: 'fac',
     facilitatorId: 'fac',
@@ -51,7 +52,7 @@ describe('generateMarkdown', () => {
         empty(1),
       ]),
     );
-    const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Learning'));
+    const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Ownership'));
     expect(fun).toContain('**Discussion Notes:**');
     expect(fun).toContain('we laughed a lot');
   });
@@ -63,15 +64,15 @@ describe('generateMarkdown', () => {
 
   it('shows a dash instead of a dominant value for a category without votes', () => {
     const md = generateMarkdown(finished([empty(0), empty(1)]));
-    expect(md).toContain('| 2 | Learning | — | — |');
+    expect(md).toContain('| 2 | Ownership | — | — |');
   });
 
   it('writes the report in French for French users', () => {
     const md = generateMarkdown(finished([empty(0), empty(1)]), new Date(2026, 9, 5), 'fr');
     expect(md).toContain('5 octobre 2026');
     expect(md).toContain('## Synthèse des résultats');
-    expect(md).toContain('| 2 | Apprentissage | — | — |');
-    expect(md).toContain('### 2. Apprentissage (Learning)');
+    expect(md).toContain('| 2 | Responsabilité | — | — |');
+    expect(md).toContain('### 2. Responsabilité (Ownership)');
     expect(md).toContain('**Vert:** p');
   });
 });

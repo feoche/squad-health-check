@@ -26,7 +26,7 @@ function FacilitatorControls({ session, actions }: Props) {
   const canStart = canStartWorkshop(session);
 
   return (
-    <Card className="card-body">
+    <Card className="card-body facilitator-controls">
       {(phase === 'voting' || phase === 'revealed') && <LiveRound session={session} />}
 
       {phase === 'lobby' && (

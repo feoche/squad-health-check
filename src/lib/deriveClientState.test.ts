@@ -24,6 +24,7 @@ function raw(overrides: Partial<RawSession> = {}): RawSession {
     votes: null,
     facilitator: null,
     closed: null,
+    ballots: {},
     ...overrides,
   };
 }
@@ -49,6 +50,17 @@ describe('deriveClientState', () => {
     expect(s.allResults).toEqual([]);
     expect(s.facilitatorNotes).toEqual({});
     expect(s.categoryResults).toEqual({});
+  });
+
+  it('exposes my vote of the current round from my ballot only', () => {
+    const ballots = { 1: { key: 'k'.repeat(20), color: 'red' as const, trend: 'down' as const } };
+    const voting = { phase: 'voting' as const, currentCategoryIndex: 1 };
+    expect(deriveClientState('ABC234', raw({ state: voting, ballots }), 'bob')!.myVote).toEqual({
+      color: 'red',
+      trend: 'down',
+    });
+    const nextRound = { ...voting, currentCategoryIndex: 2 };
+    expect(deriveClientState('ABC234', raw({ state: nextRound, ballots }), 'bob')!.myVote).toBeNull();
   });
 
   it('sorts participants by name and handles none', () => {

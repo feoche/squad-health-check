@@ -23,7 +23,7 @@
 - Every user-facing string goes in `src/lib/i18n.ts`, in **both** `en` and `fr` (`fr` is typed `Messages`, so `npm run build` fails on a missing key).
 - UI uses ODS components and ODS design tokens only (see the header of `src/styles/main.css`).
 - Router is `HashRouter`; app URLs are `${origin}${pathname}#/…`.
-- Commits: plain conventional messages, **no** `Co-Authored-By` or tool attribution lines; never commit `.claude/` or `.superpowers/`.
+- Commits: plain conventional messages, **no** `Co-Authored-By` or tool attribution lines.
 - Rules change in `database.rules.json` must be published in the Firebase console **before** the app is pushed to `main` (README, Firebase setup step 5).
 
 ## Review Focus

@@ -36,8 +36,9 @@ function SessionView() {
   const [name, setName] = useState('');
   const [checking, setChecking] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
-  const [error, setError] = useState('');
-  const [nameError, setNameError] = useState('');
+  /** Kept raw and described at render time, so it follows language switches */
+  const [error, setError] = useState<unknown>(null);
+  const [nameMissing, setNameMissing] = useState(false);
   const [notFound, setNotFound] = useState(false);
   const [joined, setJoined] = useState(false);
   const [connected, setConnected] = useState(true);
@@ -49,7 +50,6 @@ function SessionView() {
     setNotFound(false);
     if (!CODE_PATTERN.test(code)) {
       setNotFound(true);
-      setError(t.sessionNotFound);
       setChecking(false);
       return;
     }
@@ -57,10 +57,7 @@ function SessionView() {
       try {
         const id = await ensureSignedIn();
         if (!(await store.sessionExists(code))) {
-          if (!cancelled) {
-            setNotFound(true);
-            setError(t.sessionNotFound);
-          }
+          if (!cancelled) setNotFound(true);
           return;
         }
         const existingName = await store.getParticipantName(code, id);
@@ -71,7 +68,7 @@ function SessionView() {
           setJoined(true);
         }
       } catch (err) {
-        if (!cancelled) setError(store.describeError(err));
+        if (!cancelled) setError(err);
       } finally {
         if (!cancelled) setChecking(false);
       }
@@ -103,18 +100,18 @@ function SessionView() {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setNameError(t.join.nameMissing);
+      setNameMissing(true);
       return;
     }
-    setNameError('');
+    setNameMissing(false);
     if (!uid) return;
     setIsJoining(true);
-    setError('');
+    setError(null);
     try {
       await store.joinSession(code, uid, trimmed);
       setJoined(true);
     } catch (err) {
-      setError(store.describeError(err));
+      setError(err);
     } finally {
       setIsJoining(false);
     }
@@ -145,18 +142,18 @@ function SessionView() {
   /* ─── Checking / join form ─── */
   if (checking) return <Connecting />;
 
-  if (notFound) return <SessionNotice title={error} backTo="/" backLabel={t.backToHome} />;
+  if (notFound) return <SessionNotice title={t.sessionNotFound} backTo="/" backLabel={t.backToHome} />;
 
   if (!joined) {
     return (
-      <div className="page page-narrow">
-        <Card className="card-body">
+      <div className="page page-narrow join-session">
+        <Card className="card-body join-session__card">
           <Text preset={TEXT_PRESET.heading2}>{t.join.title}</Text>
           <Text preset={TEXT_PRESET.paragraph}>
             {t.join.session} <Text preset={TEXT_PRESET.code}>{code}</Text>
           </Text>
-          <form className="stack" onSubmit={handleJoin} noValidate>
-            <FormField invalid={!!nameError}>
+          <form className="stack join-session__form" onSubmit={handleJoin} noValidate>
+            <FormField invalid={nameMissing}>
               <FormFieldLabel>
                 {t.join.yourName}
                 <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
@@ -165,18 +162,22 @@ function SessionView() {
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
-                  if (nameError) setNameError('');
+                  setNameMissing(false);
                 }}
                 maxLength={50}
                 autoFocus
                 disabled={!uid}
               />
-              <FormFieldError>{nameError}</FormFieldError>
+              <FormFieldError>{t.join.nameMissing}</FormFieldError>
             </FormField>
-            {error && (
-              <Message color={MESSAGE_COLOR.critical} dismissible={false}>
+            {error != null && (
+              <Message
+                className="join-session__error"
+                color={MESSAGE_COLOR.critical}
+                dismissible={false}
+              >
                 <MessageIcon name={ICON_NAME.hexagonExclamation} />
-                <MessageBody>{error}</MessageBody>
+                <MessageBody>{store.describeError(error)}</MessageBody>
               </Message>
             )}
             <Button type="submit" loading={isJoining} disabled={!uid}>

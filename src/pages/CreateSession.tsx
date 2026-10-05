@@ -21,42 +21,49 @@ function CreateSession() {
     ...defaultCategories,
   ]);
   const [isCreating, setIsCreating] = useState(false);
-  const [error, setError] = useState('');
+  const [noCategories, setNoCategories] = useState(false);
+  /** Kept raw and described at render time, so it follows language switches */
+  const [error, setError] = useState<unknown>(null);
   const navigate = useNavigate();
 
   const handleCreate = async () => {
     if (categories.length === 0) {
-      setError(t.create.noCategories);
+      setNoCategories(true);
       return;
     }
+    setNoCategories(false);
     setIsCreating(true);
-    setError('');
+    setError(null);
     try {
       const code = await createSession(categories);
       navigate(`/session/${code}`);
     } catch (err) {
-      setError(describeError(err));
+      setError(err);
       setIsCreating(false);
     }
   };
 
   return (
-    <div className="page">
-      <div className="stack">
+    <div className="page create-session">
+      <div className="stack create-session__intro">
         <Text preset={TEXT_PRESET.heading2}>{t.create.title}</Text>
         <Text preset={TEXT_PRESET.paragraph}>{t.create.intro}</Text>
       </div>
 
       <CategoryEditor categories={categories} onChange={setCategories} />
 
-      {error && (
-        <Message color={MESSAGE_COLOR.critical} dismissible={false}>
+      {(noCategories || error != null) && (
+        <Message
+          className="create-session__error"
+          color={MESSAGE_COLOR.critical}
+          dismissible={false}
+        >
           <MessageIcon name={ICON_NAME.hexagonExclamation} />
-          <MessageBody>{error}</MessageBody>
+          <MessageBody>{noCategories ? t.create.noCategories : describeError(error)}</MessageBody>
         </Message>
       )}
 
-      <div className="actions">
+      <div className="actions create-session__actions">
         <Button onClick={handleCreate} loading={isCreating}>
           {t.create.start(categories.length)}
         </Button>

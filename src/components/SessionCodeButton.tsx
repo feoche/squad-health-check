@@ -37,13 +37,16 @@ function SessionCodeButton({ code }: { code: string }) {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          className="session-code-button"
+          className={copied ? 'session-code-button session-code-button--copied' : 'session-code-button'}
           size={BUTTON_SIZE.xs}
           variant={BUTTON_VARIANT.outline}
           onClick={copy}
         >
           {t.code(code)}
-          <Icon name={copied ? ICON_NAME.check : ICON_NAME.fileCopy} />
+          <Icon
+            className="session-code-button__icon"
+            name={copied ? ICON_NAME.check : ICON_NAME.fileCopy}
+          />
         </Button>
       </TooltipTrigger>
       <TooltipContent>{copied ? t.lobby.linkCopied : t.lobby.copyLink}</TooltipContent>

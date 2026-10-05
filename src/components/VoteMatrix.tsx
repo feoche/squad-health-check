@@ -15,13 +15,13 @@ function VoteMatrix({ votes, compact = false }: { votes: Vote[]; compact?: boole
   );
 
   return (
-    <table className={compact ? 'vote-matrix vote-matrix-compact' : 'vote-matrix'}>
+    <table className={compact ? 'vote-matrix vote-matrix--compact' : 'vote-matrix'}>
       <thead>
         <tr>
           <td />
           {MATRIX_TRENDS.map(({ value, label, icon }) => (
-            <th key={value} scope="col">
-              <span className="vote-matrix-trend" title={label}>
+            <th key={value} scope="col" className="vote-matrix__col-header">
+              <span className="vote-matrix__trend" title={label}>
                 <Icon name={icon} aria-hidden="true" />
                 <span className="visually-hidden">{label}</span>
               </span>
@@ -31,8 +31,8 @@ function VoteMatrix({ votes, compact = false }: { votes: Vote[]; compact?: boole
       </thead>
       <tbody>
         {COLOR_OPTIONS.map(({ value: color, label, badge }) => (
-          <tr key={color}>
-            <th scope="row">
+          <tr key={color} className={`vote-matrix__row vote-matrix__row--${color}`}>
+            <th scope="row" className="vote-matrix__row-header">
               <Badge color={badge} size={compact ? BADGE_SIZE.md : BADGE_SIZE.lg}>
                 {label}
               </Badge>
@@ -42,7 +42,7 @@ function VoteMatrix({ votes, compact = false }: { votes: Vote[]; compact?: boole
               return (
                 <td
                   key={trend}
-                  className="vote-matrix-cell"
+                  className="vote-matrix__cell"
                   style={
                     {
                       '--cell-color': `var(--ods-color-${badge}-300)`,

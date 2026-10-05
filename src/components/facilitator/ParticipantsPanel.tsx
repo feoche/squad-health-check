@@ -12,7 +12,7 @@ function ParticipantsPanel({ session, onSetFacilitatorVotes }: Props) {
   const locked = session.phase !== 'lobby';
 
   return (
-    <Card className="card-body">
+    <Card className="card-body participants-panel">
       <Text preset={TEXT_PRESET.heading4}>
         {t.lobby.participants(session.participants.length)}
       </Text>
@@ -22,6 +22,7 @@ function ParticipantsPanel({ session, onSetFacilitatorVotes }: Props) {
         myId={session.myId}
       />
       <Toggle
+        className="participants-panel__facilitator-votes"
         checked={session.facilitatorVotes}
         disabled={locked}
         onCheckedChange={({ checked }) => onSetFacilitatorVotes(checked)}
