@@ -2,13 +2,10 @@ import { useState } from 'react';
 import {
   Badge,
   Button,
-  BUTTON_VARIANT,
   FormField,
   FormFieldError,
   FormFieldLabel,
   Icon,
-  ICON_NAME,
-  ProgressBar,
   Radio,
   RadioControl,
   RadioGroup,
@@ -23,23 +20,11 @@ import { t } from '../lib/i18n';
 
 interface Props {
   category: Category;
-  hasVoted: boolean;
-  voteCount: number;
-  totalParticipants: number;
   onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
-  isFacilitator: boolean;
-  onRevealVotes: () => void;
 }
 
-function VotingPanel({
-  category,
-  hasVoted,
-  voteCount,
-  totalParticipants,
-  onSubmitVote,
-  isFacilitator,
-  onRevealVotes,
-}: Props) {
+/** The vote form. Render it with a key per category so picks never carry over. */
+function VotingPanel({ category, onSubmitVote }: Props) {
   const [selectedColor, setSelectedColor] = useState<VoteColor | null>(null);
   const [selectedTrend, setSelectedTrend] = useState<VoteTrend | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -51,36 +36,6 @@ function VotingPanel({
       onSubmitVote(selectedColor, selectedTrend);
     }
   };
-
-  const progress = (
-    <div className="stack stack-center">
-      <Text preset={TEXT_PRESET.paragraph}>
-        {t.votesReceived(voteCount, totalParticipants)}
-      </Text>
-      <ProgressBar
-        className="vote-progress"
-        value={voteCount}
-        max={totalParticipants}
-        aria-label={t.voting.votesReceivedLabel}
-      />
-    </div>
-  );
-
-  if (hasVoted) {
-    return (
-      <div className="stack stack-center">
-        <Text preset={TEXT_PRESET.heading3}>
-          <Icon name={ICON_NAME.circleCheck} /> {t.voting.submitted}
-        </Text>
-        {progress}
-        {isFacilitator && voteCount < totalParticipants && (
-          <Button variant={BUTTON_VARIANT.outline} onClick={onRevealVotes}>
-            {t.voting.revealNow}
-          </Button>
-        )}
-      </div>
-    );
-  }
 
   const colorMissing = submitted && !selectedColor;
   const trendMissing = submitted && !selectedTrend;
@@ -141,20 +96,6 @@ function VotingPanel({
       <div className="actions vote-submit">
         <Button type="submit">{t.voting.submit}</Button>
       </div>
-
-      {progress}
-
-      {isFacilitator && voteCount > 0 && (
-        <div className="actions">
-          <Button
-            type="button"
-            variant={BUTTON_VARIANT.outline}
-            onClick={onRevealVotes}
-          >
-            {t.voting.revealNowCount(voteCount, totalParticipants)}
-          </Button>
-        </div>
-      )}
     </form>
   );
 }

@@ -16,6 +16,8 @@ export type Indexed<T> = Record<string, T> | (T | null | undefined)[];
 export interface SessionStateNode {
   phase: SessionPhase;
   currentCategoryIndex: number;
+  /** Absent in sessions created before the setting existed: counts as true */
+  facilitatorVotes?: boolean;
 }
 
 /** Raw contents of /sessions/{code}, one field per listened child. */
@@ -57,6 +59,12 @@ export function deriveClientState(
 
   const isFacilitator = facilitatorId === myId;
 
+  const facilitatorVotes = raw.state.facilitatorVotes !== false;
+  const eligibleVoters = facilitatorVotes
+    ? participants
+    : participants.filter((p) => p.id !== facilitatorId);
+  const voterIds = eligibleVoters.filter((p) => roundVoters[p.id]).map((p) => p.id);
+
   const facilitatorNotes: Record<number, FacilitatorNote> = {};
   if (isFacilitator) {
     categories.forEach((_, i) => {
@@ -87,8 +95,11 @@ export function deriveClientState(
     participants,
     currentCategoryIndex,
     phase,
-    voteCount: Object.keys(roundVoters).length,
-    totalParticipants: participants.length,
+    voteCount: voterIds.length,
+    totalVoters: eligibleVoters.length,
+    facilitatorVotes,
+    eligibleVoters,
+    voterIds,
     hasVoted: Boolean(roundVoters[myId]),
     isFacilitator,
     myId,
@@ -131,18 +142,25 @@ export function summaryIndexes(
   const count =
     session.phase === 'finished'
       ? session.categories.length
-      : session.phase === 'lobby'
+      : session.phase === 'lobby' || session.phase === 'intro'
         ? 0
         : session.currentCategoryIndex;
   return Array.from({ length: count }, (_, i) => i);
 }
 
-/** The facilitator's tab reveals the round once every participant has voted. */
+/** The facilitator's tab reveals the round once every eligible voter has voted. */
 export function shouldAutoReveal(session: ClientSessionState): boolean {
   return (
     session.isFacilitator &&
     session.phase === 'voting' &&
-    session.totalParticipants > 0 &&
-    session.voteCount >= session.totalParticipants
+    session.totalVoters > 0 &&
+    session.voteCount >= session.totalVoters
   );
+}
+
+/** With no eligible voter, no round could ever be revealed automatically. */
+export function canStartWorkshop(
+  session: Pick<ClientSessionState, 'isFacilitator' | 'phase' | 'totalVoters'>,
+): boolean {
+  return session.isFacilitator && session.phase === 'lobby' && session.totalVoters > 0;
 }

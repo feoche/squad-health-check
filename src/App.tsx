@@ -1,11 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { Routes, Route, Link as RouterLink } from 'react-router-dom';
+import { Routes, Route, Link as RouterLink, Navigate, useParams } from 'react-router-dom';
 import { Link, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import Home from './pages/Home';
 import CreateSession from './pages/CreateSession';
 import SessionPage from './pages/SessionPage';
-import FacilitatorNotesPage from './pages/FacilitatorNotesPage';
+import PresenterPage from './pages/PresenterPage';
 import { HeaderSlotContext } from './components/HeaderSlot';
+
+/* The notes window became the facilitator view; old links and open popups land there */
+function NotesRedirect() {
+  const { code = '' } = useParams<{ code: string }>();
+  return <Navigate to={`/session/${code}`} replace />;
+}
 
 function App() {
   const headerRef = useRef<HTMLElement>(null);
@@ -30,7 +36,7 @@ function App() {
     <div className="app">
       <header className="app-header" ref={headerRef}>
         <Link className="app-header-brand" as={RouterLink} to="/">
-          <Text preset={TEXT_PRESET.heading4} as="span">
+          <Text preset={TEXT_PRESET.heading4} as="h1">
             Squad Health Check
           </Text>
         </Link>
@@ -42,7 +48,8 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/create" element={<CreateSession />} />
             <Route path="/session/:code" element={<SessionPage />} />
-            <Route path="/session/:code/notes" element={<FacilitatorNotesPage />} />
+            <Route path="/session/:code/notes" element={<NotesRedirect />} />
+            <Route path="/session/:code/present" element={<PresenterPage />} />
           </Routes>
         </HeaderSlotContext.Provider>
       </main>

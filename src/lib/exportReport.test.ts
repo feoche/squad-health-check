@@ -8,14 +8,18 @@ const categories = [
 ];
 
 function finished(allResults: CategoryResult[]): ClientSessionState {
+  const participants = [{ id: 'fac', name: 'Alice' }];
   return {
     code: 'ABC234',
     categories,
-    participants: [{ id: 'fac', name: 'Alice' }],
+    participants,
     currentCategoryIndex: 1,
     phase: 'finished',
     voteCount: 0,
-    totalParticipants: 1,
+    totalVoters: 1,
+    facilitatorVotes: true,
+    eligibleVoters: participants,
+    voterIds: [],
     hasVoted: false,
     isFacilitator: true,
     myId: 'fac',

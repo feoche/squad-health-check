@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Button,
@@ -23,9 +23,8 @@ import { CODE_PATTERN } from '../lib/sessionCode';
 import { shouldAutoReveal } from '../lib/deriveClientState';
 import * as store from '../lib/sessionStore';
 import { t } from '../lib/i18n';
-import Lobby from '../components/Lobby';
-import VotingView from '../components/VotingView';
-import SessionFinished from '../components/SessionFinished';
+import ParticipantView from '../components/ParticipantView';
+import FacilitatorView, { type FacilitatorActions } from '../components/facilitator/FacilitatorView';
 import { Connecting, SessionNotice } from '../components/SessionStatus';
 
 const warn = (err: unknown) => console.warn('[session]', err);
@@ -122,24 +121,26 @@ function SessionView() {
   };
 
   /* ─── Actions (memoised) ─── */
-  const handleStartVoting = useCallback(() => {
-    if (session) store.startVoting(session).catch(warn);
-  }, [session]);
   const handleSubmitVote = useCallback(
     (color: VoteColor, trend: VoteTrend) => {
       if (session) store.submitVote(session, { color, trend }).catch(warn);
     },
     [session],
   );
-  const handleRevealVotes = useCallback(() => {
-    if (session) store.revealVotes(session).catch(warn);
-  }, [session]);
-  const handleNextCategory = useCallback(() => {
-    if (session) store.nextCategory(session).catch(warn);
-  }, [session]);
-  const handleEndSession = useCallback(() => {
-    if (session) store.endSession(session).catch(warn);
-  }, [session]);
+  const facilitatorActions = useMemo<FacilitatorActions | null>(() => {
+    if (!session) return null;
+    return {
+      startWorkshop: () => void store.startWorkshop(session).catch(warn),
+      startVoting: () => void store.startVoting(session).catch(warn),
+      submitVote: handleSubmitVote,
+      reveal: () => void store.revealVotes(session).catch(warn),
+      next: () => void store.nextCategory(session).catch(warn),
+      end: () => void store.endSession(session).catch(warn),
+      setFacilitatorVotes: (value) => void store.setFacilitatorVotes(session, value).catch(warn),
+      changeNote: (index, value) =>
+        void store.updateFacilitatorNote(session, index, 'notes', value).catch(warn),
+    };
+  }, [session, handleSubmitVote]);
 
   /* ─── Checking / join form ─── */
   if (checking) return <Connecting />;
@@ -191,29 +192,12 @@ function SessionView() {
   if (!session) return <Connecting />;
 
   /* ─── Session views ─── */
-  let view: JSX.Element;
-  switch (session.phase) {
-    case 'lobby':
-      view = <Lobby session={session} onStartVoting={handleStartVoting} />;
-      break;
-    case 'voting':
-    case 'revealed':
-      view = (
-        <VotingView
-          session={session}
-          onSubmitVote={handleSubmitVote}
-          onRevealVotes={handleRevealVotes}
-          onNextCategory={handleNextCategory}
-          onEndSession={handleEndSession}
-        />
-      );
-      break;
-    case 'finished':
-      view = <SessionFinished session={session} />;
-      break;
-    default:
-      view = <Text preset={TEXT_PRESET.paragraph}>{t.unknownState}</Text>;
-  }
+  const view =
+    session.isFacilitator && facilitatorActions ? (
+      <FacilitatorView session={session} actions={facilitatorActions} />
+    ) : (
+      <ParticipantView session={session} onSubmitVote={handleSubmitVote} />
+    );
 
   return (
     <>

@@ -15,8 +15,9 @@
           ".read": "auth != null",
           ".write": "auth != null && newData.exists() && newData.parent().child('meta/facilitatorId').val() === auth.uid",
           ".validate": "newData.hasChildren(['phase', 'currentCategoryIndex'])",
-          "phase": { ".validate": "newData.val() === 'lobby' || newData.val() === 'voting' || newData.val() === 'revealed' || newData.val() === 'finished'" },
+          "phase": { ".validate": "newData.val() === 'lobby' || newData.val() === 'intro' || newData.val() === 'voting' || newData.val() === 'revealed' || newData.val() === 'finished'" },
           "currentCategoryIndex": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "facilitatorVotes": { ".validate": "newData.isBoolean() && (!data.exists() || newData.val() === data.val() || data.parent().child('phase').val() === 'lobby')" },
           "$other": { ".validate": false }
         },
         "participants": {
@@ -32,7 +33,7 @@
           ".read": "auth != null",
           "$idx": {
             "$uid": {
-              ".write": "auth != null && $uid === auth.uid && !data.exists() && root.child('sessions/' + $code + '/participants/' + auth.uid).exists() && root.child('sessions/' + $code + '/state/phase').val() === 'voting' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx",
+              ".write": "auth != null && $uid === auth.uid && !data.exists() && root.child('sessions/' + $code + '/participants/' + auth.uid).exists() && root.child('sessions/' + $code + '/state/phase').val() === 'voting' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx && !(root.child('sessions/' + $code + '/meta/facilitatorId').val() === auth.uid && root.child('sessions/' + $code + '/state/facilitatorVotes').val() === false)",
               ".validate": "newData.val() === true"
             }
           }

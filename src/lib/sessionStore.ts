@@ -45,7 +45,7 @@ export async function createSession(categories: Category[]): Promise<string> {
           categories: toFirebaseCategories(categories),
           createdAt: serverTimestamp(),
         },
-        state: { phase: 'lobby', currentCategoryIndex: 0 },
+        state: { phase: 'lobby', currentCategoryIndex: 0, facilitatorVotes: true },
       });
       return code;
     } catch (err) {
@@ -179,8 +179,19 @@ export function subscribeConnection(onChange: (connected: boolean) => void): Uns
 const writeState = (s: ClientSessionState, patch: Record<string, unknown>) =>
   update(sessionRef(s.code, 'state'), patch);
 
-export async function startVoting(s: ClientSessionState): Promise<void> {
+export async function startWorkshop(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator || s.phase !== 'lobby') return;
+  await writeState(s, { phase: 'intro' });
+}
+
+/** Locked once the workshop starts, so the vote count of a round never changes under it. */
+export async function setFacilitatorVotes(s: ClientSessionState, value: boolean): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'lobby') return;
+  await writeState(s, { facilitatorVotes: value });
+}
+
+export async function startVoting(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'intro') return;
   await writeState(s, { phase: 'voting' });
 }
 

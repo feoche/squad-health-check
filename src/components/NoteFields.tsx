@@ -4,6 +4,8 @@ import { FacilitatorNote } from '../types';
 import { NoteField } from '../lib/sessionStore';
 import { t } from '../lib/i18n';
 
+export const EMPTY_NOTE: FacilitatorNote = { notes: '' };
+
 /**
  * Local copy of a remote value. Remote updates (e.g. from another window) are
  * applied only while the field isn't focused, so the cursor never jumps.
