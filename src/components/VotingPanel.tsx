@@ -19,6 +19,7 @@ import {
 } from '@ovhcloud/ods-react';
 import { Category, VoteColor, VoteTrend } from '../types';
 import { COLOR_OPTIONS, TREND_OPTIONS, colorDescription } from './voteOptions';
+import { t } from '../lib/i18n';
 
 interface Props {
   category: Category;
@@ -54,13 +55,13 @@ function VotingPanel({
   const progress = (
     <div className="stack stack-center">
       <Text preset={TEXT_PRESET.paragraph}>
-        {voteCount} / {totalParticipants} votes received
+        {t.votesReceived(voteCount, totalParticipants)}
       </Text>
       <ProgressBar
         className="vote-progress"
         value={voteCount}
         max={totalParticipants}
-        aria-label="Votes received"
+        aria-label={t.voting.votesReceivedLabel}
       />
     </div>
   );
@@ -69,12 +70,12 @@ function VotingPanel({
     return (
       <div className="stack stack-center">
         <Text preset={TEXT_PRESET.heading3}>
-          <Icon name={ICON_NAME.circleCheck} /> Vote submitted!
+          <Icon name={ICON_NAME.circleCheck} /> {t.voting.submitted}
         </Text>
         {progress}
         {isFacilitator && voteCount < totalParticipants && (
           <Button variant={BUTTON_VARIANT.outline} onClick={onRevealVotes}>
-            Reveal Votes Now
+            {t.voting.revealNow}
           </Button>
         )}
       </div>
@@ -87,7 +88,7 @@ function VotingPanel({
   return (
     <form className="stack" onSubmit={handleSubmit} noValidate>
       <FormField invalid={colorMissing}>
-        <FormFieldLabel>Health Color</FormFieldLabel>
+        <FormFieldLabel className="vote-field-label">{t.voting.healthColor}</FormFieldLabel>
         <RadioGroup
           className="tile-options"
           orientation="horizontal"
@@ -110,13 +111,13 @@ function VotingPanel({
             </Tile>
           ))}
         </RadioGroup>
-        <FormFieldError>Pick a health color.</FormFieldError>
+        <FormFieldError>{t.voting.pickColor}</FormFieldError>
       </FormField>
 
       <FormField invalid={trendMissing}>
-        <FormFieldLabel>Trend</FormFieldLabel>
+        <FormFieldLabel className="vote-field-label">{t.voting.trend}</FormFieldLabel>
         <RadioGroup
-          className="tile-options"
+          className="tile-options tile-options-trend"
           orientation="horizontal"
           value={selectedTrend ?? undefined}
           onValueChange={({ value }) => setSelectedTrend(value as VoteTrend)}
@@ -127,18 +128,18 @@ function VotingPanel({
                 <div className="tile-radio">
                   <RadioControl />
                   <RadioLabel>
-                    <Icon name={icon} /> {label}
+                    <Icon name={icon} /> <span>{label}</span>
                   </RadioLabel>
                 </div>
               </Radio>
             </Tile>
           ))}
         </RadioGroup>
-        <FormFieldError>Pick a trend.</FormFieldError>
+        <FormFieldError>{t.voting.pickTrend}</FormFieldError>
       </FormField>
 
-      <div className="actions">
-        <Button type="submit">Submit Vote</Button>
+      <div className="actions vote-submit">
+        <Button type="submit">{t.voting.submit}</Button>
       </div>
 
       {progress}
@@ -150,7 +151,7 @@ function VotingPanel({
             variant={BUTTON_VARIANT.outline}
             onClick={onRevealVotes}
           >
-            Reveal Votes Now ({voteCount}/{totalParticipants})
+            {t.voting.revealNowCount(voteCount, totalParticipants)}
           </Button>
         </div>
       )}

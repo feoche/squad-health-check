@@ -9,12 +9,13 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
+import { t } from '../lib/i18n';
 
 export function Connecting() {
   return (
     <div className="stack stack-center loading">
       <Spinner size={SPINNER_SIZE.lg} />
-      <Text preset={TEXT_PRESET.paragraph}>Connecting to session…</Text>
+      <Text preset={TEXT_PRESET.paragraph}>{t.connecting}</Text>
     </div>
   );
 }

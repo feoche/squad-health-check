@@ -30,12 +30,61 @@ body {
   background: var(--ods-theme-background-color);
   border-bottom: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
   padding: var(--ods-theme-padding-vertical) calc(var(--ods-theme-padding-horizontal) * 3);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--ods-theme-column-gap) * 3);
+}
+
+/* Shrinks with an ellipsis rather than pushing the progress onto a new line */
+.app-header-brand {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-header-brand > * {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.app-header-slot {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.app-header-slot:empty {
+  display: none;
+}
+
+.header-progress {
+  flex: 1;
+  min-width: 0;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.header-progress-bar {
+  flex: 1;
+  min-width: 120px;
+}
+
+.header-progress-label {
+  white-space: nowrap;
+}
+
+.show-mobile {
+  display: none;
 }
 
 .app-main {
   flex: 1;
   width: 100%;
   max-width: 900px;
+  box-sizing: border-box;
   margin: 0 auto;
   padding: calc(var(--ods-theme-padding-vertical) * 4) calc(var(--ods-theme-padding-horizontal) * 2);
 }
@@ -122,7 +171,7 @@ body {
 
 .connection-banner {
   position: sticky;
-  top: calc(var(--ods-theme-padding-vertical) * 7);
+  top: var(--app-header-height, calc(var(--ods-theme-padding-vertical) * 7));
   z-index: var(--ods-theme-overlay-z-index);
   margin-bottom: calc(var(--ods-theme-row-gap) * 2);
 }
@@ -248,6 +297,12 @@ body {
 
 /* ─── Responsive ─── */
 
+@media (max-width: 960px) {
+  .desktop-only {
+    display: none;
+  }
+}
+
 @media (max-width: 640px) {
   .grid-2,
   .tile-options {
@@ -265,5 +320,138 @@ body {
   .session-header .grow {
     flex-basis: 100%;
     order: 1;
+  }
+
+  .app-header {
+    padding-inline: calc(var(--ods-theme-padding-horizontal) * 2);
+    gap: calc(var(--ods-theme-column-gap) * 2);
+  }
+
+  .app-header-brand > * {
+    font-size: 1.125rem;
+  }
+
+  /* Short "1/10" label, no bar; the brand shrinks instead */
+  .app-header-slot {
+    flex: 1 0 auto;
+  }
+
+  .header-progress {
+    flex: none;
+  }
+
+  .header-progress-bar {
+    display: none;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  .show-mobile {
+    display: inline;
+  }
+
+  /* Voting fits on one phone screen: tighter spacing, trends side by side,
+     and the submit button pinned to the bottom in case it still overflows */
+  .app-main {
+    padding-top: calc(var(--ods-theme-padding-vertical) * 2);
+  }
+
+  .page {
+    gap: calc(var(--ods-theme-row-gap) * 2);
+  }
+
+  .tile-options {
+    gap: var(--ods-theme-row-gap);
+  }
+
+  .tile-radio {
+    padding: var(--ods-theme-padding-vertical) calc(var(--ods-theme-padding-horizontal) * 1.5);
+  }
+
+  /* Description flows right after the color badge instead of on its own row */
+  .tile-radio:has(.tile-radio-description) {
+    display: block;
+    position: relative;
+    padding-left: calc(var(--ods-theme-padding-horizontal) * 4.5);
+  }
+
+  .tile-radio:has(.tile-radio-description) > [data-ods='radio-control'] {
+    position: absolute;
+    left: calc(var(--ods-theme-padding-horizontal) * 1.5);
+    top: calc(var(--ods-theme-padding-vertical) * 1.25);
+  }
+
+  .tile-radio:has(.tile-radio-description) > [data-ods='radio-label'] {
+    margin-right: calc(var(--ods-theme-column-gap) / 2);
+  }
+
+  .tile-radio-description {
+    display: inline;
+  }
+
+  .tile-options-trend {
+    grid-template-columns: repeat(3, 1fr);
+    align-items: stretch;
+  }
+
+  .tile-options-trend .tile-radio-root,
+  .tile-options-trend .tile-radio {
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  /* Radio and icon on top, label below, so every trend tile reads the same */
+  .tile-options-trend .tile-radio {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    gap: calc(var(--ods-theme-row-gap) / 2) var(--ods-theme-column-gap);
+    text-align: center;
+  }
+
+  .tile-options-trend [data-ods='radio-label'] {
+    display: contents;
+  }
+
+  .tile-options-trend [data-ods='radio-label'] > :last-child {
+    flex-basis: 100%;
+  }
+
+  .vote-submit {
+    position: sticky;
+    bottom: 0;
+    padding-block: var(--ods-theme-padding-vertical);
+    background: var(--ods-theme-background-color);
+  }
+
+  .vote-submit > * {
+    flex: 1;
+  }
+}
+
+.category-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ods-theme-row-gap);
+}
+
+/* Short phone screens: the badges and arrows speak for themselves,
+   so the field labels are kept for screen readers only */
+@media (max-width: 640px) and (max-height: 600px) {
+  .page {
+    gap: var(--ods-theme-row-gap);
+  }
+
+  .vote-field-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }

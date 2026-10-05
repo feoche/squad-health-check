@@ -8,6 +8,7 @@ import {
 } from '@ovhcloud/ods-react';
 import { Vote } from '../types';
 import VoteMatrix from './VoteMatrix';
+import { t } from '../lib/i18n';
 
 interface Props {
   votes: Vote[];
@@ -28,7 +29,7 @@ function ResultsGrid({
 
   return (
     <Card className="card-body">
-      <Text preset={TEXT_PRESET.heading3}>Results ({total} votes)</Text>
+      <Text preset={TEXT_PRESET.heading3}>{t.results.title(total)}</Text>
 
       <div className="table-scroll">
         <VoteMatrix votes={votes} />
@@ -38,12 +39,12 @@ function ResultsGrid({
         <div className="actions">
           {!isLastCategory ? (
             <Button onClick={onNextCategory}>
-              Next Category
+              {t.results.next}
               <Icon name={ICON_NAME.arrowRight} />
             </Button>
           ) : (
             <Button onClick={onEndSession}>
-              Finish Session
+              {t.results.finish}
               <Icon name={ICON_NAME.check} />
             </Button>
           )}

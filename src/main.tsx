@@ -6,6 +6,9 @@ import '@ovhcloud/ods-themes/default/css';
 import '@ovhcloud/ods-themes/default/fonts';
 import './styles/main.css';
 import App from './App';
+import { LANG } from './lib/i18n';
+
+document.documentElement.lang = LANG;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

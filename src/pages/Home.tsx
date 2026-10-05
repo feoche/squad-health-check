@@ -15,6 +15,7 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
+import { t } from '../lib/i18n';
 
 function Home() {
   const [sessionCode, setSessionCode] = useState('');
@@ -25,7 +26,7 @@ function Home() {
     e.preventDefault();
     const code = sessionCode.trim().toUpperCase();
     if (!code) {
-      setCodeError('Enter the session code shared by your facilitator.');
+      setCodeError(t.home.codeMissing);
       return;
     }
     setCodeError('');
@@ -35,36 +36,31 @@ function Home() {
   return (
     <div className="page page-narrow">
       <div className="stack stack-center">
-        <Text preset={TEXT_PRESET.heading2}>Welcome to Squad Health Check</Text>
-        <Text preset={TEXT_PRESET.paragraph}>
-          Run anonymous health check sessions with your team. Vote on
-          categories, discuss results, and track your squad's well-being.
-        </Text>
+        <Text preset={TEXT_PRESET.heading2}>{t.home.welcome}</Text>
+        <Text preset={TEXT_PRESET.paragraph}>{t.home.intro}</Text>
       </div>
 
       <div className="grid-2">
         <Card className="card-body">
           <Text preset={TEXT_PRESET.heading4}>
-            <Icon name={ICON_NAME.plus} /> Create a New Session
+            <Icon name={ICON_NAME.plus} /> {t.home.createTitle}
           </Text>
-          <Text preset={TEXT_PRESET.paragraph}>
-            Set up categories and invite your team
-          </Text>
-          <Button onClick={() => navigate('/create')}>Create Session</Button>
+          <Text preset={TEXT_PRESET.paragraph}>{t.home.createText}</Text>
+          <Button onClick={() => navigate('/create')}>{t.home.createButton}</Button>
         </Card>
 
         <Card className="card-body">
           <Text preset={TEXT_PRESET.heading4}>
-            <Icon name={ICON_NAME.chainLink} /> Join a Session
+            <Icon name={ICON_NAME.chainLink} /> {t.home.joinTitle}
           </Text>
           <form className="stack" onSubmit={handleJoin} noValidate>
             <FormField invalid={!!codeError}>
               <FormFieldLabel>
-                Session code
-                <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+                {t.home.sessionCode}
+                <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
               </FormFieldLabel>
               <Input
-                placeholder="e.g. ABC123"
+                placeholder={t.home.codePlaceholder}
                 value={sessionCode}
                 onChange={(e) => {
                   setSessionCode(e.target.value.toUpperCase());
@@ -79,7 +75,7 @@ function Home() {
               color={BUTTON_COLOR.primary}
               variant={BUTTON_VARIANT.outline}
             >
-              Join Session
+              {t.home.joinButton}
             </Button>
           </form>
         </Card>
@@ -87,17 +83,10 @@ function Home() {
 
       <Card className="card-body">
         <Text preset={TEXT_PRESET.heading4}>
-          <Icon name={ICON_NAME.list} /> How it works
+          <Icon name={ICON_NAME.list} /> {t.home.howItWorks}
         </Text>
         <ol className="steps">
-          {[
-            'The facilitator creates a session and shares the code / link',
-            'Team members join using their name',
-            'For each category, everyone votes a health color (green, orange, red) and a trend (improving, stable, worsening)',
-            'Votes are anonymous — results show only aggregate counts',
-            'After all votes are in, discuss as a team',
-            'Download a recap (Markdown + PDF) at the end',
-          ].map((step) => (
+          {t.home.steps.map((step) => (
             <li key={step}>
               <Text preset={TEXT_PRESET.paragraph}>{step}</Text>
             </li>

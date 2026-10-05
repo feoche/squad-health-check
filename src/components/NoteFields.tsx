@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FormField, FormFieldLabel, Textarea } from '@ovhcloud/ods-react';
 import { FacilitatorNote } from '../types';
 import { NoteField } from '../lib/sessionStore';
+import { t } from '../lib/i18n';
 
 /**
  * Local copy of a remote value. Remote updates (e.g. from another window) are
@@ -41,9 +42,9 @@ function NoteFields({ note, onChange }: Props) {
   return (
     <div className="stack">
       <FormField>
-        <FormFieldLabel>Discussion notes</FormFieldLabel>
+        <FormFieldLabel>{t.notes.discussion}</FormFieldLabel>
         <Textarea
-          placeholder="Write down key discussion points…"
+          placeholder={t.notes.placeholder}
           value={notes.value}
           onFocus={notes.onFocus}
           onBlur={notes.onBlur}

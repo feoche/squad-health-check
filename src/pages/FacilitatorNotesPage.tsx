@@ -22,6 +22,8 @@ import { CODE_PATTERN } from '../lib/sessionCode';
 import { summaryIndexes } from '../lib/deriveClientState';
 import { downloadMarkdown, downloadPDF } from '../lib/exportReport';
 import * as store from '../lib/sessionStore';
+import { t } from '../lib/i18n';
+import { localizeCategory } from '../lib/localizeCategory';
 import { Connecting, SessionNotice } from '../components/SessionStatus';
 import NoteFields from '../components/NoteFields';
 import VoteSummary from '../components/VoteSummary';
@@ -30,11 +32,11 @@ const warn = (err: unknown) => console.warn('[notes]', err);
 
 const EMPTY_NOTE: FacilitatorNote = { notes: '' };
 
-const PHASE_BADGE: Record<SessionPhase, { label: string; color: BadgeColor }> = {
-  lobby: { label: 'Lobby', color: BADGE_COLOR.neutral },
-  voting: { label: 'Voting', color: BADGE_COLOR.information },
-  revealed: { label: 'Revealed', color: BADGE_COLOR.success },
-  finished: { label: 'Finished', color: BADGE_COLOR.primary },
+const PHASE_BADGE: Record<SessionPhase, BadgeColor> = {
+  lobby: BADGE_COLOR.neutral,
+  voting: BADGE_COLOR.information,
+  revealed: BADGE_COLOR.success,
+  finished: BADGE_COLOR.primary,
 };
 
 function FacilitatorNotesView() {
@@ -46,7 +48,7 @@ function FacilitatorNotesView() {
   /* Distinct title so this window is easy to leave out of the screen-share picker */
   useEffect(() => {
     const previous = document.title;
-    document.title = `Facilitator notes — ${code}`;
+    document.title = t.notes.documentTitle(code);
     return () => {
       document.title = previous;
     };
@@ -55,14 +57,14 @@ function FacilitatorNotesView() {
   useEffect(() => {
     let cancelled = false;
     if (!CODE_PATTERN.test(code)) {
-      setError('Session not found');
+      setError(t.sessionNotFound);
       return;
     }
     (async () => {
       try {
         const id = await ensureSignedIn();
         if (!(await store.sessionExists(code))) {
-          if (!cancelled) setError('Session not found');
+          if (!cancelled) setError(t.sessionNotFound);
           return;
         }
         if (!cancelled) setUid(id);
@@ -87,21 +89,20 @@ function FacilitatorNotesView() {
     [session],
   );
 
-  if (error) return <SessionNotice title={error} backTo="/" backLabel="Back to home" />;
+  if (error) return <SessionNotice title={error} backTo="/" backLabel={t.backToHome} />;
   if (!session) return <Connecting />;
   if (!session.isFacilitator) {
     return (
       <SessionNotice
-        title="Only the facilitator can open notes"
+        title={t.notes.onlyFacilitator}
         backTo={`/session/${code}`}
-        backLabel="Back to the session"
+        backLabel={t.notes.backToSession}
       />
     );
   }
   if (!session.facilitatorNotesLoaded) return <Connecting />;
 
   const { phase, currentCategoryIndex: current, categories } = session;
-  const phaseBadge = PHASE_BADGE[phase];
   const noteAt = (i: number) => session.facilitatorNotes[i] ?? EMPTY_NOTE;
   const past = summaryIndexes(session);
 
@@ -109,33 +110,31 @@ function FacilitatorNotesView() {
     <div className="page">
       <div className="session-header">
         <Text preset={TEXT_PRESET.heading2} className="grow">
-          Facilitator notes
+          {t.notes.button}
         </Text>
-        <Badge color={BADGE_COLOR.neutral}>Code: {code}</Badge>
-        <Badge color={phaseBadge.color}>{phaseBadge.label}</Badge>
+        <Badge color={BADGE_COLOR.neutral}>{t.code(code)}</Badge>
+        <Badge color={PHASE_BADGE[phase]}>{t.notes.phases[phase]}</Badge>
       </div>
 
       <Message color={MESSAGE_COLOR.information} dismissible={false}>
         <MessageIcon name={ICON_NAME.circleInfo} />
-        <MessageBody>
-          Only you can see these notes. Keep this window out of your screen share.
-        </MessageBody>
+        <MessageBody>{t.notes.privacy}</MessageBody>
       </Message>
 
       {(phase === 'voting' || phase === 'revealed') && (
         <Card className="card-body">
           <Text preset={TEXT_PRESET.label}>
-            Category {current + 1} of {categories.length}
+            {t.categoryOf(current + 1, categories.length)}
           </Text>
-          <Text preset={TEXT_PRESET.heading3}>{categories[current].name}</Text>
+          <Text preset={TEXT_PRESET.heading3}>{localizeCategory(categories[current]).title}</Text>
           {phase === 'voting' ? (
             <Text preset={TEXT_PRESET.paragraph}>
-              {session.voteCount} / {session.totalParticipants} votes received
+              {t.votesReceived(session.voteCount, session.totalParticipants)}
             </Text>
           ) : session.currentResults ? (
             <VoteSummary votes={session.currentResults} />
           ) : (
-            <Text preset={TEXT_PRESET.caption}>Loading results…</Text>
+            <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
           )}
           <NoteFields
             key={current}
@@ -146,23 +145,21 @@ function FacilitatorNotesView() {
       )}
 
       <Card className="card-body">
-        <Text preset={TEXT_PRESET.heading3}>Summary</Text>
+        <Text preset={TEXT_PRESET.heading3}>{t.notes.summary}</Text>
         {past.length === 0 ? (
           <Text preset={TEXT_PRESET.paragraph}>
-            {phase === 'lobby'
-              ? "Voting hasn't started yet."
-              : 'Categories appear here once you move past them.'}
+            {phase === 'lobby' ? t.notes.notStarted : t.notes.appearLater}
           </Text>
         ) : (
           past.map((i) => (
             <div key={i} className="stack summary-item">
               <Text preset={TEXT_PRESET.heading5}>
-                {i + 1}. {categories[i].name}
+                {i + 1}. {localizeCategory(categories[i]).title}
               </Text>
               {session.categoryResults[i] ? (
                 <VoteSummary votes={session.categoryResults[i]} />
               ) : (
-                <Text preset={TEXT_PRESET.caption}>Loading results…</Text>
+                <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
               )}
               <NoteFields
                 note={noteAt(i)}
@@ -177,14 +174,14 @@ function FacilitatorNotesView() {
         <div className="actions">
           <Button onClick={() => downloadMarkdown(session)}>
             <Icon name={ICON_NAME.download} />
-            Download Markdown
+            {t.notes.downloadMarkdown}
           </Button>
           <Button
             variant={BUTTON_VARIANT.outline}
             onClick={() => downloadPDF(session).catch(warn)}
           >
             <Icon name={ICON_NAME.download} />
-            Download PDF
+            {t.notes.downloadPdf}
           </Button>
         </div>
       )}
