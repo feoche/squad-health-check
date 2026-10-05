@@ -6,6 +6,9 @@ export interface Category {
   positiveDescription: string;
   mixedDescription: string;
   negativeDescription: string;
+  positiveDescriptionFr?: string;
+  mixedDescriptionFr?: string;
+  negativeDescriptionFr?: string;
 }
 
 export type VoteColor = 'green' | 'orange' | 'red';

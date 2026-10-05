@@ -14,6 +14,7 @@ import { Category } from '../types';
 import { defaultCategories } from '../data/defaultCategories';
 import CategoryEditor from '../components/CategoryEditor';
 import { createSession, describeError } from '../lib/sessionStore';
+import { t } from '../lib/i18n';
 
 function CreateSession() {
   const [categories, setCategories] = useState<Category[]>([
@@ -25,7 +26,7 @@ function CreateSession() {
 
   const handleCreate = async () => {
     if (categories.length === 0) {
-      setError('Add at least one category before starting the session.');
+      setError(t.create.noCategories);
       return;
     }
     setIsCreating(true);
@@ -42,10 +43,8 @@ function CreateSession() {
   return (
     <div className="page">
       <div className="stack">
-        <Text preset={TEXT_PRESET.heading2}>Create New Session</Text>
-        <Text preset={TEXT_PRESET.paragraph}>
-          Customise the categories for your health check, then start the session.
-        </Text>
+        <Text preset={TEXT_PRESET.heading2}>{t.create.title}</Text>
+        <Text preset={TEXT_PRESET.paragraph}>{t.create.intro}</Text>
       </div>
 
       <CategoryEditor categories={categories} onChange={setCategories} />
@@ -59,7 +58,7 @@ function CreateSession() {
 
       <div className="actions">
         <Button onClick={handleCreate} loading={isCreating}>
-          Start Session ({categories.length} categories)
+          {t.create.start(categories.length)}
         </Button>
       </div>
     </div>

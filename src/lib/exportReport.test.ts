@@ -60,6 +60,15 @@ describe('generateMarkdown', () => {
     const md = generateMarkdown(finished([empty(0), empty(1)]));
     expect(md).toContain('| 2 | Learning | — | — |');
   });
+
+  it('writes the report in French for French users', () => {
+    const md = generateMarkdown(finished([empty(0), empty(1)]), new Date(2026, 9, 5), 'fr');
+    expect(md).toContain('5 octobre 2026');
+    expect(md).toContain('## Synthèse des résultats');
+    expect(md).toContain('| 2 | Apprentissage | — | — |');
+    expect(md).toContain('### 2. Apprentissage (Learning)');
+    expect(md).toContain('**Vert:** p');
+  });
 });
 
 describe('dominantColor / dominantTrend', () => {

@@ -25,6 +25,8 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { Category } from '../types';
+import { t } from '../lib/i18n';
+import { localizeCategory } from '../lib/localizeCategory';
 
 interface Props {
   categories: Category[];
@@ -37,6 +39,9 @@ const emptyCategory: Category = {
   positiveDescription: '',
   mixedDescription: '',
   negativeDescription: '',
+  positiveDescriptionFr: '',
+  mixedDescriptionFr: '',
+  negativeDescriptionFr: '',
 };
 
 type RequiredField = 'name' | 'positiveDescription' | 'mixedDescription' | 'negativeDescription';
@@ -44,13 +49,13 @@ type FormErrors = Partial<Record<RequiredField, string>>;
 
 function validate(form: Category): FormErrors {
   const errors: FormErrors = {};
-  if (!form.name.trim()) errors.name = 'Enter a category name.';
+  if (!form.name.trim()) errors.name = t.editor.nameMissing;
   if (!form.positiveDescription.trim())
-    errors.positiveDescription = 'Describe what a healthy (green) state looks like.';
+    errors.positiveDescription = t.editor.positiveMissing;
   if (!form.mixedDescription?.trim())
-    errors.mixedDescription = 'Describe what a mixed (orange) state looks like.';
+    errors.mixedDescription = t.editor.mixedMissing;
   if (!form.negativeDescription.trim())
-    errors.negativeDescription = 'Describe what an unhealthy (red) state looks like.';
+    errors.negativeDescription = t.editor.negativeMissing;
   return errors;
 }
 
@@ -72,7 +77,13 @@ function CategoryEditor({ categories, onChange }: Props) {
     const found = validate(editForm);
     setErrors(found);
     if (Object.keys(found).length > 0) return null;
-    return { ...editForm, nameFr: editForm.nameFr || undefined };
+    return {
+      ...editForm,
+      nameFr: editForm.nameFr || undefined,
+      positiveDescriptionFr: editForm.positiveDescriptionFr || undefined,
+      mixedDescriptionFr: editForm.mixedDescriptionFr || undefined,
+      negativeDescriptionFr: editForm.negativeDescriptionFr || undefined,
+    };
   };
 
   const saveEdit = () => {
@@ -131,8 +142,8 @@ function CategoryEditor({ categories, onChange }: Props) {
     >
       <FormField invalid={!!errors.name}>
         <FormFieldLabel>
-          Category name
-          <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+          {t.editor.name}
+          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
         </FormFieldLabel>
         <Input
           value={editForm.name}
@@ -142,7 +153,7 @@ function CategoryEditor({ categories, onChange }: Props) {
         <FormFieldError>{errors.name}</FormFieldError>
       </FormField>
       <FormField>
-        <FormFieldLabel>French name</FormFieldLabel>
+        <FormFieldLabel>{t.editor.nameFr}</FormFieldLabel>
         <Input
           value={editForm.nameFr || ''}
           onChange={(e) => setField('nameFr', e.target.value)}
@@ -151,14 +162,12 @@ function CategoryEditor({ categories, onChange }: Props) {
       <Divider />
       <Message color={MESSAGE_COLOR.information} dismissible={false}>
         <MessageIcon name={ICON_NAME.circleInfo} />
-        <MessageBody>
-          Keep each description under 100 characters so it reads at a glance.
-        </MessageBody>
+        <MessageBody>{t.editor.lengthHint}</MessageBody>
       </Message>
       <FormField invalid={!!errors.positiveDescription}>
         <FormFieldLabel>
-          🟢 Positive description (green)
-          <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+          {t.editor.positive}
+          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
         </FormFieldLabel>
         <Textarea
           value={editForm.positiveDescription}
@@ -167,10 +176,18 @@ function CategoryEditor({ categories, onChange }: Props) {
         />
         <FormFieldError>{errors.positiveDescription}</FormFieldError>
       </FormField>
+      <FormField>
+        <FormFieldLabel>{t.editor.positiveFr}</FormFieldLabel>
+        <Textarea
+          value={editForm.positiveDescriptionFr ?? ''}
+          onChange={(e) => setField('positiveDescriptionFr', e.target.value)}
+          rows={2}
+        />
+      </FormField>
       <FormField invalid={!!errors.mixedDescription}>
         <FormFieldLabel>
-          🟠 Mixed description (orange)
-          <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+          {t.editor.mixed}
+          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
         </FormFieldLabel>
         <Textarea
           value={editForm.mixedDescription ?? ''}
@@ -179,10 +196,18 @@ function CategoryEditor({ categories, onChange }: Props) {
         />
         <FormFieldError>{errors.mixedDescription}</FormFieldError>
       </FormField>
+      <FormField>
+        <FormFieldLabel>{t.editor.mixedFr}</FormFieldLabel>
+        <Textarea
+          value={editForm.mixedDescriptionFr ?? ''}
+          onChange={(e) => setField('mixedDescriptionFr', e.target.value)}
+          rows={2}
+        />
+      </FormField>
       <FormField invalid={!!errors.negativeDescription}>
         <FormFieldLabel>
-          🔴 Negative description (red)
-          <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+          {t.editor.negative}
+          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
         </FormFieldLabel>
         <Textarea
           value={editForm.negativeDescription}
@@ -191,9 +216,17 @@ function CategoryEditor({ categories, onChange }: Props) {
         />
         <FormFieldError>{errors.negativeDescription}</FormFieldError>
       </FormField>
+      <FormField>
+        <FormFieldLabel>{t.editor.negativeFr}</FormFieldLabel>
+        <Textarea
+          value={editForm.negativeDescriptionFr ?? ''}
+          onChange={(e) => setField('negativeDescriptionFr', e.target.value)}
+          rows={2}
+        />
+      </FormField>
       <div className="inline">
         <Button type="submit" size={BUTTON_SIZE.sm}>
-          Save
+          {t.save}
         </Button>
         <Button
           type="button"
@@ -201,7 +234,7 @@ function CategoryEditor({ categories, onChange }: Props) {
           variant={BUTTON_VARIANT.ghost}
           onClick={onCancel}
         >
-          Cancel
+          {t.cancel}
         </Button>
       </div>
     </form>
@@ -209,68 +242,71 @@ function CategoryEditor({ categories, onChange }: Props) {
 
   return (
     <div className="stack">
-      {categories.map((cat, i) => (
-        <Card
-          key={i}
-          className="card-body card-compact"
-          color={editingIndex === i ? CARD_COLOR.primary : CARD_COLOR.neutral}
-        >
-          {editingIndex === i ? (
-            renderForm(saveEdit, () => setEditingIndex(null))
-          ) : (
-            <div className="category-row">
-              <Badge color={BADGE_COLOR.primary}>{i + 1}</Badge>
-              <div className="grow">
-                <Text preset={TEXT_PRESET.label}>{cat.name}</Text>
-                {cat.nameFr && (
-                  <Text preset={TEXT_PRESET.caption}> ({cat.nameFr})</Text>
-                )}
+      {categories.map((cat, i) => {
+        const { title, subtitle } = localizeCategory(cat);
+        return (
+          <Card
+            key={i}
+            className="card-body card-compact"
+            color={editingIndex === i ? CARD_COLOR.primary : CARD_COLOR.neutral}
+          >
+            {editingIndex === i ? (
+              renderForm(saveEdit, () => setEditingIndex(null))
+            ) : (
+              <div className="category-row">
+                <Badge color={BADGE_COLOR.primary}>{i + 1}</Badge>
+                <div className="grow">
+                  <Text preset={TEXT_PRESET.label}>{title}</Text>
+                  {subtitle && (
+                    <Text preset={TEXT_PRESET.caption}> ({subtitle})</Text>
+                  )}
+                </div>
+                <div className="inline">
+                  <Button
+                    size={BUTTON_SIZE.xs}
+                    variant={BUTTON_VARIANT.ghost}
+                    onClick={() => move(i, -1)}
+                    disabled={i === 0}
+                    aria-label={t.editor.moveUp(title)}
+                  >
+                    <Icon name={ICON_NAME.arrowUp} />
+                  </Button>
+                  <Button
+                    size={BUTTON_SIZE.xs}
+                    variant={BUTTON_VARIANT.ghost}
+                    onClick={() => move(i, 1)}
+                    disabled={i === categories.length - 1}
+                    aria-label={t.editor.moveDown(title)}
+                  >
+                    <Icon name={ICON_NAME.arrowDown} />
+                  </Button>
+                  <Button
+                    size={BUTTON_SIZE.xs}
+                    variant={BUTTON_VARIANT.ghost}
+                    onClick={() => startEdit(i)}
+                    aria-label={t.editor.edit(title)}
+                  >
+                    <Icon name={ICON_NAME.pen} />
+                  </Button>
+                  <Button
+                    size={BUTTON_SIZE.xs}
+                    variant={BUTTON_VARIANT.ghost}
+                    color={BUTTON_COLOR.critical}
+                    onClick={() => remove(i)}
+                    aria-label={t.editor.remove(title)}
+                  >
+                    <Icon name={ICON_NAME.trash} />
+                  </Button>
+                </div>
               </div>
-              <div className="inline">
-                <Button
-                  size={BUTTON_SIZE.xs}
-                  variant={BUTTON_VARIANT.ghost}
-                  onClick={() => move(i, -1)}
-                  disabled={i === 0}
-                  aria-label={`Move ${cat.name} up`}
-                >
-                  <Icon name={ICON_NAME.arrowUp} />
-                </Button>
-                <Button
-                  size={BUTTON_SIZE.xs}
-                  variant={BUTTON_VARIANT.ghost}
-                  onClick={() => move(i, 1)}
-                  disabled={i === categories.length - 1}
-                  aria-label={`Move ${cat.name} down`}
-                >
-                  <Icon name={ICON_NAME.arrowDown} />
-                </Button>
-                <Button
-                  size={BUTTON_SIZE.xs}
-                  variant={BUTTON_VARIANT.ghost}
-                  onClick={() => startEdit(i)}
-                  aria-label={`Edit ${cat.name}`}
-                >
-                  <Icon name={ICON_NAME.pen} />
-                </Button>
-                <Button
-                  size={BUTTON_SIZE.xs}
-                  variant={BUTTON_VARIANT.ghost}
-                  color={BUTTON_COLOR.critical}
-                  onClick={() => remove(i)}
-                  aria-label={`Remove ${cat.name}`}
-                >
-                  <Icon name={ICON_NAME.trash} />
-                </Button>
-              </div>
-            </div>
-          )}
-        </Card>
-      ))}
+            )}
+          </Card>
+        );
+      })}
 
       {isAdding ? (
         <Card className="card-body">
-          <Text preset={TEXT_PRESET.heading4}>Add New Category</Text>
+          <Text preset={TEXT_PRESET.heading4}>{t.editor.addTitle}</Text>
           {renderForm(saveAdd, () => {
             setIsAdding(false);
             setEditForm({ ...emptyCategory });
@@ -280,7 +316,7 @@ function CategoryEditor({ categories, onChange }: Props) {
         <div>
           <Button variant={BUTTON_VARIANT.outline} onClick={startAdd}>
             <Icon name={ICON_NAME.plus} />
-            Add Category
+            {t.editor.add}
           </Button>
         </div>
       )}

@@ -22,6 +22,7 @@ import { ensureSignedIn } from '../lib/firebase';
 import { CODE_PATTERN } from '../lib/sessionCode';
 import { shouldAutoReveal } from '../lib/deriveClientState';
 import * as store from '../lib/sessionStore';
+import { t } from '../lib/i18n';
 import Lobby from '../components/Lobby';
 import VotingView from '../components/VotingView';
 import SessionFinished from '../components/SessionFinished';
@@ -49,7 +50,7 @@ function SessionView() {
     setNotFound(false);
     if (!CODE_PATTERN.test(code)) {
       setNotFound(true);
-      setError('Session not found');
+      setError(t.sessionNotFound);
       setChecking(false);
       return;
     }
@@ -59,7 +60,7 @@ function SessionView() {
         if (!(await store.sessionExists(code))) {
           if (!cancelled) {
             setNotFound(true);
-            setError('Session not found');
+            setError(t.sessionNotFound);
           }
           return;
         }
@@ -103,7 +104,7 @@ function SessionView() {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed) {
-      setNameError('Enter your name to join the session.');
+      setNameError(t.join.nameMissing);
       return;
     }
     setNameError('');
@@ -143,21 +144,21 @@ function SessionView() {
   /* ─── Checking / join form ─── */
   if (checking) return <Connecting />;
 
-  if (notFound) return <SessionNotice title={error} backTo="/" backLabel="Back to home" />;
+  if (notFound) return <SessionNotice title={error} backTo="/" backLabel={t.backToHome} />;
 
   if (!joined) {
     return (
       <div className="page page-narrow">
         <Card className="card-body">
-          <Text preset={TEXT_PRESET.heading2}>Join Session</Text>
+          <Text preset={TEXT_PRESET.heading2}>{t.join.title}</Text>
           <Text preset={TEXT_PRESET.paragraph}>
-            Session: <Text preset={TEXT_PRESET.code}>{code}</Text>
+            {t.join.session} <Text preset={TEXT_PRESET.code}>{code}</Text>
           </Text>
           <form className="stack" onSubmit={handleJoin} noValidate>
             <FormField invalid={!!nameError}>
               <FormFieldLabel>
-                Your name
-                <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+                {t.join.yourName}
+                <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
               </FormFieldLabel>
               <Input
                 value={name}
@@ -178,7 +179,7 @@ function SessionView() {
               </Message>
             )}
             <Button type="submit" loading={isJoining} disabled={!uid}>
-              Join
+              {t.join.button}
             </Button>
           </form>
         </Card>
@@ -211,7 +212,7 @@ function SessionView() {
       view = <SessionFinished session={session} />;
       break;
     default:
-      view = <Text preset={TEXT_PRESET.paragraph}>Unknown session state</Text>;
+      view = <Text preset={TEXT_PRESET.paragraph}>{t.unknownState}</Text>;
   }
 
   return (
@@ -223,7 +224,7 @@ function SessionView() {
           dismissible={false}
         >
           <MessageIcon name={ICON_NAME.triangleExclamation} />
-          <MessageBody>Reconnecting…</MessageBody>
+          <MessageBody>{t.reconnecting}</MessageBody>
         </Message>
       )}
       {view}

@@ -13,6 +13,9 @@ import { COLOR_OPTIONS, colorDescription } from './voteOptions';
 import VotingPanel from './VotingPanel';
 import ResultsGrid from './ResultsGrid';
 import OpenNotesButton from './OpenNotesButton';
+import HeaderSlot from './HeaderSlot';
+import { t } from '../lib/i18n';
+import { localizeCategory } from '../lib/localizeCategory';
 
 const CARD_COLORS: Record<VoteColor, CardColor> = {
   green: CARD_COLOR.success,
@@ -36,32 +39,42 @@ function VotingView({
   onEndSession,
 }: Props) {
   const category = session.categories[session.currentCategoryIndex];
+  const { title, subtitle } = localizeCategory(category);
   const isPicking = session.phase === 'voting' && !session.hasVoted;
 
   return (
     <div className="page">
-      {/* Progress bar */}
-      <div className="session-header">
-        <Text preset={TEXT_PRESET.label}>
-          Category {session.currentCategoryIndex + 1} of{' '}
-          {session.categories.length}
-        </Text>
-        <ProgressBar
-          className="grow"
-          value={session.currentCategoryIndex + 1}
-          max={session.categories.length}
-          aria-label="Session progress"
-        />
-        <Badge color={BADGE_COLOR.neutral}>Code: {session.code}</Badge>
-        {session.isFacilitator && <OpenNotesButton code={session.code} />}
-      </div>
+      {/* Progress bar, shown in the navbar */}
+      <HeaderSlot>
+        <div className="header-progress">
+          <Text preset={TEXT_PRESET.label} className="header-progress-label">
+            <span className="hide-mobile">
+              {t.categoryOf(session.currentCategoryIndex + 1, session.categories.length)}
+            </span>
+            <span className="show-mobile">
+              {session.currentCategoryIndex + 1}/{session.categories.length}
+            </span>
+          </Text>
+          <ProgressBar
+            className="header-progress-bar"
+            value={session.currentCategoryIndex + 1}
+            max={session.categories.length}
+            aria-label={t.voting.sessionProgress}
+          />
+          <Badge color={BADGE_COLOR.neutral}>
+            <span className="hide-mobile">{t.code(session.code)}</span>
+            <span className="show-mobile">{session.code}</span>
+          </Badge>
+          {session.isFacilitator && (
+            <OpenNotesButton className="desktop-only" code={session.code} />
+          )}
+        </div>
+      </HeaderSlot>
 
-      {/* Category card */}
-      <Card className="card-body">
-        <Text preset={TEXT_PRESET.heading2}>{category.name}</Text>
-        {category.nameFr && (
-          <Text preset={TEXT_PRESET.caption}>{category.nameFr}</Text>
-        )}
+      {/* Category */}
+      <div className="category-header">
+        <Text preset={TEXT_PRESET.heading2}>{title}</Text>
+        {subtitle && <Text preset={TEXT_PRESET.caption}>{subtitle}</Text>}
         {/* While picking, the descriptions live in the vote tiles instead */}
         {!isPicking && (
           <div className="grid-3">
@@ -79,7 +92,7 @@ function VotingView({
             ))}
           </div>
         )}
-      </Card>
+      </div>
 
       {/* Voting or Results */}
       {session.phase === 'voting' && (

@@ -10,6 +10,7 @@ import {
 import { Category, ClientSessionState, FacilitatorNote, Vote } from '../types';
 import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, randomKey } from './sessionCode';
+import { t } from './i18n';
 import { toFirebaseCategories } from './serialize';
 import { RawSession, deriveClientState, readableVoteIndexes } from './deriveClientState';
 
@@ -24,9 +25,9 @@ function isPermissionDenied(err: unknown): boolean {
 }
 
 export function describeError(err: unknown): string {
-  if (isPermissionDenied(err)) return 'Not allowed — the session may have changed. Try reloading.';
+  if (isPermissionDenied(err)) return t.errors.notAllowed;
   if (err instanceof Error) return err.message;
-  return 'Something went wrong. Check your connection and try again.';
+  return t.errors.generic;
 }
 
 /* ─── Create / join ─── */
@@ -52,7 +53,7 @@ export async function createSession(categories: Category[]): Promise<string> {
       if (!isPermissionDenied(err)) throw err;
     }
   }
-  throw new Error('Could not create a session. Please try again.');
+  throw new Error(t.errors.createFailed);
 }
 
 export async function sessionExists(code: string): Promise<boolean> {

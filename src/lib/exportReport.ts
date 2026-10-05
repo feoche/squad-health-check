@@ -1,4 +1,6 @@
 import { ClientSessionState, Vote, VoteColor, VoteTrend } from '../types';
+import { LANG, Lang, messagesFor, t } from './i18n';
+import { localizeCategory } from './localizeCategory';
 
 /* ─── Counting helpers ─── */
 
@@ -39,46 +41,52 @@ export function dominantTrend(votes: Vote[]): VoteTrend | null {
 const COLOR_EMOJI: Record<VoteColor, string> = { green: '🟢', orange: '🟠', red: '🔴' };
 const TREND_ARROW: Record<VoteTrend, string> = { up: '↗', stable: '→', down: '↘' };
 
-const formatDate = (date: Date) =>
-  date.toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
+const formatDate = (date: Date, lang: Lang = LANG) =>
+  date.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
 
 /* ─── Markdown generation ─── */
 
-export function generateMarkdown(session: ClientSessionState, date = new Date()): string {
-  let md = `# Squad Health Check — ${formatDate(date)}\n\n`;
-  md += `**Session Code:** ${session.code}  \n`;
-  md += `**Participants:** ${session.participants.length}\n\n`;
-  md += `## Results Summary\n\n`;
-  md += `| # | Category | Health | Trend | 🟢 | 🟠 | 🔴 | ↗ | → | ↘ |\n`;
+export function generateMarkdown(
+  session: ClientSessionState,
+  date = new Date(),
+  lang: Lang = LANG,
+): string {
+  const m = messagesFor(lang);
+  const r = m.report;
+  let md = `# Squad Health Check — ${formatDate(date, lang)}\n\n`;
+  md += `**${r.sessionCode}:** ${session.code}  \n`;
+  md += `**${r.participants}:** ${session.participants.length}\n\n`;
+  md += `## ${r.summary}\n\n`;
+  md += `| # | ${r.category} | ${r.health} | ${r.trend} | 🟢 | 🟠 | 🔴 | ↗ | → | ↘ |\n`;
   md += `|---|----------|--------|-------|-----|-----|-----|-----|-----|-----|\n`;
 
   for (const result of session.allResults) {
-    const cat = session.categories[result.categoryIndex];
+    const cat = localizeCategory(session.categories[result.categoryIndex], lang);
     const cc = countColors(result.votes);
     const tc = countTrends(result.votes);
     const dc = dominantColor(result.votes);
     const dt = dominantTrend(result.votes);
-    md += `| ${result.categoryIndex + 1} | ${cat.name} | ${dc ? COLOR_EMOJI[dc] : '—'} | ${dt ? TREND_ARROW[dt] : '—'} | ${cc.green} | ${cc.orange} | ${cc.red} | ${tc.up} | ${tc.stable} | ${tc.down} |\n`;
+    md += `| ${result.categoryIndex + 1} | ${cat.title} | ${dc ? COLOR_EMOJI[dc] : '—'} | ${dt ? TREND_ARROW[dt] : '—'} | ${cc.green} | ${cc.orange} | ${cc.red} | ${tc.up} | ${tc.stable} | ${tc.down} |\n`;
   }
 
-  md += `\n## Detailed Results\n\n`;
+  md += `\n## ${r.details}\n\n`;
 
   for (const result of session.allResults) {
-    const cat = session.categories[result.categoryIndex];
+    const cat = localizeCategory(session.categories[result.categoryIndex], lang);
     const cc = countColors(result.votes);
     const tc = countTrends(result.votes);
 
-    md += `### ${result.categoryIndex + 1}. ${cat.name}`;
-    if (cat.nameFr) md += ` (${cat.nameFr})`;
+    md += `### ${result.categoryIndex + 1}. ${cat.title}`;
+    if (cat.subtitle) md += ` (${cat.subtitle})`;
     md += `\n\n`;
-    md += `- 🟢 **Green:** ${cat.positiveDescription}\n`;
-    if (cat.mixedDescription) md += `- 🟠 **Orange:** ${cat.mixedDescription}\n`;
-    md += `- 🔴 **Red:** ${cat.negativeDescription}\n\n`;
-    md += `**Votes (${result.votes.length}):** 🟢 ${cc.green} | 🟠 ${cc.orange} | 🔴 ${cc.red}  \n`;
-    md += `**Trend:** ↗ ${tc.up} | → ${tc.stable} | ↘ ${tc.down}\n\n`;
+    md += `- 🟢 **${m.colors.green}:** ${cat.positiveDescription}\n`;
+    if (cat.mixedDescription) md += `- 🟠 **${m.colors.orange}:** ${cat.mixedDescription}\n`;
+    md += `- 🔴 **${m.colors.red}:** ${cat.negativeDescription}\n\n`;
+    md += `**${r.votes} (${result.votes.length}):** 🟢 ${cc.green} | 🟠 ${cc.orange} | 🔴 ${cc.red}  \n`;
+    md += `**${r.trend}:** ↗ ${tc.up} | → ${tc.stable} | ↘ ${tc.down}\n\n`;
 
     if (result.notes) {
-      md += `**Discussion Notes:**\n\n${result.notes}\n\n`;
+      md += `**${r.discussion}:**\n\n${result.notes}\n\n`;
     }
 
     md += `---\n\n`;
@@ -121,18 +129,17 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
   doc.text(formatDate(new Date()), 14, 30);
   doc.setFontSize(10);
   doc.text(
-    `Session: ${session.code}  |  Participants: ${session.participants.length}`,
+    `${t.report.session}: ${session.code}  |  ${t.report.participants}: ${session.participants.length}`,
     14,
     36,
   );
 
   /* Summary table */
   const tableBody = session.allResults.map((r) => {
-    const cat = session.categories[r.categoryIndex];
     const cc = countColors(r.votes);
     const tc = countTrends(r.votes);
     return [
-      cat.name,
+      localizeCategory(session.categories[r.categoryIndex]).title,
       String(cc.green),
       String(cc.orange),
       String(cc.red),
@@ -144,7 +151,15 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
 
   autoTable(doc, {
     startY: 42,
-    head: [['Category', 'Green', 'Orange', 'Red', 'Up', 'Stable', 'Down']],
+    head: [[
+      t.report.category,
+      t.colors.green,
+      t.colors.orange,
+      t.colors.red,
+      t.report.pdfTrends.up,
+      t.report.pdfTrends.stable,
+      t.report.pdfTrends.down,
+    ]],
     body: tableBody,
     theme: 'grid',
     headStyles: { fillColor: [74, 144, 217], fontSize: 9 },
@@ -164,7 +179,7 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
 
   for (const result of session.allResults) {
     if (!result.notes) continue;
-    const cat = session.categories[result.categoryIndex];
+    const cat = localizeCategory(session.categories[result.categoryIndex]);
 
     if (y > 260) {
       doc.addPage();
@@ -173,7 +188,7 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
 
     doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
-    doc.text(cat.name, 14, y);
+    doc.text(cat.title, 14, y);
     y += 6;
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');

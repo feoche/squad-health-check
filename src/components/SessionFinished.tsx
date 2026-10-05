@@ -2,6 +2,8 @@ import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import VoteMatrix from './VoteMatrix';
 import OpenNotesButton from './OpenNotesButton';
+import { t } from '../lib/i18n';
+import { localizeCategory } from '../lib/localizeCategory';
 
 interface Props {
   session: ClientSessionState;
@@ -12,10 +14,8 @@ function SessionFinished({ session }: Props) {
   return (
     <div className="page">
       <div className="stack stack-center">
-        <Text preset={TEXT_PRESET.heading2}>Session Complete!</Text>
-        <Text preset={TEXT_PRESET.paragraph}>
-          Here&apos;s the summary of all results from the health check.
-        </Text>
+        <Text preset={TEXT_PRESET.heading2}>{t.finished.title}</Text>
+        <Text preset={TEXT_PRESET.paragraph}>{t.finished.intro}</Text>
       </div>
 
       <div className="category-cards">
@@ -24,10 +24,10 @@ function SessionFinished({ session }: Props) {
           return (
             <Card key={result.categoryIndex} className="card-body">
               <Text preset={TEXT_PRESET.heading4}>
-                {result.categoryIndex + 1}. {cat.name}
+                {result.categoryIndex + 1}. {localizeCategory(cat).title}
               </Text>
               <Text preset={TEXT_PRESET.caption}>
-                {result.votes.length} vote{result.votes.length !== 1 ? 's' : ''}
+                {t.votes(result.votes.length)}
               </Text>
               <VoteMatrix votes={result.votes} compact />
             </Card>
@@ -36,10 +36,8 @@ function SessionFinished({ session }: Props) {
       </div>
 
       {session.isFacilitator && (
-        <div className="stack stack-center">
-          <Text preset={TEXT_PRESET.paragraph}>
-            Notes and downloads are in your facilitator notes.
-          </Text>
+        <div className="stack stack-center desktop-only">
+          <Text preset={TEXT_PRESET.paragraph}>{t.finished.notesHint}</Text>
           <OpenNotesButton code={session.code} />
         </div>
       )}
