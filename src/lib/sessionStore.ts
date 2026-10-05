@@ -10,9 +10,10 @@ import {
 import { Category, ClientSessionState, FacilitatorNote, Vote } from '../types';
 import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, randomKey } from './sessionCode';
+import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
 import { t } from './i18n';
 import { toFirebaseCategories } from './serialize';
-import { RawSession, deriveClientState, readableVoteIndexes } from './deriveClientState';
+import { RawSession, at, deriveClientState, readableVoteIndexes } from './deriveClientState';
 
 type Unsubscribe = () => void;
 
@@ -67,8 +68,25 @@ export async function getParticipantName(code: string, uid: string): Promise<str
   return snap.exists() ? (snap.val() as string) : null;
 }
 
+/**
+ * Claims a free slot together with the participant entry; rules make slots write-once,
+ * so at most MAX_PARTICIPANTS can ever join. A denied claim means someone took that slot first.
+ */
 export async function joinSession(code: string, uid: string, name: string): Promise<void> {
-  await set(sessionRef(code, `participants/${uid}`), { name });
+  for (let attempt = 0; attempt < MAX_PARTICIPANTS; attempt++) {
+    const [slot] = freeSlots((await get(sessionRef(code, 'slots'))).val());
+    if (slot === undefined) throw new Error(t.errors.sessionFull(MAX_PARTICIPANTS));
+    try {
+      await update(sessionRef(code), {
+        [`slots/${slot}`]: uid,
+        [`participants/${uid}`]: { name, slot },
+      });
+      return;
+    } catch (err) {
+      if (!isPermissionDenied(err)) throw err;
+    }
+  }
+  throw new Error(t.errors.generic);
 }
 
 /* ─── Subscriptions ─── */
@@ -109,6 +127,7 @@ export function subscribeSession(
       raw.meta.categories.length,
       raw.closed,
       isFacilitator(),
+      Boolean(at(raw.voters, raw.state.currentCategoryIndex)?.[uid]),
     );
     for (const i of readable) {
       if (voteUnsubs.has(i)) continue;
@@ -137,7 +156,7 @@ export function subscribeSession(
         (snap: DataSnapshot) => {
           (raw as unknown as Record<string, unknown>)[key] = snap.val();
           if (key === 'meta') syncFacilitatorListeners();
-          if (key === 'meta' || key === 'state' || key === 'closed') syncVoteListeners();
+          if (key !== 'participants' && key !== 'facilitator') syncVoteListeners();
           emit();
         },
         warnCancelled(key),

@@ -15,7 +15,7 @@ import {
   Tile,
 } from '@ovhcloud/ods-react';
 import { Category, VoteColor, VoteTrend } from '../types';
-import { COLOR_OPTIONS, TREND_OPTIONS, colorDescription } from './voteOptions';
+import { COLOR_OPTIONS, TREND_OPTIONS_WORST_FIRST, colorDescription } from './voteOptions';
 import { t } from '../lib/i18n';
 
 interface Props {
@@ -77,13 +77,14 @@ function VotingPanel({ category, onSubmitVote }: Props) {
           value={selectedTrend ?? undefined}
           onValueChange={({ value }) => setSelectedTrend(value as VoteTrend)}
         >
-          {TREND_OPTIONS.map(({ value, label, icon }) => (
+          {TREND_OPTIONS_WORST_FIRST.map(({ value, label, icon }) => (
             <Tile key={value} selected={selectedTrend === value}>
               <Radio className="tile-radio-root" value={value}>
                 <div className="tile-radio">
                   <RadioControl />
                   <RadioLabel>
-                    <Icon name={icon} /> <span>{label}</span>
+                    <Icon name={icon} />
+                    <span>{label}</span>
                   </RadioLabel>
                 </div>
               </Radio>

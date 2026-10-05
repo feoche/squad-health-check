@@ -49,13 +49,13 @@ function PresenterView({ session }: { session: ClientSessionState }) {
   const { title, subtitle } = localizeCategory(category);
 
   return (
-    <div className="page presenter">
-      <SessionProgress session={session} />
+    <div className={phase === 'revealed' ? 'page presenter presenter-revealed' : 'page presenter'}>
+      <SessionProgress session={session} copyable={false} />
 
       <div className="category-header">
         <Text preset={TEXT_PRESET.heading1}>{title}</Text>
         {subtitle && <Text preset={TEXT_PRESET.paragraph}>{subtitle}</Text>}
-        <ColorCards category={category} />
+        <ColorCards category={category} large />
       </div>
 
       {phase === 'voting' && (

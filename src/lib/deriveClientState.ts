@@ -32,7 +32,7 @@ export interface RawSession {
   closed: Indexed<true> | null;
 }
 
-function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
+export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
   if (!coll) return undefined;
   return (coll as Record<string, T | null | undefined>)[String(idx)] ?? undefined;
 }
@@ -108,6 +108,12 @@ export function deriveClientState(
       phase === 'revealed' && at(raw.votes, currentCategoryIndex) !== undefined
         ? votesAt(raw, currentCategoryIndex)
         : null,
+    liveResults:
+      isFacilitator &&
+      phase === 'voting' &&
+      at(raw.votes, currentCategoryIndex) !== undefined
+        ? votesAt(raw, currentCategoryIndex)
+        : null,
     allResults,
     facilitatorNotes,
     facilitatorNotesLoaded: isFacilitator && raw.facilitator !== undefined,
@@ -118,20 +124,26 @@ export function deriveClientState(
 /**
  * Vote indexes the rules allow reading. Listening to any other index gets the
  * listener cancelled with PERMISSION_DENIED, so only these may be attached.
- * The facilitator may also read categories already closed by "Next category".
+ * The facilitator may also read categories already closed by "Next category",
+ * and the round being voted once they have voted (or right away when they don't vote).
  */
 export function readableVoteIndexes(
   state: SessionStateNode,
   categoryCount: number,
   closed: Indexed<true> | null = null,
   isFacilitator = false,
+  facilitatorVoted = false,
 ): number[] {
   const all = Array.from({ length: categoryCount }, (_, i) => i);
   if (state.phase === 'finished') return all;
   return all.filter(
     (i) =>
       (state.phase === 'revealed' && i === state.currentCategoryIndex) ||
-      (isFacilitator && at(closed, i) === true),
+      (isFacilitator && at(closed, i) === true) ||
+      (isFacilitator &&
+        state.phase === 'voting' &&
+        i === state.currentCategoryIndex &&
+        (facilitatorVoted || state.facilitatorVotes === false)),
   );
 }
 

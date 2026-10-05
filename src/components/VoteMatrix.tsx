@@ -1,6 +1,9 @@
-import { Badge, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_SIZE, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Vote, VoteColor, VoteTrend } from '../types';
-import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
+import { COLOR_OPTIONS, TREND_OPTIONS_WORST_FIRST } from './voteOptions';
+
+/** Worsening on the left, improving on the right, so healthy-and-improving lands top right. */
+const MATRIX_TRENDS = TREND_OPTIONS_WORST_FIRST;
 
 /** Votes cross-tabulated by health color (rows) and trend (columns). */
 function VoteMatrix({ votes, compact = false }: { votes: Vote[]; compact?: boolean }) {
@@ -8,7 +11,7 @@ function VoteMatrix({ votes, compact = false }: { votes: Vote[]; compact?: boole
     votes.filter((v) => v.color === color && v.trend === trend).length;
   const max = Math.max(
     1,
-    ...COLOR_OPTIONS.flatMap((c) => TREND_OPTIONS.map((t) => count(c.value, t.value))),
+    ...COLOR_OPTIONS.flatMap((c) => MATRIX_TRENDS.map((t) => count(c.value, t.value))),
   );
 
   return (
@@ -16,13 +19,12 @@ function VoteMatrix({ votes, compact = false }: { votes: Vote[]; compact?: boole
       <thead>
         <tr>
           <td />
-          {TREND_OPTIONS.map(({ value, label, icon }) => (
+          {MATRIX_TRENDS.map(({ value, label, icon }) => (
             <th key={value} scope="col">
-              <Text preset={TEXT_PRESET.span} title={compact ? label : undefined}>
-                <Icon name={icon} aria-hidden="true" />{' '}
-                <span className={compact ? 'visually-hidden' : undefined}>{label} </span>(
-                {votes.filter((v) => v.trend === value).length})
-              </Text>
+              <span className="vote-matrix-trend" title={label}>
+                <Icon name={icon} aria-hidden="true" />
+                <span className="visually-hidden">{label}</span>
+              </span>
             </th>
           ))}
         </tr>
@@ -31,11 +33,11 @@ function VoteMatrix({ votes, compact = false }: { votes: Vote[]; compact?: boole
         {COLOR_OPTIONS.map(({ value: color, label, badge }) => (
           <tr key={color}>
             <th scope="row">
-              <Badge color={badge}>
-                {label} ({votes.filter((v) => v.color === color).length})
+              <Badge color={badge} size={compact ? BADGE_SIZE.md : BADGE_SIZE.lg}>
+                {label}
               </Badge>
             </th>
-            {TREND_OPTIONS.map(({ value: trend }) => {
+            {MATRIX_TRENDS.map(({ value: trend }) => {
               const n = count(color, trend);
               return (
                 <td

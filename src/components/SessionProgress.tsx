@@ -1,16 +1,17 @@
-import { type ReactNode } from 'react';
 import { Badge, BADGE_COLOR, ProgressBar, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import HeaderSlot from './HeaderSlot';
+import SessionCodeButton from './SessionCodeButton';
 import { t } from '../lib/i18n';
 
 interface Props {
   session: ClientSessionState;
-  children?: ReactNode;
+  /** The shared screen shows the code as a plain badge, with nothing to click. */
+  copyable?: boolean;
 }
 
-/** Navbar content: category progress during a round, the session code, then any extra items. */
-function SessionProgress({ session, children }: Props) {
+/** Navbar content: category progress during a round, then the session code (a click copies the link to join, except on the shared screen). */
+function SessionProgress({ session, copyable = true }: Props) {
   const { currentCategoryIndex: index, categories, phase } = session;
   const inRound = phase === 'voting' || phase === 'revealed';
 
@@ -33,10 +34,13 @@ function SessionProgress({ session, children }: Props) {
             />
           </>
         )}
-        <Badge color={BADGE_COLOR.neutral}>
-          <span>{t.code(session.code)}</span>
-        </Badge>
-        {children}
+        {copyable ? (
+          <SessionCodeButton code={session.code} />
+        ) : (
+          <Badge color={BADGE_COLOR.neutral}>
+            <span>{t.code(session.code)}</span>
+          </Badge>
+        )}
       </div>
     </HeaderSlot>
   );

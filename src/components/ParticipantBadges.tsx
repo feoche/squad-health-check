@@ -10,9 +10,14 @@ interface Props {
 }
 
 function ParticipantBadges({ participants, facilitatorId, myId }: Props) {
+  // The facilitator's badge leads, the rest keep their joining order
+  const ordered = [...participants].sort(
+    (a, b) => Number(b.id === facilitatorId) - Number(a.id === facilitatorId),
+  );
+
   return (
     <div className="inline wrap">
-      {participants.map((p) => (
+      {ordered.map((p) => (
         <Badge key={p.id} color={p.id === myId ? BADGE_COLOR.primary : BADGE_COLOR.neutral}>
           {p.id === facilitatorId && <Icon name={ICON_NAME.crown} />}
           {p.name}

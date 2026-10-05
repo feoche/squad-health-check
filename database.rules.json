@@ -23,10 +23,18 @@
         "participants": {
           ".read": "auth != null",
           "$uid": {
-            ".write": "auth != null && $uid === auth.uid && newData.exists() && root.child('sessions/' + $code + '/meta').exists()",
-            ".validate": "newData.hasChildren(['name'])",
+            ".write": "auth != null && $uid === auth.uid && newData.exists() && root.child('sessions/' + $code + '/meta').exists() && newData.parent().parent().child('slots/' + newData.child('slot').val()).val() === auth.uid",
+            ".validate": "newData.hasChildren(['name', 'slot'])",
             "name": { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 50" },
+            "slot": { ".validate": "newData.isNumber() && (!data.exists() || newData.val() === data.val())" },
             "$other": { ".validate": false }
+          }
+        },
+        "slots": {
+          ".read": "auth != null",
+          "$n": {
+            ".write": "auth != null && !data.exists() && $n.matches(/^([0-9]|1[0-4])$/) && root.child('sessions/' + $code + '/meta').exists() && !root.child('sessions/' + $code + '/participants/' + auth.uid).exists() && newData.parent().parent().child('participants/' + auth.uid + '/slot').val() + '' === $n",
+            ".validate": "newData.val() === auth.uid"
           }
         },
         "voters": {
@@ -40,7 +48,7 @@
         },
         "votes": {
           "$idx": {
-            ".read": "auth != null && (root.child('sessions/' + $code + '/state/phase').val() === 'finished' || (root.child('sessions/' + $code + '/state/phase').val() === 'revealed' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx) || (root.child('sessions/' + $code + '/meta/facilitatorId').val() === auth.uid && root.child('sessions/' + $code + '/closed/' + $idx).exists()))",
+            ".read": "auth != null && (root.child('sessions/' + $code + '/state/phase').val() === 'finished' || (root.child('sessions/' + $code + '/state/phase').val() === 'revealed' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx) || (root.child('sessions/' + $code + '/meta/facilitatorId').val() === auth.uid && (root.child('sessions/' + $code + '/closed/' + $idx).exists() || (root.child('sessions/' + $code + '/state/phase').val() === 'voting' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx && (root.child('sessions/' + $code + '/voters/' + $idx + '/' + auth.uid).exists() || root.child('sessions/' + $code + '/state/facilitatorVotes').val() === false)))))",
             "$key": {
               ".write": "auth != null && !data.exists() && !root.child('sessions/' + $code + '/voters/' + $idx + '/' + auth.uid).exists() && newData.parent().parent().parent().child('voters/' + $idx + '/' + auth.uid).exists()",
               ".validate": "$key.length === 20 && newData.hasChildren(['color', 'trend'])",

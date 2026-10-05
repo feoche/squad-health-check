@@ -117,6 +117,16 @@ describe('deriveClientState', () => {
     expect(s.currentResults).toBeNull();
   });
 
+  it('gives the facilitator live results during voting, never participants', () => {
+    const r = raw({
+      state: { phase: 'voting', currentCategoryIndex: 0 },
+      votes: { '0': { k1: { color: 'green', trend: 'up' } } },
+    });
+    expect(deriveClientState('ABC234', r, 'fac')!.liveResults).toEqual([{ color: 'green', trend: 'up' }]);
+    expect(deriveClientState('ABC234', r, 'bob')!.liveResults).toBeNull();
+    expect(deriveClientState('ABC234', r, 'fac')!.currentResults).toBeNull();
+  });
+
   it('builds allResults without notes for participants when finished', () => {
     const s = deriveClientState(
       'ABC234',
@@ -268,6 +278,19 @@ describe('readableVoteIndexes', () => {
     const state = { phase: 'revealed' as const, currentCategoryIndex: 2 };
     expect(readableVoteIndexes(state, 3, { '0': true, '1': true }, true)).toEqual([0, 1, 2]);
     expect(readableVoteIndexes(state, 3, { '0': true, '1': true }, false)).toEqual([2]);
+  });
+
+  it('adds the voted round for the facilitator once they have voted', () => {
+    const voting = { phase: 'voting' as const, currentCategoryIndex: 1 };
+    expect(readableVoteIndexes(voting, 3, null, true, false)).toEqual([]);
+    expect(readableVoteIndexes(voting, 3, null, true, true)).toEqual([1]);
+    expect(readableVoteIndexes(voting, 3, null, false, true)).toEqual([]);
+  });
+
+  it('adds the voted round right away when the facilitator does not vote', () => {
+    const voting = { phase: 'voting' as const, currentCategoryIndex: 1, facilitatorVotes: false };
+    expect(readableVoteIndexes(voting, 3, null, true)).toEqual([1]);
+    expect(readableVoteIndexes(voting, 3, null, false)).toEqual([]);
   });
 
   it('handles closed categories past index 9 and sparse arrays', () => {

@@ -5,26 +5,19 @@ import {
   MESSAGE_COLOR,
   MessageBody,
   MessageIcon,
-  Switch,
-  SWITCH_SIZE,
-  SwitchItem,
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { ClientSessionState, VoteColor, VoteTrend } from '../../types';
-import { LayoutMode } from '../../lib/layoutMode';
 import { t } from '../../lib/i18n';
 import NoteFields, { EMPTY_NOTE } from '../NoteFields';
 import ResultsGrid from '../ResultsGrid';
 import SessionProgress from '../SessionProgress';
 import SharePanel from '../SharePanel';
-import VoteSubmitted from '../VoteSubmitted';
-import VotingPanel from '../VotingPanel';
+import CurrentCategory from './CurrentCategory';
 import FacilitatorControls from './FacilitatorControls';
 import FinishedNotes from './FinishedNotes';
-import LiveRound from './LiveRound';
 import ParticipantsPanel from './ParticipantsPanel';
-import { useLayoutMode } from './useLayoutMode';
 
 export interface FacilitatorActions {
   startWorkshop: () => void;
@@ -44,10 +37,39 @@ interface Props {
 
 /** The session creator's window: drives the session, keeps private notes, never shared. */
 function FacilitatorView({ session, actions }: Props) {
-  const [layout, setLayout] = useLayoutMode();
   const { phase, currentCategoryIndex: current } = session;
   const inRound = phase === 'voting' || phase === 'revealed';
   const loadingNotes = <Text preset={TEXT_PRESET.caption}>{t.facilitator.loadingNotes}</Text>;
+
+  const controls = <FacilitatorControls session={session} actions={actions} />;
+
+  const category = (
+    <CurrentCategory session={session} onSubmitVote={actions.submitVote}>
+      {phase === 'voting' && session.liveResults && (
+        <ResultsGrid votes={session.liveResults} inline />
+      )}
+      {phase === 'revealed' &&
+        (session.currentResults ? (
+          <ResultsGrid votes={session.currentResults} inline />
+        ) : (
+          <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
+        ))}
+    </CurrentCategory>
+  );
+
+  const notes = (
+    <Card className="card-body">
+      {session.facilitatorNotesLoaded ? (
+        <NoteFields
+          key={current}
+          note={session.facilitatorNotes[current] ?? EMPTY_NOTE}
+          onChange={(_field, value) => actions.changeNote(current, value)}
+        />
+      ) : (
+        loadingNotes
+      )}
+    </Card>
+  );
 
   const main = (
     <>
@@ -63,44 +85,6 @@ function FacilitatorView({ session, actions }: Props) {
         </>
       )}
 
-      {inRound && <LiveRound session={session} />}
-
-      {phase === 'voting' && session.facilitatorVotes && (
-        <Card className="card-body">
-          <Text preset={TEXT_PRESET.heading4}>{t.facilitator.myVote}</Text>
-          {session.hasVoted ? (
-            <VoteSubmitted />
-          ) : (
-            <VotingPanel
-              key={current}
-              category={session.categories[current]}
-              onSubmitVote={actions.submitVote}
-            />
-          )}
-        </Card>
-      )}
-
-      {phase === 'revealed' &&
-        (session.currentResults ? (
-          <ResultsGrid votes={session.currentResults} />
-        ) : (
-          <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
-        ))}
-
-      {inRound && (
-        <Card className="card-body">
-          {session.facilitatorNotesLoaded ? (
-            <NoteFields
-              key={current}
-              note={session.facilitatorNotes[current] ?? EMPTY_NOTE}
-              onChange={(_field, value) => actions.changeNote(current, value)}
-            />
-          ) : (
-            loadingNotes
-          )}
-        </Card>
-      )}
-
       {phase === 'finished' &&
         (session.facilitatorNotesLoaded ? (
           <FinishedNotes session={session} onChangeNote={actions.changeNote} />
@@ -112,39 +96,32 @@ function FacilitatorView({ session, actions }: Props) {
 
   const side = (
     <>
-      <FacilitatorControls session={session} actions={actions} />
-      {(layout === 'full' || phase === 'lobby') && (
-        <ParticipantsPanel session={session} onSetFacilitatorVotes={actions.setFacilitatorVotes} />
-      )}
+      {controls}
+      <ParticipantsPanel session={session} onSetFacilitatorVotes={actions.setFacilitatorVotes} />
     </>
+  );
+
+  // During a round: the category and my vote | notes, then who has voted with the round controls
+  const body = inRound ? (
+    <div className="dashboard dashboard-round">
+      <div className="stack">{category}</div>
+      <div className="stack">
+        {notes}
+        {controls}
+      </div>
+    </div>
+  ) : (
+    <div className="dashboard">
+      <div className="stack">{main}</div>
+      <div className="stack">{side}</div>
+    </div>
   );
 
   return (
     <div className="page">
-      <SessionProgress session={session}>
-        <Switch
-          className="layout-toggle"
-          size={SWITCH_SIZE.sm}
-          value={layout}
-          onValueChange={({ value }) => setLayout(value as LayoutMode)}
-          aria-label={t.facilitator.layout}
-        >
-          <SwitchItem value="compact">{t.facilitator.compact}</SwitchItem>
-          <SwitchItem value="full">{t.facilitator.full}</SwitchItem>
-        </Switch>
-      </SessionProgress>
+      <SessionProgress session={session} />
 
-      {layout === 'full' ? (
-        <div className="dashboard">
-          <div className="stack">{main}</div>
-          <div className="stack">{side}</div>
-        </div>
-      ) : (
-        <>
-          {side}
-          {main}
-        </>
-      )}
+      {body}
     </div>
   );
 }
