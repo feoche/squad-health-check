@@ -4,6 +4,7 @@ export interface Category {
   name: string;
   nameFr?: string;
   positiveDescription: string;
+  mixedDescription: string;
   negativeDescription: string;
 }
 

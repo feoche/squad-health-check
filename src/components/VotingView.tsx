@@ -3,14 +3,22 @@ import {
   BADGE_COLOR,
   Card,
   CARD_COLOR,
+  type CardColor,
   ProgressBar,
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { ClientSessionState, VoteColor, VoteTrend } from '../types';
+import { COLOR_OPTIONS, colorDescription } from './voteOptions';
 import VotingPanel from './VotingPanel';
 import ResultsGrid from './ResultsGrid';
 import OpenNotesButton from './OpenNotesButton';
+
+const CARD_COLORS: Record<VoteColor, CardColor> = {
+  green: CARD_COLOR.success,
+  orange: CARD_COLOR.warning,
+  red: CARD_COLOR.critical,
+};
 
 interface Props {
   session: ClientSessionState;
@@ -28,6 +36,7 @@ function VotingView({
   onEndSession,
 }: Props) {
   const category = session.categories[session.currentCategoryIndex];
+  const isPicking = session.phase === 'voting' && !session.hasVoted;
 
   return (
     <div className="page">
@@ -47,31 +56,35 @@ function VotingView({
         {session.isFacilitator && <OpenNotesButton code={session.code} />}
       </div>
 
-      {/* Category description card */}
+      {/* Category card */}
       <Card className="card-body">
         <Text preset={TEXT_PRESET.heading2}>{category.name}</Text>
         {category.nameFr && (
           <Text preset={TEXT_PRESET.caption}>{category.nameFr}</Text>
         )}
-        <div className="grid-2">
-          <Card className="card-body card-compact" color={CARD_COLOR.success}>
-            <Badge className="self-start" color={BADGE_COLOR.success}>Green</Badge>
-            <Text preset={TEXT_PRESET.paragraph}>
-              {category.positiveDescription}
-            </Text>
-          </Card>
-          <Card className="card-body card-compact" color={CARD_COLOR.critical}>
-            <Badge className="self-start" color={BADGE_COLOR.critical}>Red</Badge>
-            <Text preset={TEXT_PRESET.paragraph}>
-              {category.negativeDescription}
-            </Text>
-          </Card>
-        </div>
+        {/* While picking, the descriptions live in the vote tiles instead */}
+        {!isPicking && (
+          <div className="grid-3">
+            {COLOR_OPTIONS.map((option) => (
+              <Card
+                key={option.value}
+                className="card-body card-compact"
+                color={CARD_COLORS[option.value]}
+              >
+                <Badge className="self-start" color={option.badge}>{option.label}</Badge>
+                <Text preset={TEXT_PRESET.paragraph}>
+                  {colorDescription(category, option)}
+                </Text>
+              </Card>
+            ))}
+          </div>
+        )}
       </Card>
 
       {/* Voting or Results */}
       {session.phase === 'voting' && (
         <VotingPanel
+          category={category}
           hasVoted={session.hasVoted}
           voteCount={session.voteCount}
           totalParticipants={session.totalParticipants}

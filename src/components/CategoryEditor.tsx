@@ -8,6 +8,7 @@ import {
   BUTTON_VARIANT,
   Card,
   CARD_COLOR,
+  Divider,
   FormField,
   FormFieldError,
   FormFieldLabel,
@@ -15,6 +16,10 @@ import {
   Icon,
   ICON_NAME,
   Input,
+  Message,
+  MESSAGE_COLOR,
+  MessageBody,
+  MessageIcon,
   Text,
   Textarea,
   TEXT_PRESET,
@@ -30,10 +35,11 @@ const emptyCategory: Category = {
   name: '',
   nameFr: '',
   positiveDescription: '',
+  mixedDescription: '',
   negativeDescription: '',
 };
 
-type RequiredField = 'name' | 'positiveDescription' | 'negativeDescription';
+type RequiredField = 'name' | 'positiveDescription' | 'mixedDescription' | 'negativeDescription';
 type FormErrors = Partial<Record<RequiredField, string>>;
 
 function validate(form: Category): FormErrors {
@@ -41,6 +47,8 @@ function validate(form: Category): FormErrors {
   if (!form.name.trim()) errors.name = 'Enter a category name.';
   if (!form.positiveDescription.trim())
     errors.positiveDescription = 'Describe what a healthy (green) state looks like.';
+  if (!form.mixedDescription?.trim())
+    errors.mixedDescription = 'Describe what a mixed (orange) state looks like.';
   if (!form.negativeDescription.trim())
     errors.negativeDescription = 'Describe what an unhealthy (red) state looks like.';
   return errors;
@@ -140,9 +148,16 @@ function CategoryEditor({ categories, onChange }: Props) {
           onChange={(e) => setField('nameFr', e.target.value)}
         />
       </FormField>
+      <Divider />
+      <Message color={MESSAGE_COLOR.information} dismissible={false}>
+        <MessageIcon name={ICON_NAME.circleInfo} />
+        <MessageBody>
+          Keep each description under 100 characters so it reads at a glance.
+        </MessageBody>
+      </Message>
       <FormField invalid={!!errors.positiveDescription}>
         <FormFieldLabel>
-          Positive description (green)
+          🟢 Positive description (green)
           <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
         </FormFieldLabel>
         <Textarea
@@ -152,9 +167,21 @@ function CategoryEditor({ categories, onChange }: Props) {
         />
         <FormFieldError>{errors.positiveDescription}</FormFieldError>
       </FormField>
+      <FormField invalid={!!errors.mixedDescription}>
+        <FormFieldLabel>
+          🟠 Mixed description (orange)
+          <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
+        </FormFieldLabel>
+        <Textarea
+          value={editForm.mixedDescription ?? ''}
+          onChange={(e) => setField('mixedDescription', e.target.value)}
+          rows={2}
+        />
+        <FormFieldError>{errors.mixedDescription}</FormFieldError>
+      </FormField>
       <FormField invalid={!!errors.negativeDescription}>
         <FormFieldLabel>
-          Negative description (red)
+          🔴 Negative description (red)
           <FormFieldLabelSubLabel> - mandatory</FormFieldLabelSubLabel>
         </FormFieldLabel>
         <Textarea

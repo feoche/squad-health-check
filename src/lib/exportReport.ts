@@ -72,6 +72,7 @@ export function generateMarkdown(session: ClientSessionState, date = new Date())
     if (cat.nameFr) md += ` (${cat.nameFr})`;
     md += `\n\n`;
     md += `- 🟢 **Green:** ${cat.positiveDescription}\n`;
+    if (cat.mixedDescription) md += `- 🟠 **Orange:** ${cat.mixedDescription}\n`;
     md += `- 🔴 **Red:** ${cat.negativeDescription}\n\n`;
     md += `**Votes (${result.votes.length}):** 🟢 ${cc.green} | 🟠 ${cc.orange} | 🔴 ${cc.red}  \n`;
     md += `**Trend:** ↗ ${tc.up} | → ${tc.stable} | ↘ ${tc.down}\n\n`;
