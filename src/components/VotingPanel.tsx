@@ -17,10 +17,11 @@ import {
   TEXT_PRESET,
   Tile,
 } from '@ovhcloud/ods-react';
-import { VoteColor, VoteTrend } from '../types';
-import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
+import { Category, VoteColor, VoteTrend } from '../types';
+import { COLOR_OPTIONS, TREND_OPTIONS, colorDescription } from './voteOptions';
 
 interface Props {
+  category: Category;
   hasVoted: boolean;
   voteCount: number;
   totalParticipants: number;
@@ -30,6 +31,7 @@ interface Props {
 }
 
 function VotingPanel({
+  category,
   hasVoted,
   voteCount,
   totalParticipants,
@@ -92,14 +94,18 @@ function VotingPanel({
           value={selectedColor ?? undefined}
           onValueChange={({ value }) => setSelectedColor(value as VoteColor)}
         >
-          {COLOR_OPTIONS.map(({ value, label, description, badge }) => (
-            <Tile key={value} selected={selectedColor === value}>
-              <Radio value={value} className="tile-radio">
-                <RadioControl />
-                <RadioLabel className="stack">
-                  <Badge className="self-start" color={badge}>{label}</Badge>
-                  <Text preset={TEXT_PRESET.caption}>{description}</Text>
-                </RadioLabel>
+          {COLOR_OPTIONS.map((option) => (
+            <Tile key={option.value} selected={selectedColor === option.value}>
+              <Radio className="tile-radio-root" value={option.value}>
+                <div className="tile-radio">
+                  <RadioControl />
+                  <RadioLabel>
+                    <Badge color={option.badge}>{option.label}</Badge>
+                  </RadioLabel>
+                  <Text className="tile-radio-description" preset={TEXT_PRESET.paragraph}>
+                    {colorDescription(category, option)}
+                  </Text>
+                </div>
               </Radio>
             </Tile>
           ))}
@@ -117,11 +123,13 @@ function VotingPanel({
         >
           {TREND_OPTIONS.map(({ value, label, icon }) => (
             <Tile key={value} selected={selectedTrend === value}>
-              <Radio value={value} className="tile-radio">
-                <RadioControl />
-                <RadioLabel>
-                  <Icon name={icon} /> {label}
-                </RadioLabel>
+              <Radio className="tile-radio-root" value={value}>
+                <div className="tile-radio">
+                  <RadioControl />
+                  <RadioLabel>
+                    <Icon name={icon} /> {label}
+                  </RadioLabel>
+                </div>
               </Radio>
             </Tile>
           ))}

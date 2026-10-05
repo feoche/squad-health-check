@@ -1,16 +1,26 @@
 import { BADGE_COLOR, ICON_NAME, type BadgeColor, type IconName } from '@ovhcloud/ods-react';
-import { VoteColor, VoteTrend } from '../types';
+import { Category, VoteColor, VoteTrend } from '../types';
 
 export const COLOR_OPTIONS: {
   value: VoteColor;
   label: string;
-  description: string;
+  /** Category field describing this color */
+  field: 'positiveDescription' | 'mixedDescription' | 'negativeDescription';
+  /** Used when the category leaves its description empty */
+  fallback: string;
   badge: BadgeColor;
 }[] = [
-  { value: 'green', label: 'Green', description: 'Happy with it', badge: BADGE_COLOR.success },
-  { value: 'orange', label: 'Orange', description: 'Issues to handle', badge: BADGE_COLOR.warning },
-  { value: 'red', label: 'Red', description: 'Needs improvement', badge: BADGE_COLOR.critical },
+  { value: 'green', label: 'Green', field: 'positiveDescription', fallback: 'Happy with it', badge: BADGE_COLOR.success },
+  { value: 'orange', label: 'Orange', field: 'mixedDescription', fallback: 'Issues to handle', badge: BADGE_COLOR.warning },
+  { value: 'red', label: 'Red', field: 'negativeDescription', fallback: 'Needs improvement', badge: BADGE_COLOR.critical },
 ];
+
+export function colorDescription(
+  category: Category,
+  option: (typeof COLOR_OPTIONS)[number],
+): string {
+  return category[option.field]?.trim() || option.fallback;
+}
 
 export const TREND_OPTIONS: {
   value: VoteTrend;

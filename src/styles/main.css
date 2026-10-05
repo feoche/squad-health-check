@@ -110,6 +110,12 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
 .loading {
   padding: calc(var(--ods-theme-padding-vertical) * 8) 0;
 }
@@ -161,17 +167,22 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
-.tile-options > [data-ods='tile'] {
-  display: flex;
+/* ODS sizes Radio to max-content, which keeps long labels on one line */
+.tile-radio-root {
+  width: 100%;
 }
 
 .tile-radio {
-  flex: 1;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr;
   align-items: center;
-  gap: var(--ods-theme-column-gap);
+  gap: var(--ods-theme-row-gap) var(--ods-theme-column-gap);
   padding: calc(var(--ods-theme-padding-vertical) * 2);
-  cursor: pointer;
+}
+
+/* Second row, under the label */
+.tile-radio-description {
+  grid-column: 2;
 }
 
 .vote-progress {
@@ -189,7 +200,6 @@ body {
 .vote-matrix th {
   font-weight: normal;
   text-align: center;
-  white-space: nowrap;
 }
 
 .vote-matrix th[scope='row'] {
@@ -241,6 +251,10 @@ body {
 @media (max-width: 640px) {
   .grid-2,
   .tile-options {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-3 {
     grid-template-columns: 1fr;
   }
 

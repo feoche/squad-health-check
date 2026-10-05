@@ -3,8 +3,8 @@ import { CategoryResult, ClientSessionState } from '../types';
 import { dominantColor, dominantTrend, generateMarkdown } from './exportReport';
 
 const categories = [
-  { name: 'Fun', positiveDescription: 'p', negativeDescription: 'n' },
-  { name: 'Learning', nameFr: 'Apprentissage', positiveDescription: 'p', negativeDescription: 'n' },
+  { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
+  { name: 'Learning', nameFr: 'Apprentissage', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
 ];
 
 function finished(allResults: CategoryResult[]): ClientSessionState {
