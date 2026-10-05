@@ -30,7 +30,7 @@ export interface FacilitatorNote {
   notes: string;
 }
 
-export type SessionPhase = 'lobby' | 'voting' | 'revealed' | 'finished';
+export type SessionPhase = 'lobby' | 'intro' | 'voting' | 'revealed' | 'finished';
 
 export interface Participant {
   id: string;
@@ -44,8 +44,15 @@ export interface ClientSessionState {
   participants: Participant[];
   currentCategoryIndex: number;
   phase: SessionPhase;
+  /** Eligible voters who voted in the current round */
   voteCount: number;
-  totalParticipants: number;
+  /** Number of eligible voters (participants, minus the facilitator when they don't vote) */
+  totalVoters: number;
+  /** Whether the facilitator takes part in the vote (absent in the database means true) */
+  facilitatorVotes: boolean;
+  eligibleVoters: Participant[];
+  /** Ids of the eligible voters who voted in the current round, in participant order */
+  voterIds: string[];
   hasVoted: boolean;
   isFacilitator: boolean;
   /** Current user's participant id (Firebase anonymous uid) */

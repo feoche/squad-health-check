@@ -1,7 +1,6 @@
 import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import VoteMatrix from './VoteMatrix';
-import OpenNotesButton from './OpenNotesButton';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
@@ -9,7 +8,7 @@ interface Props {
   session: ClientSessionState;
 }
 
-/** Shared recap: votes only — notes and exports live in the facilitator notes window. */
+/** Shared recap: votes only — notes and exports live in the facilitator view. */
 function SessionFinished({ session }: Props) {
   return (
     <div className="page">
@@ -34,13 +33,6 @@ function SessionFinished({ session }: Props) {
           );
         })}
       </div>
-
-      {session.isFacilitator && (
-        <div className="stack stack-center desktop-only">
-          <Text preset={TEXT_PRESET.paragraph}>{t.finished.notesHint}</Text>
-          <OpenNotesButton code={session.code} />
-        </div>
-      )}
     </div>
   );
 }

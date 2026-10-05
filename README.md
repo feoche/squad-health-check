@@ -4,13 +4,12 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 
 ## Features
 
-- **Real-time voting** — Everyone joins a session and votes simultaneously
-- **Anonymous votes** — Results only show aggregate counts, never who voted what; votes can't be read before the reveal (enforced by database rules)
-- **Customisable categories** — Pre-loaded with the classic Spotify categories, fully editable
-- **Facilitator controls** — One person controls the flow (reveal, next category, end)
-- **Auto-reveal** — Votes are revealed when everyone has voted (from the facilitator's open tab)
-- **Private facilitator notes** — Notes per category, in a separate window that stays out of the screen share; only the facilitator can read them (enforced by database rules)
-- **Recap export** — The facilitator downloads results and notes as **Markdown** or **PDF** at the end
+- **Three views** — a **presenter** window to screen-share (progress, category, colours, vote count, results), a phone-first **voting** view for participants, and a **facilitator** view (compact or dashboard) only the session creator can open
+- **Introduction step** — a built-in presentation of the workshop between the lobby and the first category
+- **Facilitator controls** — The facilitator drives the flow (start, reveal, next, end) from their own window and may opt out of voting in the lobby
+- **Auto-reveal** — Votes are revealed when every voter has voted (from the facilitator's open window)
+- **Private facilitator notes** — A note per category in the facilitator view, never on the shared screen; only the facilitator can read them (enforced by database rules)
+- **Recap export** — The facilitator edits the notes of every category at the end and downloads results and notes as **Markdown** or **PDF**
 
 ## Firebase setup (once, ~10 min)
 
@@ -39,14 +38,16 @@ npm test        # unit tests
 
 ## How to Use
 
-1. **Facilitator** clicks "Create Session" → customises categories → starts session → enters their name
-2. **Team members** open the shared link (or enter the 6-character code) → enter their name
-3. For each category:
-   - Everyone votes a **color** (🟢 happy / 🟠 issues / 🔴 needs fixing) and a **trend** (↗ / → / ↘)
-   - Votes are revealed when everyone has voted (or the facilitator forces reveal)
-   - Team discusses; the facilitator writes notes in the **Facilitator notes** window (share the session window, not this one)
+1. **Facilitator** clicks "Create Session" → customises categories → starts session → enters their name → lands on the facilitator view
+2. Facilitator clicks **Presenter window** and shares that window (not the facilitator one)
+3. **Team members** scan the QR code or open the shared link (or enter the 6-character code) → enter their name
+4. In the lobby, the facilitator chooses whether they vote too ("I take part in the vote", on by default), then **Start workshop** → the introduction is on the shared screen → **Start first category**
+5. For each category:
+   - Everyone votes a **color** (🟢 happy / 🟠 issues / 🔴 needs fixing) and a **trend** (↗ / → / ↘) on their phone
+   - The shared screen shows how many votes are in; votes are revealed when everyone has voted (or the facilitator forces reveal)
+   - Team discusses; the facilitator writes the category's note in the facilitator view
    - Facilitator clicks "Next Category"
-4. At the end, everyone sees the vote recap; the facilitator **downloads the report** (with notes) from the notes window
+6. At the end, the shared screen shows the vote recap; the facilitator reviews every note and **downloads the report** (with notes)
 
 Notes:
 - The facilitator's tab must stay open for auto-reveal and for moving on; reloading it is fine (identity is kept).
@@ -58,16 +59,19 @@ Notes:
 
 Use two browsers (or one normal + one private window): **A** = facilitator, **B** = participant.
 
-1. A: create a session, enter a name → lobby shows A with 👑 and the share link.
-2. B: open the share link, enter a name → both lobbies list A and B.
-3. A: Start Voting. B: vote → A shows "1 / 2 votes received".
-4. During voting, Firebase console → Realtime Database → Rules → **Rules Playground**: type *read*, location `/sessions/<CODE>/votes/<current index>`, Authenticated → **Run** → *Denied*. A's UI shows no results yet. Also try *write* `true` at `/sessions/<CODE>/closed/<current index>` as A's UID → *Denied*.
-5. A: vote → round auto-reveals on both sides with 2 votes.
-6. A: click **Facilitator notes** → a separate window "Facilitator notes — <CODE>" opens; type notes → B's screen shows no notes. Rules Playground: *read* `/sessions/<CODE>/facilitator`, Authenticated with B's UID → *Denied*.
-7. B: reload → B lands back in the session without re-entering a name; same for A (still facilitator).
-8. A: Next Category → the previous category appears in the notes window's summary with its results, even after reloading the notes window. Continue … Finish Session → both see the vote recap without notes; Markdown and PDF downloads (with notes) work from A's notes window.
-9. Open `…/#/session/ZZZZZZ` → "Session not found".
-10. B: open `…/#/session/<CODE>/notes` → "Only the facilitator can open notes"; B's console shows no `PERMISSION_DENIED` for `facilitator` or `closed`.
+1. A: create a session, enter a name → facilitator view with the share link, participants (A with 👑) and "I take part in the vote" on.
+2. A: click **Presenter window** → a window "Presenter — <CODE>" shows the code, QR and participants, with no buttons.
+3. B: open the share link, enter a name → B appears in A's view and in the presenter window.
+4. A: Start workshop → presenter shows the introduction, B sees "The workshop is starting". A: Start first category.
+5. B (phone size): the vote form fits without scrolling and shows no vote counter. B votes → presenter shows "1 / 2 votes received"; A's view shows B as voted.
+6. During voting, Firebase console → Realtime Database → Rules → **Rules Playground**: type *read*, location `/sessions/<CODE>/votes/<current index>`, Authenticated → **Run** → *Denied*. Also try *write* `true` at `/sessions/<CODE>/closed/<current index>` as A's UID → *Denied*.
+7. A: vote → round auto-reveals on every screen with 2 votes.
+8. A: write a note → nothing appears on B's screen or in the presenter window. Rules Playground: *read* `/sessions/<CODE>/facilitator`, Authenticated with B's UID → *Denied*.
+9. B: reload → B lands back in the session without re-entering a name; same for A (still facilitator).
+10. A: Next Category … Finish Session → presenter and B show the vote recap without notes; A edits a past note and downloads Markdown and PDF (with notes).
+11. New session where A turns "I take part in the vote" off: "X / N" excludes A, A has no vote form, auto-reveal fires once B has voted. Rules Playground: *write* `true` at `/sessions/<CODE>/voters/<index>/<A's UID>` as A → *Denied*.
+12. Open `…/#/session/ZZZZZZ` → "Session not found".
+13. B: open `…/#/session/<CODE>/present` → "Only the facilitator can open the presenter view"; `…/#/session/<CODE>/notes` → redirected to the session.
 
 ## Tech Stack
 

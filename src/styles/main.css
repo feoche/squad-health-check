@@ -65,6 +65,7 @@ body {
   display: flex;
   align-items: center;
   gap: calc(var(--ods-theme-column-gap) * 2);
+  justify-content: flex-end;
 }
 
 .header-progress-bar {
@@ -87,6 +88,12 @@ body {
   box-sizing: border-box;
   margin: 0 auto;
   padding: calc(var(--ods-theme-padding-vertical) * 4) calc(var(--ods-theme-padding-horizontal) * 2);
+}
+
+/* The shared screen and the dashboard use the whole width */
+.app-main:has(.presenter),
+.app-main:has(.dashboard) {
+  max-width: 1200px;
 }
 
 /* ─── Layout primitives ─── */
@@ -203,13 +210,6 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 1.5);
 }
 
-.session-header {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: calc(var(--ods-theme-column-gap) * 2);
-}
-
 .tile-options {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -282,6 +282,14 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
+/* Facilitator dashboard: round on the left, controls and participants on the right */
+.dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  align-items: start;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -297,13 +305,22 @@ body {
 
 /* ─── Responsive ─── */
 
-@media (max-width: 960px) {
-  .desktop-only {
-    display: none;
+@media (max-width: 767px) {
+  .dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard > :last-child {
+    order: -1;
   }
 }
 
 @media (max-width: 640px) {
+  /* Phones stay on the layout they have (Compact is their default) */
+  .layout-toggle {
+    display: none;
+  }
+
   .grid-2,
   .tile-options {
     grid-template-columns: 1fr;
@@ -315,11 +332,6 @@ body {
 
   .vote-matrix th[scope='row'] {
     width: 104px;
-  }
-
-  .session-header .grow {
-    flex-basis: 100%;
-    order: 1;
   }
 
   .app-header {

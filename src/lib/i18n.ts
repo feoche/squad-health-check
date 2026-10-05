@@ -24,7 +24,6 @@ const en = {
   sessionNotFound: 'Session not found',
   connecting: 'Connecting to session…',
   reconnecting: 'Reconnecting…',
-  unknownState: 'Unknown session state',
 
   colors: { green: 'Green', orange: 'Orange', red: 'Red' },
   colorFallbacks: { green: 'Happy with it', orange: 'Issues to handle', red: 'Needs improvement' },
@@ -91,7 +90,6 @@ const en = {
   },
 
   lobby: {
-    title: 'Session Lobby',
     sessionCode: 'Session Code',
     qrTitle: 'Scan to join the session',
     scanToJoin: 'Scan to join',
@@ -102,7 +100,6 @@ const en = {
     you: ' (You)',
     categoriesToReview: (n: number) =>
       `${n} ${n !== 1 ? 'categories' : 'category'} to review`,
-    startVoting: (n: number) => `Start Voting (${plural(n, 'participant')})`,
     waiting: 'Waiting for the facilitator to start the session…',
   },
 
@@ -115,7 +112,6 @@ const en = {
     submit: 'Submit Vote',
     submitted: 'Vote submitted!',
     votesReceivedLabel: 'Votes received',
-    revealNow: 'Reveal Votes Now',
     revealNowCount: (n: number, total: number) => `Reveal Votes Now (${n}/${total})`,
   },
 
@@ -130,20 +126,49 @@ const en = {
   finished: {
     title: 'Session Complete!',
     intro: "Here's the summary of all results from the health check.",
-    notesHint: 'Notes and downloads are in your facilitator notes.',
+  },
+
+  presenter: {
+    open: 'Presenter window',
+    allowPopups: 'Allow pop-ups for this site to open the presenter window.',
+    documentTitle: (code: string) => `Presenter — ${code}`,
+    onlyFacilitator: 'Only the facilitator can open the presenter view',
+    joinTitle: 'Join the health check',
+  },
+
+  intro: {
+    title: 'Welcome to our squad health check',
+    what: 'A quick look at how the squad is doing. For each category, everyone picks a health colour and a trend, then we discuss the results together.',
+    colorsTitle: 'Health colours',
+    trendsTitle: 'Trend',
+    trendsHint: 'Compared with how things were recently.',
+    anonymous: 'Votes are anonymous: only totals are shown, never who voted what.',
+  },
+  participant: {
+    intro: 'The workshop is starting — watch the shared screen.',
+    waitingOthers: 'Waiting for the others…',
+    resultsOnScreen: 'The results are on the shared screen.',
+  },
+  facilitator: {
+    layout: 'Layout',
+    compact: 'Compact',
+    full: 'Full',
+    startWorkshop: (n: number) => `Start workshop (${plural(n, 'voter')})`,
+    needVoter: 'At least one person must vote before the workshop can start.',
+    introHint: 'The introduction is on the shared screen. Start the first category when the team is ready.',
+    startFirst: 'Start first category',
+    facilitatorVotes: 'I take part in the vote',
+    facilitatorVotesHint: 'Can only be changed before the workshop starts.',
+    myVote: 'My vote',
+    voted: 'voted',
+    waiting: 'waiting',
+    allNotes: 'Notes per category',
+    loadingNotes: 'Loading notes…',
   },
 
   notes: {
-    button: 'Facilitator notes',
-    allowPopups: 'Allow pop-ups for this site to open the facilitator notes.',
-    documentTitle: (code: string) => `Facilitator notes — ${code}`,
-    onlyFacilitator: 'Only the facilitator can open notes',
     backToSession: 'Back to the session',
-    phases: { lobby: 'Lobby', voting: 'Voting', revealed: 'Revealed', finished: 'Finished' },
     privacy: 'Only you can see these notes. Keep this window out of your screen share.',
-    summary: 'Summary',
-    notStarted: "Voting hasn't started yet.",
-    appearLater: 'Categories appear here once you move past them.',
     downloadMarkdown: 'Download Markdown',
     downloadPdf: 'Download PDF',
     discussion: 'Discussion notes',
@@ -186,7 +211,6 @@ const fr: Messages = {
   sessionNotFound: 'Session introuvable',
   connecting: 'Connexion à la session…',
   reconnecting: 'Reconnexion…',
-  unknownState: 'État de session inconnu',
 
   colors: { green: 'Vert', orange: 'Orange', red: 'Rouge' },
   colorFallbacks: { green: 'Satisfaits', orange: 'Problèmes à traiter', red: 'À améliorer' },
@@ -253,7 +277,6 @@ const fr: Messages = {
   },
 
   lobby: {
-    title: "Salle d'attente",
     sessionCode: 'Code de session',
     qrTitle: 'Scannez pour rejoindre la session',
     scanToJoin: 'Scannez pour rejoindre',
@@ -263,7 +286,6 @@ const fr: Messages = {
     participants: (n) => `Participants (${n})`,
     you: ' (vous)',
     categoriesToReview: (n) => `${n} catégorie${n !== 1 ? 's' : ''} à passer en revue`,
-    startVoting: (n) => `Lancer le vote (${plural(n, 'participant')})`,
     waiting: 'En attente du lancement de la session par le facilitateur…',
   },
 
@@ -276,7 +298,6 @@ const fr: Messages = {
     submit: 'Voter',
     submitted: 'Vote envoyé !',
     votesReceivedLabel: 'Votes reçus',
-    revealNow: 'Révéler les votes',
     revealNowCount: (n, total) => `Révéler les votes (${n}/${total})`,
   },
 
@@ -291,20 +312,49 @@ const fr: Messages = {
   finished: {
     title: 'Session terminée !',
     intro: 'Voici le récapitulatif de tous les résultats du bilan.',
-    notesHint: 'Les notes et téléchargements sont dans vos notes de facilitateur.',
+  },
+
+  presenter: {
+    open: 'Fenêtre de présentation',
+    allowPopups: "Autorisez les pop-ups pour ce site afin d'ouvrir la fenêtre de présentation.",
+    documentTitle: (code) => `Présentation — ${code}`,
+    onlyFacilitator: 'Seul le facilitateur peut ouvrir la vue de présentation',
+    joinTitle: 'Rejoignez le bilan de santé',
+  },
+
+  intro: {
+    title: 'Bienvenue dans notre bilan de santé de squad',
+    what: "Un rapide tour de l'état de la squad. Pour chaque catégorie, chacun choisit une couleur de santé et une tendance, puis nous discutons ensemble des résultats.",
+    colorsTitle: 'Couleurs de santé',
+    trendsTitle: 'Tendance',
+    trendsHint: 'Par rapport à la situation récente.',
+    anonymous: 'Les votes sont anonymes : seuls les totaux sont affichés, jamais qui a voté quoi.',
+  },
+  participant: {
+    intro: "L'atelier commence — regardez l'écran partagé.",
+    waitingOthers: 'En attente des autres…',
+    resultsOnScreen: "Les résultats sont sur l'écran partagé.",
+  },
+  facilitator: {
+    layout: 'Affichage',
+    compact: 'Compact',
+    full: 'Complet',
+    startWorkshop: (n) => `Lancer l'atelier (${n} votant${n !== 1 ? 's' : ''})`,
+    needVoter: "Au moins une personne doit voter pour lancer l'atelier.",
+    introHint: "L'introduction est sur l'écran partagé. Lancez la première catégorie quand l'équipe est prête.",
+    startFirst: 'Lancer la première catégorie',
+    facilitatorVotes: 'Je participe au vote',
+    facilitatorVotesHint: "Modifiable uniquement avant le début de l'atelier.",
+    myVote: 'Mon vote',
+    voted: 'a voté',
+    waiting: 'en attente',
+    allNotes: 'Notes par catégorie',
+    loadingNotes: 'Chargement des notes…',
   },
 
   notes: {
-    button: 'Notes du facilitateur',
-    allowPopups: "Autorisez les pop-ups pour ce site afin d'ouvrir les notes du facilitateur.",
-    documentTitle: (code) => `Notes du facilitateur — ${code}`,
-    onlyFacilitator: 'Seul le facilitateur peut ouvrir les notes',
     backToSession: 'Retour à la session',
-    phases: { lobby: "Salle d'attente", voting: 'Vote en cours', revealed: 'Révélé', finished: 'Terminé' },
     privacy: "Vous seul voyez ces notes. Gardez cette fenêtre hors de votre partage d'écran.",
-    summary: 'Récapitulatif',
-    notStarted: "Le vote n'a pas encore commencé.",
-    appearLater: 'Les catégories apparaissent ici une fois passées.',
     downloadMarkdown: 'Télécharger le Markdown',
     downloadPdf: 'Télécharger le PDF',
     discussion: 'Notes de discussion',

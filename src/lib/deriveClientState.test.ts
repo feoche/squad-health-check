@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { Category, ClientSessionState } from '../types';
 import {
   RawSession,
+  canStartWorkshop,
   deriveClientState,
   readableVoteIndexes,
   shouldAutoReveal,
@@ -41,7 +42,7 @@ describe('deriveClientState', () => {
     expect(s.isFacilitator).toBe(true);
     expect(s.myId).toBe('fac');
     expect(s.facilitatorId).toBe('fac');
-    expect(s.totalParticipants).toBe(2);
+    expect(s.totalVoters).toBe(2);
     expect(s.voteCount).toBe(0);
     expect(s.hasVoted).toBe(false);
     expect(s.currentResults).toBeNull();
@@ -61,7 +62,7 @@ describe('deriveClientState', () => {
 
     const empty = deriveClientState('ABC234', raw({ participants: null }), 'x')!;
     expect(empty.participants).toEqual([]);
-    expect(empty.totalParticipants).toBe(0);
+    expect(empty.totalVoters).toBe(0);
   });
 
   it('counts voters of the current category only and sets hasVoted', () => {
@@ -198,6 +199,55 @@ describe('deriveClientState', () => {
       expect(s.facilitatorNotesLoaded).toBe(false);
     });
   });
+
+  describe('eligible voters', () => {
+    const voting = { phase: 'voting' as const, currentCategoryIndex: 0 };
+
+    it('counts the facilitator when facilitatorVotes is absent or true', () => {
+      for (const state of [voting, { ...voting, facilitatorVotes: true }]) {
+        const s = deriveClientState('ABC234', raw({ state }), 'fac')!;
+        expect(s.facilitatorVotes).toBe(true);
+        expect(s.totalVoters).toBe(2);
+        expect(s.eligibleVoters.map((p) => p.id)).toEqual(['fac', 'bob']);
+      }
+    });
+
+    it('leaves the facilitator out when facilitatorVotes is false', () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({ state: { ...voting, facilitatorVotes: false } }),
+        'bob',
+      )!;
+      expect(s.facilitatorVotes).toBe(false);
+      expect(s.totalVoters).toBe(1);
+      expect(s.eligibleVoters.map((p) => p.id)).toEqual(['bob']);
+      expect(s.participants).toHaveLength(2);
+    });
+
+    it("ignores the facilitator's voter flag when they do not vote", () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({ state: { ...voting, facilitatorVotes: false }, voters: { '0': { fac: true } } }),
+        'fac',
+      )!;
+      expect(s.voteCount).toBe(0);
+      expect(s.voterIds).toEqual([]);
+    });
+
+    it('lists who voted this round in participant order', () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({
+          state: voting,
+          participants: { fac: { name: 'Alice' }, bob: { name: 'Bob' }, cat: { name: 'Cat' } },
+          voters: { '0': { cat: true, fac: true } },
+        }),
+        'fac',
+      )!;
+      expect(s.voterIds).toEqual(['fac', 'cat']);
+      expect(s.voteCount).toBe(2);
+    });
+  });
 });
 
 describe('readableVoteIndexes', () => {
@@ -232,6 +282,10 @@ describe('summaryIndexes', () => {
     expect(summaryIndexes({ phase: 'lobby', currentCategoryIndex: 0, categories })).toEqual([]);
   });
 
+  it('lists nothing during the introduction', () => {
+    expect(summaryIndexes({ phase: 'intro', currentCategoryIndex: 0, categories })).toEqual([]);
+  });
+
   it('lists categories before the current one while voting or revealed', () => {
     expect(summaryIndexes({ phase: 'voting', currentCategoryIndex: 2, categories })).toEqual([0, 1]);
     expect(summaryIndexes({ phase: 'revealed', currentCategoryIndex: 0, categories })).toEqual([]);
@@ -262,11 +316,52 @@ describe('shouldAutoReveal', () => {
   });
 
   it('does not fire with zero participants', () => {
-    expect(shouldAutoReveal({ ...base, voteCount: 0, totalParticipants: 0 })).toBe(false);
+    expect(shouldAutoReveal({ ...base, voteCount: 0, totalVoters: 0 })).toBe(false);
   });
 
   it('does not fire outside the voting phase', () => {
     expect(shouldAutoReveal({ ...base, phase: 'revealed' })).toBe(false);
+  });
+
+  it('fires when every eligible voter voted and the facilitator does not vote', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { phase: 'voting', currentCategoryIndex: 0, facilitatorVotes: false },
+        voters: { '0': { bob: true } },
+      }),
+      'fac',
+    )!;
+    expect(shouldAutoReveal(s)).toBe(true);
+  });
+});
+
+describe('canStartWorkshop', () => {
+  it('lets the facilitator start from the lobby with at least one voter', () => {
+    expect(canStartWorkshop(deriveClientState('ABC234', raw(), 'fac')!)).toBe(true);
+  });
+
+  it('refuses when the facilitator is alone and does not vote', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { phase: 'lobby', currentCategoryIndex: 0, facilitatorVotes: false },
+        participants: { fac: { name: 'Alice' } },
+      }),
+      'fac',
+    )!;
+    expect(s.totalVoters).toBe(0);
+    expect(canStartWorkshop(s)).toBe(false);
+  });
+
+  it('refuses for participants and outside the lobby', () => {
+    expect(canStartWorkshop(deriveClientState('ABC234', raw(), 'bob')!)).toBe(false);
+    const intro = deriveClientState(
+      'ABC234',
+      raw({ state: { phase: 'intro', currentCategoryIndex: 0 } }),
+      'fac',
+    )!;
+    expect(canStartWorkshop(intro)).toBe(false);
   });
 });
 
