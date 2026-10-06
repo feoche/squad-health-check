@@ -1,7 +1,13 @@
 import { Category } from '../types';
 
+/** The default selection stays within this many categories, so the workshop fits its time box */
+export const RECOMMENDED_MAX_CATEGORIES = 10;
+
 /**
- * Default categories extracted from the Squad Health Check slide deck (file.md).
+ * Default categories, picked from Spotify's original cards, the slide deck (file.md) and
+ * psychological safety (Google's Project Aristotle). Each one is backed by team-effectiveness
+ * research (Project Aristotle, DORA) and none overlaps another. Sorted from the least to the
+ * most personal topic, so trust builds before the sensitive votes.
  * The facilitator can customise these before starting a session.
  */
 export const defaultCategories: Category[] = [
@@ -54,6 +60,22 @@ export const defaultCategories: Category[] = [
       "Nous livrons peu de valeur et n'en sommes pas fiers. Nos parties prenantes sont déçues.",
   },
   {
+    name: 'Mission',
+    nameFr: 'Mission',
+    positiveDescription:
+      'We know exactly why we are here, and we are really excited about it.',
+    mixedDescription:
+      'We roughly know our goals, but the bigger picture or priorities are fuzzy.',
+    negativeDescription:
+      'We have no idea why we are here. There is no big picture and no focus.',
+    positiveDescriptionFr:
+      'Nous savons exactement pourquoi nous sommes là, et ça nous motive vraiment.',
+    mixedDescriptionFr:
+      'Nous connaissons à peu près nos objectifs, mais la vision ou les priorités sont floues.',
+    negativeDescriptionFr:
+      "Nous ne savons pas pourquoi nous sommes là. Pas de vision d'ensemble, pas de cap.",
+  },
+  {
     name: 'Suitable Process',
     nameFr: 'Processus',
     positiveDescription:
@@ -68,6 +90,22 @@ export const defaultCategories: Category[] = [
       'Le processus fonctionne, mais certains rituels ou règles semblent inutiles ou nous freinent.',
     negativeDescriptionFr:
       "Notre façon de travailler nous gêne. On suit des règles qui n'ont aucun sens pour nous.",
+  },
+  {
+    name: 'Pawns or Players',
+    nameFr: 'Pions ou acteurs',
+    positiveDescription:
+      'We are in control of our destiny. We decide what to build and how to build it.',
+    mixedDescription:
+      'We have a say on how we build things, but little on what we build.',
+    negativeDescription:
+      'We are pawns in a chess game, with no influence over what or how we build.',
+    positiveDescriptionFr:
+      'Nous maîtrisons notre destin. Nous décidons quoi construire et comment.',
+    mixedDescriptionFr:
+      'Nous avons notre mot à dire sur le comment, mais peu sur le quoi.',
+    negativeDescriptionFr:
+      'Nous sommes des pions, sans influence sur ce que nous construisons ni comment.',
   },
   {
     name: 'Learning',
@@ -102,20 +140,20 @@ export const defaultCategories: Category[] = [
       "Nous sommes des individus qui ignorent ce que font les autres, et s'en moquent.",
   },
   {
-    name: 'Stress',
-    nameFr: 'Stress',
+    name: 'Psychological Safety',
+    nameFr: 'Sécurité psychologique',
     positiveDescription:
-      'Things feel calm and under control. Our workload is sustainable.',
+      'We can speak up, ask questions and admit mistakes without fear.',
     mixedDescription:
-      'Pressure builds at times, with peaks and overtime, but it stays manageable.',
+      'We speak up on most things, but some topics or people make us hold back.',
     negativeDescription:
-      "We're very stressed: constant pressure, overtime and no room to breathe.",
+      'We keep quiet: raising a problem or admitting a mistake feels risky.',
     positiveDescriptionFr:
-      "L'ambiance est sereine et sous contrôle. Notre charge de travail est soutenable.",
+      'Nous pouvons parler, poser des questions et reconnaître nos erreurs sans crainte.',
     mixedDescriptionFr:
-      'La pression monte parfois, avec des pics et des heures sup, mais ça reste gérable.',
+      "On s'exprime sur la plupart des sujets, mais certains sujets ou personnes nous retiennent.",
     negativeDescriptionFr:
-      'Nous sommes très stressés : pression constante, heures sup et aucun répit.',
+      'Nous nous taisons : soulever un problème ou avouer une erreur semble risqué.',
   },
   {
     name: 'Fun',
@@ -133,36 +171,94 @@ export const defaultCategories: Category[] = [
     negativeDescriptionFr:
       'Le travail est ennuyeux. On attend juste que la journée passe.',
   },
+];
+
+/**
+ * The other built-in cards, suggested to the facilitator but not selected by default:
+ * each one largely overlaps a default category.
+ */
+export const extraCategories: Category[] = [
   {
-    name: 'Proactive',
-    nameFr: 'Proactif',
+    name: 'Speed',
+    nameFr: 'Vitesse',
     positiveDescription:
-      'We anticipate needs and prevent problems before they happen.',
+      'We get things done quickly. No waiting, no delays.',
     mixedDescription:
-      'We sometimes anticipate, but often react only once problems show up.',
+      'We move forward, but often wait on others or get interrupted.',
     negativeDescription:
-      "We're always firefighting, only reacting to what has already happened.",
+      'We never seem to finish anything. We keep getting stuck or interrupted.',
     positiveDescriptionFr:
-      "Nous anticipons les besoins et prévenons les problèmes avant qu'ils n'arrivent.",
+      "Nous avançons vite. Pas d'attente, pas de retard.",
     mixedDescriptionFr:
-      'Nous anticipons parfois, mais réagissons souvent une fois le problème apparu.',
+      'Nous avançons, mais attendons souvent les autres ou sommes interrompus.',
     negativeDescriptionFr:
-      'Nous éteignons des incendies en permanence, en ne faisant que réagir.',
+      'Nous ne finissons jamais rien. Nous sommes sans cesse bloqués ou interrompus.',
+  },
+  {
+    name: 'Support',
+    nameFr: 'Soutien',
+    positiveDescription:
+      'We always get great support and help from other teams when we ask for it.',
+    mixedDescription:
+      'We get help eventually, but it is often slow or depends on who we ask.',
+    negativeDescription:
+      "We keep getting stuck because we can't get the help we ask for.",
+    positiveDescriptionFr:
+      "Nous obtenons toujours de l'aide et du soutien des autres équipes quand on en demande.",
+    mixedDescriptionFr:
+      "On finit par obtenir de l'aide, mais c'est souvent lent ou ça dépend de qui on sollicite.",
+    negativeDescriptionFr:
+      "Nous restons bloqués car nous n'obtenons pas l'aide que nous demandons.",
+  },
+  {
+    name: 'Stress',
+    nameFr: 'Stress',
+    positiveDescription:
+      'Things feel calm and under control. Our workload is sustainable.',
+    mixedDescription:
+      'Pressure builds at times, with peaks and overtime, but it stays manageable.',
+    negativeDescription:
+      "We're very stressed: constant pressure, overtime and no room to breathe.",
+    positiveDescriptionFr:
+      "L'ambiance est sereine et sous contrôle. Notre charge de travail est soutenable.",
+    mixedDescriptionFr:
+      'La pression monte parfois, avec des pics et des heures sup, mais ça reste gérable.',
+    negativeDescriptionFr:
+      'Nous sommes très stressés : pression constante, heures sup et aucun répit.',
   },
   {
     name: 'Feedback (internal + external)',
     nameFr: 'Feedback (interne + externe)',
     positiveDescription:
-      'We give and receive feedback openly, and it helps us grow.',
+      'We give and seek feedback, within the team and from users, and it helps us grow.',
     mixedDescription:
       'Feedback happens, but rarely, too late or only from some people.',
     negativeDescription:
       "We don't know how to give or receive feedback well, so we avoid it.",
     positiveDescriptionFr:
-      'Nous donnons et recevons du feedback ouvertement, et ça nous fait grandir.',
+      "Nous donnons et sollicitons du feedback, dans l'équipe et auprès des utilisateurs.",
     mixedDescriptionFr:
       'Le feedback existe, mais rarement, trop tard ou seulement de la part de certains.',
     negativeDescriptionFr:
       "Nous ne savons pas bien donner ni recevoir du feedback, alors nous l'évitons.",
   },
+  {
+    name: 'Proactive',
+    nameFr: 'Proactif',
+    positiveDescription:
+      'We stay ahead of user and stakeholder needs, and prevent problems before they happen.',
+    mixedDescription:
+      'We sometimes anticipate, but often react only once problems show up.',
+    negativeDescription:
+      "We're always firefighting, only reacting to what has already happened.",
+    positiveDescriptionFr:
+      'Nous anticipons les besoins des utilisateurs et prévenons les problèmes en amont.',
+    mixedDescriptionFr:
+      'Nous anticipons parfois, mais réagissons souvent une fois le problème apparu.',
+    negativeDescriptionFr:
+      'Nous éteignons des incendies en permanence, en ne faisant que réagir.',
+  },
 ];
+
+/** Every built-in category: the defaults, then the extra suggestions */
+export const builtInCategories: Category[] = [...defaultCategories, ...extraCategories];

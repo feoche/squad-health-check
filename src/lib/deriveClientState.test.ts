@@ -10,6 +10,7 @@ import {
   shouldAutoReveal,
   summaryIndexes,
 } from './deriveClientState';
+import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 
 const categories: Category[] = [
   { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
@@ -328,6 +329,24 @@ describe('deriveClientState', () => {
         'fac',
       )!;
       expect(s.namedVotes).toEqual({});
+    });
+  });
+
+  describe('round timing', () => {
+    it('exposes the time slot and the round start', () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({ state: { phase: 'voting', currentCategoryIndex: 1, categoryMinutes: 15, roundStartedAt: 1234 } }),
+        'bob',
+      )!;
+      expect(s.categoryMinutes).toBe(15);
+      expect(s.roundStartedAt).toBe(1234);
+    });
+
+    it('falls back to the default slot and no start in sessions created before the timer', () => {
+      const s = deriveClientState('ABC234', raw({ state: { phase: 'voting', currentCategoryIndex: 0 } }), 'bob')!;
+      expect(s.categoryMinutes).toBe(DEFAULT_CATEGORY_MINUTES);
+      expect(s.roundStartedAt).toBeNull();
     });
   });
 });

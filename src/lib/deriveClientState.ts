@@ -9,6 +9,7 @@ import {
   SessionPhase,
   Vote,
 } from '../types';
+import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 
 /**
  * RTDB returns objects whose keys are integers (0..n) as arrays,
@@ -23,6 +24,10 @@ export interface SessionStateNode {
   facilitatorVotes?: boolean;
   /** Absent in sessions created before the setting existed: counts as 'full' */
   anonymity?: Anonymity;
+  /** Absent in sessions created before the setting existed: counts as DEFAULT_CATEGORY_MINUTES */
+  categoryMinutes?: number;
+  /** Server time the current round's voting opened, absent in sessions created before the timer */
+  roundStartedAt?: number;
 }
 
 /** Raw contents of /sessions/{code}, one field per listened child. */
@@ -129,6 +134,8 @@ export function deriveClientState(
     totalVoters: eligibleVoters.length,
     facilitatorVotes,
     anonymity,
+    categoryMinutes: raw.state.categoryMinutes ?? DEFAULT_CATEGORY_MINUTES,
+    roundStartedAt: raw.state.roundStartedAt ?? null,
     eligibleVoters,
     voterIds,
     hasVoted: Boolean(roundVoters[myId]),

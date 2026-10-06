@@ -1,6 +1,7 @@
 import { Badge, BADGE_COLOR, ProgressBar, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import HeaderSlot from './HeaderSlot';
+import RoundTimer from './RoundTimer';
 import SessionCodeButton from './SessionCodeButton';
 import { t } from '../lib/i18n';
 
@@ -10,7 +11,7 @@ interface Props {
   copyable?: boolean;
 }
 
-/** Navbar content: category progress during a round, then the session code (a click copies the link to join, except on the shared screen). */
+/** Navbar content: category progress and time spent during a round, then the session code (a click copies the link to join, except on the shared screen). */
 function SessionProgress({ session, copyable = true }: Props) {
   const { currentCategoryIndex: index, categories, phase } = session;
   const inRound = phase === 'voting' || phase === 'revealed';
@@ -33,6 +34,13 @@ function SessionProgress({ session, copyable = true }: Props) {
               aria-label={t.voting.sessionProgress}
             />
           </>
+        )}
+        {inRound && session.roundStartedAt !== null && (
+          <RoundTimer
+            key={`${index}-${session.roundStartedAt}`}
+            startedAt={session.roundStartedAt}
+            categoryMinutes={session.categoryMinutes}
+          />
         )}
         {copyable ? (
           <SessionCodeButton code={session.code} />

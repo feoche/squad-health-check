@@ -12,6 +12,7 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 - **Participant cap** — At most 15 people (facilitator included) can join a session (enforced by database rules)
 - **Private facilitator notes** — A note per category in the facilitator view, never on the shared screen; only the facilitator can read them (enforced by database rules)
 - **Vote anonymization** — Chosen at creation: *off* (everyone sees who voted what once a round is revealed), *facilitator only* (only the facilitator sees names; the shared screen shows totals) or *full* (totals only). Names are never visible while a round is being voted (enforced by database rules)
+- **Round timer** — Every view shows the time spent on the current category; it quietly turns amber past the time slot chosen at creation (10 min by default, about 2 hours for 10 categories with the intro and wrap-up)
 - **Recap export** — The facilitator edits the notes of every category at the end and downloads results and notes as **Markdown** or **PDF**
 
 ## Firebase setup (once, ~10 min)
@@ -79,8 +80,9 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
     - after reveal, **Facilitator only** → *Allowed* for A, *Denied* for B; only A's view lists names, not the presenter;
     - after reveal, **Full** → *Denied* for A and B; no names anywhere;
     - *write* a different value (e.g. `"off"` on a Full session, `"full"` otherwise) or `null` at `/sessions/<CODE>/state/anonymity` as A → *Denied*.
-13. Open `…/#/session/ZZZZZZ` → "Session not found".
-14. B: open `…/#/session/<CODE>/present` → "Only the facilitator can open the presenter view"; `…/#/session/<CODE>/notes` → redirected to the session.
+13. New session created with 1 minute per category: once voting opens, A, B and the presenter show the same elapsed time; past 1:00 it turns amber and keeps counting; Next Category restarts it at 0:00. Rules Playground: *write* `5` at `/sessions/<CODE>/state/categoryMinutes` as A → *Denied*.
+14. Open `…/#/session/ZZZZZZ` → "Session not found".
+15. B: open `…/#/session/<CODE>/present` → "Only the facilitator can open the presenter view"; `…/#/session/<CODE>/notes` → redirected to the session.
 
 ## Tech Stack
 

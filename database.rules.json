@@ -19,6 +19,8 @@
           "currentCategoryIndex": { ".validate": "newData.isNumber() && newData.val() >= 0" },
           "facilitatorVotes": { ".validate": "newData.isBoolean() && (!data.exists() || newData.val() === data.val())" },
           "anonymity": { ".validate": "(newData.val() === 'off' || newData.val() === 'facilitator' || newData.val() === 'full') && (!data.exists() || newData.val() === data.val())" },
+          "categoryMinutes": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 30 && newData.val() % 1 === 0 && (!data.exists() || newData.val() === data.val())" },
+          "roundStartedAt": { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         },
         "participants": {

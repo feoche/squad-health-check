@@ -1,6 +1,6 @@
 import { Category } from '../types';
 import { LANG, Lang } from './i18n';
-import { defaultCategories } from '../data/defaultCategories';
+import { builtInCategories } from '../data/defaultCategories';
 
 export interface LocalizedCategory {
   /** Name in the user's language */
@@ -21,7 +21,7 @@ export function localizeCategory(category: Category, lang: Lang = LANG): Localiz
   };
   if (lang !== 'fr') return { title: category.name, subtitle: category.nameFr, ...english };
   // Sessions created before the French descriptions existed only stored English ones
-  const builtIn = defaultCategories.find((c) => c.name === category.name);
+  const builtIn = builtInCategories.find((c) => c.name === category.name);
   return {
     title: category.nameFr || category.name,
     subtitle: category.nameFr ? category.name : undefined,
