@@ -309,6 +309,37 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
+/* Health colour tiles, and the radio inside, take their colour's status palette instead of the primary one */
+.voting-panel__tile--green {
+  --ods-tile-border-color-hover: var(--ods-color-success-500);
+  --ods-tile-border-color-selected: var(--ods-color-success-500);
+  --ods-tile-background-color-selected: var(--ods-color-success-025);
+  --ods-theme-input-border-color-checked: var(--ods-color-success-500);
+  --ods-theme-input-background-color-checked: var(--ods-color-success-500);
+  --ods-theme-input-border-color-checked-hover: var(--ods-color-success-700);
+  --ods-theme-input-background-color-checked-hover: var(--ods-color-success-700);
+}
+
+.voting-panel__tile--orange {
+  --ods-tile-border-color-hover: var(--ods-color-warning-500);
+  --ods-tile-border-color-selected: var(--ods-color-warning-500);
+  --ods-tile-background-color-selected: var(--ods-color-warning-025);
+  --ods-theme-input-border-color-checked: var(--ods-color-warning-500);
+  --ods-theme-input-background-color-checked: var(--ods-color-warning-500);
+  --ods-theme-input-border-color-checked-hover: var(--ods-color-warning-700);
+  --ods-theme-input-background-color-checked-hover: var(--ods-color-warning-700);
+}
+
+.voting-panel__tile--red {
+  --ods-tile-border-color-hover: var(--ods-color-critical-500);
+  --ods-tile-border-color-selected: var(--ods-color-critical-500);
+  --ods-tile-background-color-selected: var(--ods-color-critical-025);
+  --ods-theme-input-border-color-checked: var(--ods-color-critical-500);
+  --ods-theme-input-background-color-checked: var(--ods-color-critical-500);
+  --ods-theme-input-border-color-checked-hover: var(--ods-color-critical-700);
+  --ods-theme-input-background-color-checked-hover: var(--ods-color-critical-700);
+}
+
 /* ODS sizes Radio to max-content, which keeps long labels on one line */
 .voting-panel__radio {
   width: 100%;

@@ -58,7 +58,11 @@ function VotingPanel({ category, onSubmitVote, initialVote, onCancel }: Props) {
           onValueChange={({ value }) => setSelectedColor(value as VoteColor)}
         >
           {COLOR_OPTIONS.map((option) => (
-            <Tile key={option.value} selected={selectedColor === option.value}>
+            <Tile
+              key={option.value}
+              className={`voting-panel__tile--${option.value}`}
+              selected={selectedColor === option.value}
+            >
               <Radio className="voting-panel__radio" value={option.value}>
                 <div className="voting-panel__radio-body">
                   <RadioControl />

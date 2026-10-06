@@ -37,12 +37,13 @@ interface Props {
   actions: FacilitatorActions;
 }
 
-const HINT_DISMISSED_KEY = 'presenterHintDismissed';
+/** The presenter hint is dismissed per session, so it comes back for each new one */
+const hintDismissedKey = (code: string) => `presenterHintDismissed:${code}`;
 
-/** Whether the facilitator already closed the presenter hint (storage may be missing or blocked) */
-function hintDismissed(): boolean {
+/** Whether the facilitator already closed the presenter hint in this session (storage may be missing or blocked) */
+function hintDismissed(code: string): boolean {
   try {
-    return localStorage.getItem(HINT_DISMISSED_KEY) === '1';
+    return localStorage.getItem(hintDismissedKey(code)) === '1';
   } catch {
     return false;
   }
@@ -52,11 +53,11 @@ function hintDismissed(): boolean {
 function FacilitatorView({ session, actions }: Props) {
   const { phase, currentCategoryIndex: current } = session;
   const inRound = phase === 'voting' || phase === 'revealed';
-  const [showHint, setShowHint] = useState(() => !hintDismissed());
+  const [showHint, setShowHint] = useState(() => !hintDismissed(session.code));
   const dismissHint = () => {
     setShowHint(false);
     try {
-      localStorage.setItem(HINT_DISMISSED_KEY, '1');
+      localStorage.setItem(hintDismissedKey(session.code), '1');
     } catch {
       /* Storage blocked: the hint stays closed until the page is reloaded */
     }
