@@ -107,14 +107,14 @@ const en = {
     title: 'Create New Session',
     intro: 'Customise the categories for your health check, then start the session.',
     noCategories: 'Add at least one category before starting the session.',
-    start: (n: number) => `Start Session (${n} ${n !== 1 ? 'categories' : 'category'})`,
+    start: 'Start Session',
   },
 
   settings: {
     title: 'Session settings',
     facilitatorVotes: 'I take part in the vote',
     anonymity: 'Vote anonymization',
-    levels: { off: 'Off', facilitator: 'Facilitator only', full: 'Full' },
+    levels: { off: 'Off (recommended)', facilitator: 'Facilitator only', full: 'Full' },
     levelHints: {
       off: 'Everyone sees who voted what once a round is revealed.',
       facilitator: 'Only you see who voted what once a round is revealed; the team sees totals.',
@@ -122,6 +122,12 @@ const en = {
     },
     youVote: 'You take part in the vote',
     youDontVote: "You don't take part in the vote",
+    categoryMinutes: 'Time per category (minutes)',
+  },
+
+  timer: {
+    label: 'Time on this category',
+    over: 'Time on this category, past the time slot',
   },
 
   editor: {
@@ -140,8 +146,15 @@ const en = {
     negativeMissing: 'Describe what an unhealthy (red) state looks like.',
     addTitle: 'Add New Category',
     add: 'Add Category',
+    reset: 'Reset to default',
     edit: (name: string) => `Edit ${name}`,
     remove: (name: string) => `Remove ${name}`,
+    timeHint: (categories: number) => `${categories} ${categories !== 1 ? 'categories' : 'category'} to tackle`,
+    timePerVoter: (perVoter: string) => `= ${perVoter} per voter`,
+    timeExample: (total: string, voters: number) => `~${total} for ${voters} voters`,
+    suggestions: 'Suggested categories',
+    addSuggestion: (name: string) => `Add ${name}`,
+    deleteSuggestion: (name: string) => `Delete ${name} for good`,
   },
 
   join: {
@@ -332,14 +345,14 @@ const fr: Messages = {
     title: 'Créer une session',
     intro: 'Personnalisez les catégories de votre bilan, puis lancez la session.',
     noCategories: 'Ajoutez au moins une catégorie avant de lancer la session.',
-    start: (n) => `Lancer la session (${n} catégorie${n !== 1 ? 's' : ''})`,
+    start: 'Lancer la session',
   },
 
   settings: {
     title: 'Paramètres de la session',
     facilitatorVotes: 'Je participe au vote',
     anonymity: 'Anonymisation des votes',
-    levels: { off: 'Désactivée', facilitator: 'Facilitateur uniquement', full: 'Complète' },
+    levels: { off: 'Désactivée (recommandé)', facilitator: 'Facilitateur uniquement', full: 'Complète' },
     levelHints: {
       off: "Tout le monde voit qui a voté quoi une fois la manche révélée.",
       facilitator: "Vous seul voyez qui a voté quoi une fois la manche révélée ; l'équipe voit les totaux.",
@@ -347,6 +360,12 @@ const fr: Messages = {
     },
     youVote: 'Vous participez au vote',
     youDontVote: 'Vous ne participez pas au vote',
+    categoryMinutes: 'Temps par catégorie (minutes)',
+  },
+
+  timer: {
+    label: 'Temps passé sur cette catégorie',
+    over: 'Temps passé sur cette catégorie, au-delà du créneau prévu',
   },
 
   editor: {
@@ -365,8 +384,15 @@ const fr: Messages = {
     negativeMissing: 'Décrivez à quoi ressemble un état problématique (rouge).',
     addTitle: 'Nouvelle catégorie',
     add: 'Ajouter une catégorie',
+    reset: 'Revenir aux catégories par défaut',
     edit: (name) => `Modifier ${name}`,
     remove: (name) => `Supprimer ${name}`,
+    timeHint: (categories) => `${categories} catégorie${categories !== 1 ? 's' : ''} à traiter`,
+    timePerVoter: (perVoter) => `= ${perVoter} par votant`,
+    timeExample: (total, voters) => `~${total} pour ${voters} votants`,
+    suggestions: 'Catégories suggérées',
+    addSuggestion: (name) => `Ajouter ${name}`,
+    deleteSuggestion: (name) => `Supprimer définitivement ${name}`,
   },
 
   join: {

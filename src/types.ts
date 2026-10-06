@@ -22,6 +22,8 @@ export type Anonymity = (typeof ANONYMITY_LEVELS)[number];
 export interface SessionSettings {
   facilitatorVotes: boolean;
   anonymity: Anonymity;
+  /** Time slot per category, in minutes: the round timer changes colour past it */
+  categoryMinutes: number;
 }
 
 export interface Vote {
@@ -76,6 +78,10 @@ export interface ClientSessionState {
   facilitatorVotes: boolean;
   /** Absent in the database means 'full' (sessions created before the setting existed) */
   anonymity: Anonymity;
+  /** Absent in the database means DEFAULT_CATEGORY_MINUTES (sessions created before the setting existed) */
+  categoryMinutes: number;
+  /** Server time the current round's voting opened; null in sessions created before the timer */
+  roundStartedAt: number | null;
   eligibleVoters: Participant[];
   /** Ids of the eligible voters who voted in the current round, in participant order */
   voterIds: string[];

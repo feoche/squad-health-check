@@ -12,6 +12,7 @@ import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, randomKey } from './sessionCode';
 import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
 import { t } from './i18n';
+import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 import { toFirebaseCategories } from './serialize';
 import {
   RawSession,
@@ -49,7 +50,11 @@ export function describeError(err: unknown): string {
 
 const MAX_CODE_ATTEMPTS = 3;
 
-export const DEFAULT_SESSION_SETTINGS: SessionSettings = { facilitatorVotes: true, anonymity: 'off' };
+export const DEFAULT_SESSION_SETTINGS: SessionSettings = {
+  facilitatorVotes: true,
+  anonymity: 'off',
+  categoryMinutes: DEFAULT_CATEGORY_MINUTES,
+};
 
 /** Settings are written once here: the rules refuse any later change */
 export async function createSession(categories: Category[], settings: SessionSettings): Promise<string> {
@@ -269,6 +274,11 @@ export function subscribeConnection(onChange: (connected: boolean) => void): Uns
   });
 }
 
+/** Difference between the server clock and this device's, so every screen shows the same round time. */
+export function subscribeServerTimeOffset(onChange: (offsetMs: number) => void): Unsubscribe {
+  return onValue(ref(getDb(), '.info/serverTimeOffset'), (snap) => onChange(Number(snap.val()) || 0));
+}
+
 /* ─── Facilitator actions (guards mirror the former server) ─── */
 
 const writeState = (s: ClientSessionState, patch: Record<string, unknown>) =>
@@ -281,7 +291,7 @@ export async function startWorkshop(s: ClientSessionState): Promise<void> {
 
 export async function startVoting(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator || s.phase !== 'intro') return;
-  await writeState(s, { phase: 'voting' });
+  await writeState(s, { phase: 'voting', roundStartedAt: serverTimestamp() });
 }
 
 export async function revealVotes(s: ClientSessionState): Promise<void> {
@@ -297,6 +307,7 @@ export async function nextCategory(s: ClientSessionState): Promise<void> {
   await update(sessionRef(s.code), {
     'state/phase': 'voting',
     'state/currentCategoryIndex': idx + 1,
+    'state/roundStartedAt': serverTimestamp(),
     [`closed/${idx}`]: true,
   });
 }

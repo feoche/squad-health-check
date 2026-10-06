@@ -28,10 +28,15 @@ import { Category } from '../types';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 import { moveItem } from '../lib/moveItem';
+import { isBuiltInCategory, suggestedCategories } from '../lib/suggestedCategories';
+import { loadRemovedCategories, saveRemovedCategories } from '../lib/categoryStorage';
+import { defaultCategories } from '../data/defaultCategories';
 
 interface Props {
   categories: Category[];
   onChange: (categories: Category[]) => void;
+  /** Goes back to the repo default categories and forgets the stored ones */
+  onReset: () => void;
 }
 
 const emptyCategory: Category = {
@@ -60,7 +65,7 @@ function validate(form: Category): FormErrors {
   return errors;
 }
 
-function CategoryEditor({ categories, onChange }: Props) {
+function CategoryEditor({ categories, onChange, onReset }: Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Category>({ ...emptyCategory });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -68,6 +73,13 @@ function CategoryEditor({ categories, onChange }: Props) {
   /** Current position of the card being dragged; it follows the card as the list reorders */
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const canDrag = editingIndex === null;
+  /** Categories removed from the list, so they stay among the suggestions, across visits */
+  const [removed, setRemovedState] = useState<Category[]>(loadRemovedCategories);
+  const setRemoved = (next: Category[]) => {
+    setRemovedState(next);
+    saveRemovedCategories(next);
+  };
+  const suggestions = suggestedCategories(categories, removed);
 
   const startEdit = (i: number) => {
     setEditingIndex(i);
@@ -116,8 +128,22 @@ function CategoryEditor({ categories, onChange }: Props) {
   };
 
   const remove = (i: number) => {
+    setRemoved([...removed.filter((c) => c.name !== categories[i].name), categories[i]]);
     onChange(categories.filter((_, idx) => idx !== i));
     if (editingIndex === i) setEditingIndex(null);
+  };
+
+  /** Drops a removed custom category from the suggestions for good */
+  const forget = (category: Category) => {
+    setRemoved(removed.filter((c) => c.name !== category.name));
+  };
+
+  const customized =
+    removed.length > 0 || JSON.stringify(categories) !== JSON.stringify(defaultCategories);
+  const reset = () => {
+    setRemovedState([]);
+    setEditingIndex(null);
+    onReset();
   };
 
   /* Reorders live while hovering, so the list shows where the card will land */
@@ -310,6 +336,49 @@ function CategoryEditor({ categories, onChange }: Props) {
         );
       })}
 
+      {suggestions.length > 0 && (
+        <div className="stack category-editor__suggestions">
+          <Text preset={TEXT_PRESET.heading5}>{t.editor.suggestions}</Text>
+          {suggestions.map((cat) => {
+            const { title, subtitle, positiveDescription } = localizeCategory(cat);
+            return (
+              <Card key={cat.name} className="card-body card-compact" color={CARD_COLOR.neutral}>
+                <div className="category-editor__row">
+                  <div className="grow category-editor__label">
+                    <Text preset={TEXT_PRESET.label}>{title}</Text>
+                    {subtitle && <Text preset={TEXT_PRESET.caption}> ({subtitle})</Text>}
+                    <Text preset={TEXT_PRESET.caption} className="category-editor__suggestion-hint">
+                      {positiveDescription}
+                    </Text>
+                  </div>
+                  <div className="inline category-editor__item-actions">
+                    {!isBuiltInCategory(cat) && (
+                      <Button
+                        size={BUTTON_SIZE.xs}
+                        variant={BUTTON_VARIANT.ghost}
+                        color={BUTTON_COLOR.critical}
+                        onClick={() => forget(cat)}
+                        aria-label={t.editor.deleteSuggestion(title)}
+                      >
+                        <Icon name={ICON_NAME.trash} />
+                      </Button>
+                    )}
+                    <Button
+                      size={BUTTON_SIZE.xs}
+                      variant={BUTTON_VARIANT.outline}
+                      onClick={() => onChange([...categories, cat])}
+                      aria-label={t.editor.addSuggestion(title)}
+                    >
+                      <Icon name={ICON_NAME.plus} />
+                    </Button>
+                  </div>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+
       {isAdding ? (
         <Card className="card-body category-editor__new">
           <Text preset={TEXT_PRESET.heading4}>{t.editor.addTitle}</Text>
@@ -319,11 +388,17 @@ function CategoryEditor({ categories, onChange }: Props) {
           })}
         </Card>
       ) : (
-        <div className="category-editor__add">
+        <div className="inline category-editor__add">
           <Button variant={BUTTON_VARIANT.outline} onClick={startAdd}>
             <Icon name={ICON_NAME.plus} />
             {t.editor.add}
           </Button>
+          {customized && (
+            <Button variant={BUTTON_VARIANT.ghost} onClick={reset}>
+              <Icon name={ICON_NAME.undo} />
+              {t.editor.reset}
+            </Button>
+          )}
         </div>
       )}
     </div>

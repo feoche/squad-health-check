@@ -108,6 +108,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Fixed-width digits so the badge does not jiggle every second; the colour fades rather than jumps */
+.round-timer {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  gap: 4px;
+  transition: background-color 1s ease, color 1s ease;
+}
+
 .show-mobile {
   display: none;
 }
@@ -123,7 +131,8 @@ body {
 
 /* The shared screen and the dashboard use the whole width */
 .app__main:has(.presenter-view),
-.app__main:has(.facilitator-view__dashboard) {
+.app__main:has(.facilitator-view__dashboard),
+.app__main:has(.create-session) {
   max-width: 1200px;
 }
 
@@ -338,6 +347,10 @@ body {
   --ods-theme-input-background-color-checked: var(--ods-color-critical-500);
   --ods-theme-input-border-color-checked-hover: var(--ods-color-critical-700);
   --ods-theme-input-background-color-checked-hover: var(--ods-color-critical-700);
+}
+
+.create-session__start {
+  width: 100%;
 }
 
 /* ODS sizes Radio to max-content, which keeps long labels on one line */
@@ -621,6 +634,7 @@ body {
 .current-category__position {
   font-weight: normal;
   color: var(--ods-color-neutral-600);
+  margin-top: calc(var(--ods-theme-column-gap) * -2);
 }
 
 .participant-view__category,
@@ -665,11 +679,62 @@ body {
   opacity: 0.4;
 }
 
+/* Spaced from what comes before, so suggestions and the new category don't read as part of the list */
+.category-editor__suggestions,
+.category-editor__add,
+.category-editor__new {
+  margin-top: var(--ods-theme-row-gap);
+}
+
+.category-editor__suggestions {
+  gap: calc(var(--ods-theme-row-gap) / 2);
+}
+
+.create-session__time-line,
+.create-session__time-example {
+  display: block;
+}
+
+.category-editor__suggestion-hint {
+  display: block;
+  color: var(--ods-color-neutral-600);
+}
+
 .category-editor__drag-handle {
   color: var(--ods-color-neutral-500);
 }
 
+/* Fixed width so labels stay aligned whatever the number of digits */
+.category-editor__position {
+  flex: 0 0 30px;
+  width: 30px;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
 /* ─── Session settings (creation form) ─── */
+
+/* Categories and settings side by side, so the settings stay in view */
+.create-session__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .create-session__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.create-session .category-editor {
+  gap: calc(var(--ods-theme-row-gap) / 2);
+}
+
+.create-session__start {
+  width: 100%;
+}
 
 /* ODS sizes Radio to max-content, which keeps the hints on one line */
 .create-session__level {

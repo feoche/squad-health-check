@@ -25,9 +25,9 @@ function CurrentCategory({ session, onSubmitVote, children }: Props) {
     <Card className="card-body current-category">
       <Text preset={TEXT_PRESET.heading3} className="current-category__title">
         {localizeCategory(categories[index]).title}{' '}
-        <span className="current-category__position">
+      </Text>
+      <Text className="current-category__position">
           ({t.categoryPosition(index + 1, categories.length)})
-        </span>
       </Text>
       {voting &&
         (session.hasVoted && !isEditing ? (
