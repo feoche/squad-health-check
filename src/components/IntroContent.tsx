@@ -4,19 +4,21 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
-import { Category } from '../types';
+import { Anonymity, Category } from '../types';
 import ColorCards from './ColorCards';
 import { TREND_OPTIONS } from './voteOptions';
 import { t } from '../lib/i18n';
 
 interface Props {
   categories: Category[];
+  /** Told before the first vote, so everyone knows who will see it */
+  anonymity: Anonymity;
   /** Phone legend: category count, colours and trends only */
   compact?: boolean;
 }
 
 /** Built-in presentation of the workshop, shown before the first category. */
-function IntroContent({ categories, compact = false }: Props) {
+function IntroContent({ categories, anonymity, compact = false }: Props) {
   const [before, count, after] = t.intro.categoryCount(categories.length);
 
   return (
@@ -31,6 +33,9 @@ function IntroContent({ categories, compact = false }: Props) {
         {before}
         <strong>{count}</strong>
         {after}
+      </Text>
+      <Text preset={TEXT_PRESET.paragraph} className="intro-content__anonymity">
+        {t.intro.anonymity[anonymity]}
       </Text>
 
       <Text preset={TEXT_PRESET.heading3}>{t.intro.colorsTitle}</Text>

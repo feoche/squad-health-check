@@ -637,6 +637,11 @@ body {
     gap: var(--ods-theme-row-gap);
   }
 
+  /* The intro already told voters the anonymity level */
+  .participant-view__anonymity {
+    display: none;
+  }
+
   .voting-panel__field-label {
     position: absolute;
     width: 1px;
@@ -662,4 +667,45 @@ body {
 
 .category-editor__drag-handle {
   color: var(--ods-color-neutral-500);
+}
+
+/* ─── Session settings (creation form) ─── */
+
+/* ODS sizes Radio to max-content, which keeps the hints on one line */
+.create-session__level {
+  width: 100%;
+}
+
+.create-session__level-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--ods-theme-column-gap);
+  align-items: center;
+}
+
+.create-session__level-hint {
+  grid-column: 2;
+}
+
+/* ─── Named votes ─── */
+
+.named-votes__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--ods-theme-row-gap) calc(var(--ods-theme-column-gap) * 2);
+}
+
+.named-votes__item {
+  display: flex;
+  align-items: center;
+  gap: var(--ods-theme-column-gap);
+}
+
+.named-votes__name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }

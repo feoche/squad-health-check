@@ -4,6 +4,7 @@ import { summaryIndexes } from '../../lib/deriveClientState';
 import { downloadMarkdown, downloadPDF } from '../../lib/exportReport';
 import { t } from '../../lib/i18n';
 import { localizeCategory } from '../../lib/localizeCategory';
+import NamedVotes from '../NamedVotes';
 import NoteFields, { EMPTY_NOTE } from '../NoteFields';
 import VoteSummary from '../VoteSummary';
 
@@ -30,6 +31,7 @@ function FinishedNotes({ session, onChangeNote }: Props) {
             ) : (
               <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
             )}
+            {session.namedVotes[i] && <NamedVotes votes={session.namedVotes[i]} />}
             <NoteFields
               note={session.facilitatorNotes[i] ?? EMPTY_NOTE}
               onChange={(_field, value) => onChangeNote(i, value)}

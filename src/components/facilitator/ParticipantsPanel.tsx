@@ -1,16 +1,10 @@
-import { Card, Text, TEXT_PRESET, Toggle, ToggleControl, ToggleLabel } from '@ovhcloud/ods-react';
+import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../../types';
 import { t } from '../../lib/i18n';
 import ParticipantBadges from '../ParticipantBadges';
 
-interface Props {
-  session: ClientSessionState;
-  onSetFacilitatorVotes: (value: boolean) => void;
-}
-
-function ParticipantsPanel({ session, onSetFacilitatorVotes }: Props) {
-  const locked = session.phase !== 'lobby';
-
+/** Settings were chosen at creation and can't change, so they are only shown here. */
+function ParticipantsPanel({ session }: { session: ClientSessionState }) {
   return (
     <Card className="card-body participants-panel">
       <Text preset={TEXT_PRESET.heading4}>
@@ -21,16 +15,11 @@ function ParticipantsPanel({ session, onSetFacilitatorVotes }: Props) {
         facilitatorId={session.facilitatorId}
         myId={session.myId}
       />
-      <Toggle
-        className="participants-panel__facilitator-votes"
-        checked={session.facilitatorVotes}
-        disabled={locked}
-        onCheckedChange={({ checked }) => onSetFacilitatorVotes(checked)}
-      >
-        <ToggleControl />
-        <ToggleLabel>{t.facilitator.facilitatorVotes}</ToggleLabel>
-      </Toggle>
-      {locked && <Text preset={TEXT_PRESET.caption}>{t.facilitator.facilitatorVotesHint}</Text>}
+      <Text preset={TEXT_PRESET.caption} className="participants-panel__settings">
+        {session.facilitatorVotes ? t.settings.youVote : t.settings.youDontVote}
+        {' · '}
+        {t.settings.anonymity}: {t.settings.levels[session.anonymity]}
+      </Text>
     </Card>
   );
 }

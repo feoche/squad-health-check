@@ -6,11 +6,12 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 
 - **Three views** — a **presenter** window to screen-share (progress, category, colours, vote count, results), a phone-first **voting** view for participants, and a **facilitator** dashboard view only the session creator can open
 - **Introduction step** — a built-in presentation of the workshop between the lobby and the first category
-- **Facilitator controls** — The facilitator drives the flow (start, reveal, next, end) from their own window and may opt out of voting in the lobby
+- **Facilitator controls** — The facilitator drives the flow (start, reveal, next, end) from their own window and chooses at creation whether they take part in the vote
 - **Live results for the facilitator** — The facilitator's view fills the vote matrix as votes arrive, once they have voted (or from the start when they don't vote); the shared screen still waits for the reveal
 - **Auto-reveal** — Votes are revealed when every voter has voted (from the facilitator's open window)
 - **Participant cap** — At most 15 people (facilitator included) can join a session (enforced by database rules)
 - **Private facilitator notes** — A note per category in the facilitator view, never on the shared screen; only the facilitator can read them (enforced by database rules)
+- **Vote anonymization** — Chosen at creation: *off* (everyone sees who voted what once a round is revealed), *facilitator only* (only the facilitator sees names; the shared screen shows totals) or *full* (totals only). Names are never visible while a round is being voted (enforced by database rules)
 - **Recap export** — The facilitator edits the notes of every category at the end and downloads results and notes as **Markdown** or **PDF**
 
 ## Firebase setup (once, ~10 min)
@@ -61,7 +62,7 @@ Notes:
 
 Use two browsers (or one normal + one private window): **A** = facilitator, **B** = participant.
 
-1. A: create a session, enter a name → facilitator view with the share link, participants (A with 👑) and "I take part in the vote" on.
+1. A: create a session (settings left as is), enter a name → facilitator view with the share link, participants (A with 👑) and "You take part in the vote · Vote anonymization: Off".
 2. A: click **Presenter window** → a window "Presenter — <CODE>" shows the code, QR and participants, with no buttons.
 3. B: open the share link, enter a name → B appears in A's view and in the presenter window.
 4. A: Start workshop → presenter shows the introduction, B sees "The workshop is starting". A: Start first category.
@@ -71,9 +72,15 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 8. A: write a note → nothing appears on B's screen or in the presenter window. Rules Playground: *read* `/sessions/<CODE>/facilitator`, Authenticated with B's UID → *Denied*.
 9. B: reload → B lands back in the session without re-entering a name; same for A (still facilitator).
 10. A: Next Category … Finish Session → presenter and B show the vote recap without notes; A edits a past note and downloads Markdown and PDF (with notes).
-11. New session where A turns "I take part in the vote" off: "X / N" excludes A, A has no vote form, auto-reveal fires once B has voted. Rules Playground: *write* `true` at `/sessions/<CODE>/voters/<index>/<A's UID>` as A → *Denied*.
-12. Open `…/#/session/ZZZZZZ` → "Session not found".
-13. B: open `…/#/session/<CODE>/present` → "Only the facilitator can open the presenter view"; `…/#/session/<CODE>/notes` → redirected to the session.
+11. New session created with "I take part in the vote" off: "X / N" excludes A, A has no vote form, auto-reveal fires once B has voted. Rules Playground: *write* `true` at `/sessions/<CODE>/voters/<index>/<A's UID>` as A → *Denied*; *write* `true` at `/sessions/<CODE>/state/facilitatorVotes` as A → *Denied*.
+12. Anonymization, one session per level, Rules Playground *read* `/sessions/<CODE>/ballots/<current index>`:
+    - during voting → *Denied* for A and B at every level;
+    - after reveal, **Off** → *Allowed* for A and B; presenter and A's view list names;
+    - after reveal, **Facilitator only** → *Allowed* for A, *Denied* for B; only A's view lists names, not the presenter;
+    - after reveal, **Full** → *Denied* for A and B; no names anywhere;
+    - *write* a different value (e.g. `"off"` on a Full session, `"full"` otherwise) or `null` at `/sessions/<CODE>/state/anonymity` as A → *Denied*.
+13. Open `…/#/session/ZZZZZZ` → "Session not found".
+14. B: open `…/#/session/<CODE>/present` → "Only the facilitator can open the presenter view"; `…/#/session/<CODE>/notes` → redirected to the session.
 
 ## Tech Stack
 

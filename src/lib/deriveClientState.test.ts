@@ -4,7 +4,9 @@ import {
   RawSession,
   canStartWorkshop,
   deriveClientState,
+  readableBallotIndexes,
   readableVoteIndexes,
+  sharedNamedVotes,
   shouldAutoReveal,
   summaryIndexes,
 } from './deriveClientState';
@@ -25,6 +27,7 @@ function raw(overrides: Partial<RawSession> = {}): RawSession {
     facilitator: null,
     closed: null,
     ballots: {},
+    roundBallots: {},
     ...overrides,
   };
 }
@@ -270,6 +273,63 @@ describe('deriveClientState', () => {
       expect(s.voteCount).toBe(2);
     });
   });
+
+  describe('anonymity and named votes', () => {
+    const revealed = { phase: 'revealed' as const, currentCategoryIndex: 0 };
+    const ballot = (color: 'green' | 'red', trend: 'up' | 'down') => ({ key: 'k'.repeat(20), color, trend });
+
+    it("defaults to 'full' when the setting is absent", () => {
+      expect(deriveClientState('ABC234', raw(), 'fac')!.anonymity).toBe('full');
+    });
+
+    it('maps ballots to participant names, sorted by name', () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({
+          state: { ...revealed, anonymity: 'off' },
+          roundBallots: { '0': { fac: ballot('red', 'down'), bob: ballot('green', 'up') } },
+        }),
+        'bob',
+      )!;
+      expect(s.anonymity).toBe('off');
+      expect(s.namedVotes).toEqual({
+        0: [
+          { id: 'fac', name: 'Alice', vote: { color: 'red', trend: 'down' } },
+          { id: 'bob', name: 'Bob', vote: { color: 'green', trend: 'up' } },
+        ],
+      });
+    });
+
+    it('keeps a ballot whose voter left, with no name, listed last', () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({
+          state: { ...revealed, anonymity: 'facilitator' },
+          roundBallots: { '0': { gone: ballot('red', 'up'), bob: ballot('green', 'up') } },
+        }),
+        'fac',
+      )!;
+      expect(s.namedVotes[0].map((v) => v.name)).toEqual(['Bob', null]);
+    });
+
+    it('treats a loaded, empty round as no named votes yet', () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({ state: { ...revealed, anonymity: 'off' }, roundBallots: { '0': null } }),
+        'fac',
+      )!;
+      expect(s.namedVotes).toEqual({ 0: [] });
+    });
+
+    it("never names votes in a 'full' session, even with ballots loaded", () => {
+      const s = deriveClientState(
+        'ABC234',
+        raw({ state: { ...revealed, anonymity: 'full' }, roundBallots: { '0': { bob: ballot('green', 'up') } } }),
+        'fac',
+      )!;
+      expect(s.namedVotes).toEqual({});
+    });
+  });
 });
 
 describe('readableVoteIndexes', () => {
@@ -397,6 +457,54 @@ describe('canStartWorkshop', () => {
       'fac',
     )!;
     expect(canStartWorkshop(intro)).toBe(false);
+  });
+});
+
+describe('readableBallotIndexes', () => {
+  const revealed = (anonymity?: 'off' | 'facilitator' | 'full') => ({
+    phase: 'revealed' as const,
+    currentCategoryIndex: 2,
+    anonymity,
+  });
+
+  it("reads nothing in 'full' sessions or when the setting is absent", () => {
+    expect(readableBallotIndexes(revealed('full'), 3, { '0': true }, true)).toEqual([]);
+    expect(readableBallotIndexes(revealed(), 3, { '0': true }, true)).toEqual([]);
+  });
+
+  it('reads nothing while a round is being voted', () => {
+    const voting = { phase: 'voting' as const, currentCategoryIndex: 1, anonymity: 'off' as const };
+    expect(readableBallotIndexes(voting, 3, null, true)).toEqual([]);
+    expect(readableBallotIndexes(voting, 3, null, false)).toEqual([]);
+  });
+
+  it("lets everyone read the revealed round in 'off' sessions, plus closed rounds for the facilitator", () => {
+    expect(readableBallotIndexes(revealed('off'), 3, { '0': true }, false)).toEqual([2]);
+    expect(readableBallotIndexes(revealed('off'), 3, { '0': true }, true)).toEqual([0, 2]);
+  });
+
+  it("lets only the facilitator read in 'facilitator' sessions", () => {
+    expect(readableBallotIndexes(revealed('facilitator'), 3, { '0': true }, true)).toEqual([0, 2]);
+    expect(readableBallotIndexes(revealed('facilitator'), 3, { '0': true }, false)).toEqual([]);
+  });
+
+  it('reads every category when finished', () => {
+    const finished = { phase: 'finished' as const, currentCategoryIndex: 0, anonymity: 'off' as const };
+    expect(readableBallotIndexes(finished, 3)).toEqual([0, 1, 2]);
+  });
+});
+
+describe('sharedNamedVotes', () => {
+  const named = { 0: [{ id: 'bob', name: 'Bob', vote: { color: 'green' as const, trend: 'up' as const } }] };
+
+  it("shows names on shared screens only in 'off' sessions", () => {
+    expect(sharedNamedVotes({ anonymity: 'off', namedVotes: named }, 0)).toEqual(named[0]);
+    expect(sharedNamedVotes({ anonymity: 'facilitator', namedVotes: named }, 0)).toBeUndefined();
+    expect(sharedNamedVotes({ anonymity: 'full', namedVotes: named }, 0)).toBeUndefined();
+  });
+
+  it('is undefined for a category without loaded ballots', () => {
+    expect(sharedNamedVotes({ anonymity: 'off', namedVotes: named }, 1)).toBeUndefined();
   });
 });
 

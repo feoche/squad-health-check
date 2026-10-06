@@ -7,7 +7,7 @@ const categories = [
   { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
 ];
 
-function finished(allResults: CategoryResult[]): ClientSessionState {
+function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['namedVotes'] = {}): ClientSessionState {
   const participants = [{ id: 'fac', name: 'Alice' }];
   return {
     code: 'ABC234',
@@ -18,6 +18,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     voteCount: 0,
     totalVoters: 1,
     facilitatorVotes: true,
+    anonymity: 'full',
     eligibleVoters: participants,
     voterIds: [],
     hasVoted: false,
@@ -31,6 +32,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     facilitatorNotes: {},
     facilitatorNotesLoaded: true,
     categoryResults: {},
+    namedVotes,
   };
 }
 
@@ -74,6 +76,26 @@ describe('generateMarkdown', () => {
     expect(md).toContain('| 2 | Responsabilité | — | — |');
     expect(md).toContain('### 2. Responsabilité (Ownership)');
     expect(md).toContain('**Vert:** p');
+  });
+
+  it('lists who voted what when names are available', () => {
+    const md = generateMarkdown(
+      finished([{ categoryIndex: 0, votes: [{ color: 'green', trend: 'up' }], notes: '' }, empty(1)], {
+        0: [
+          { id: 'fac', name: 'Alice', vote: { color: 'green', trend: 'up' } },
+          { id: 'gone', name: null, vote: { color: 'red', trend: 'down' } },
+        ],
+      }),
+    );
+    const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Ownership'));
+    expect(fun).toContain('**Votes by person:**');
+    expect(fun).toContain('- Alice: 🟢 ↗');
+    expect(fun).toContain('- Former participant: 🔴 ↘');
+  });
+
+  it('lists no names in anonymous sessions', () => {
+    const md = generateMarkdown(finished([empty(0), empty(1)]));
+    expect(md).not.toContain('Votes by person');
   });
 });
 

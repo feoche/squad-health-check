@@ -14,6 +14,16 @@ export interface Category {
 export type VoteColor = 'green' | 'orange' | 'red';
 export type VoteTrend = 'up' | 'stable' | 'down';
 
+/** Who sees who voted what, once a round is revealed */
+export const ANONYMITY_LEVELS = ['off', 'facilitator', 'full'] as const;
+export type Anonymity = (typeof ANONYMITY_LEVELS)[number];
+
+/** Chosen when creating the session, fixed afterwards (see database.rules.json) */
+export interface SessionSettings {
+  facilitatorVotes: boolean;
+  anonymity: Anonymity;
+}
+
 export interface Vote {
   color: VoteColor;
   trend: VoteTrend;
@@ -43,6 +53,14 @@ export interface Participant {
   name: string;
 }
 
+/** A revealed vote with its voter, in sessions that are not fully anonymous */
+export interface NamedVote {
+  id: string;
+  /** Null when the voter is no longer in the participant list */
+  name: string | null;
+  vote: Vote;
+}
+
 /** State sent from server to each client (sanitised per-user) */
 export interface ClientSessionState {
   code: string;
@@ -56,6 +74,8 @@ export interface ClientSessionState {
   totalVoters: number;
   /** Whether the facilitator takes part in the vote (absent in the database means true) */
   facilitatorVotes: boolean;
+  /** Absent in the database means 'full' (sessions created before the setting existed) */
+  anonymity: Anonymity;
   eligibleVoters: Participant[];
   /** Ids of the eligible voters who voted in the current round, in participant order */
   voterIds: string[];
@@ -76,5 +96,7 @@ export interface ClientSessionState {
   facilitatorNotesLoaded: boolean;
   /** Votes of every category whose votes this user has loaded, by index */
   categoryResults: Record<number, Vote[]>;
+  /** Votes with their voter, by category index, for the categories whose ballots this user may read */
+  namedVotes: Record<number, NamedVote[]>;
 }
 
