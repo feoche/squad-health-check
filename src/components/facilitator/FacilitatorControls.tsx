@@ -23,6 +23,8 @@ function FacilitatorControls({ session, actions }: Props) {
   const { phase, voteCount, totalVoters } = session;
   const isLastCategory = session.currentCategoryIndex === session.categories.length - 1;
   const canStart = canStartWorkshop(session);
+  /* Votes added for people without the app are enough to reveal */
+  const anyVote = voteCount > 0 || Boolean(session.offlineVotes[session.currentCategoryIndex]?.length);
 
   return (
     <Card className="card-body facilitator-controls">
@@ -49,9 +51,9 @@ function FacilitatorControls({ session, actions }: Props) {
 
       {phase === 'voting' && (
         <Button
-          variant={voteCount > 0 ? BUTTON_VARIANT.default : BUTTON_VARIANT.outline}
+          variant={anyVote ? BUTTON_VARIANT.default : BUTTON_VARIANT.outline}
           onClick={actions.reveal}
-          disabled={voteCount === 0}
+          disabled={!anyVote}
         >
           {t.voting.revealNowCount(voteCount, totalVoters)}
         </Button>

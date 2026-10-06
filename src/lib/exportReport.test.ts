@@ -35,6 +35,7 @@ function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['
     facilitatorNotesLoaded: true,
     categoryResults: {},
     namedVotes,
+    offlineVotes: {},
   };
 }
 

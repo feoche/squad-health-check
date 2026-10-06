@@ -37,6 +37,9 @@ export interface Ballot extends Vote {
   key: string;
 }
 
+/** Votes the facilitator added for people present but not connected, counted per cell */
+export type OfflineVoteCounts = Partial<Record<VoteColor, Partial<Record<VoteTrend, number>>>>;
+
 export interface CategoryResult {
   categoryIndex: number;
   votes: Vote[];
@@ -104,5 +107,7 @@ export interface ClientSessionState {
   categoryResults: Record<number, Vote[]>;
   /** Votes with their voter, by category index, for the categories whose ballots this user may read */
   namedVotes: Record<number, NamedVote[]>;
+  /** Votes the facilitator added for people without the app, by category index, already counted in the results */
+  offlineVotes: Record<number, Vote[]>;
 }
 

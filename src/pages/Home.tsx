@@ -42,16 +42,18 @@ function Home() {
 
       <div className="grid-2 home__actions">
         <Card className="card-body home__create">
-          <Text preset={TEXT_PRESET.heading4}>
-            <Icon name={ICON_NAME.plus} /> {t.home.createTitle}
+          <Text preset={TEXT_PRESET.heading4} className="inline">
+            <Icon name={ICON_NAME.plus} />
+            {t.home.createTitle}
           </Text>
           <Text preset={TEXT_PRESET.paragraph}>{t.home.createText}</Text>
-          <Button onClick={() => navigate('/create')}>{t.home.createButton}</Button>
+          <Button className="home__card-action" onClick={() => navigate('/create')}>{t.home.createButton}</Button>
         </Card>
 
         <Card className="card-body home__join">
-          <Text preset={TEXT_PRESET.heading4}>
-            <Icon name={ICON_NAME.chainLink} /> {t.home.joinTitle}
+          <Text preset={TEXT_PRESET.heading4} className="inline">
+            <Icon name={ICON_NAME.chainLink} />
+            {t.home.joinTitle}
           </Text>
           <form className="stack home__join-form" onSubmit={handleJoin} noValidate>
             <FormField invalid={codeMissing}>
@@ -71,6 +73,7 @@ function Home() {
               <FormFieldError>{t.home.codeMissing}</FormFieldError>
             </FormField>
             <Button
+              className="home__card-action"
               type="submit"
               color={BUTTON_COLOR.primary}
               variant={BUTTON_VARIANT.outline}
@@ -82,13 +85,20 @@ function Home() {
       </div>
 
       <Card className="card-body home__how-it-works">
-        <Text preset={TEXT_PRESET.heading4}>
-          <Icon name={ICON_NAME.list} /> {t.home.howItWorks}
+        <Text preset={TEXT_PRESET.heading4} className="inline">
+          <Icon name={ICON_NAME.list} />
+          {t.home.howItWorks}
         </Text>
-        <ol className="steps home__steps">
-          {t.home.steps.map((step) => (
-            <li key={step}>
-              <Text preset={TEXT_PRESET.paragraph}>{step}</Text>
+        <ol className="home__steps">
+          {t.home.steps.map((step, i) => (
+            <li key={step.title} className="home__step">
+              <span className="home__step-number" aria-hidden="true">
+                {i + 1}
+              </span>
+              <div className="home__step-body">
+                <Text preset={TEXT_PRESET.heading6}>{step.title}</Text>
+                <Text preset={TEXT_PRESET.paragraph}>{step.text}</Text>
+              </div>
             </li>
           ))}
         </ol>

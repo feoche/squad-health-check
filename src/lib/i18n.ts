@@ -85,7 +85,7 @@ const en = {
   home: {
     welcome: 'Squad Health Check',
     intro:
-      "Run health check sessions with your team. Vote on categories, discuss results, and track your squad's well-being.",
+      "Do your team health check.",
     createTitle: 'Create a New Session',
     createText: 'Set up categories and invite your team',
     createButton: 'Create Session',
@@ -96,12 +96,26 @@ const en = {
     joinButton: 'Join Session',
     howItWorks: 'How it works',
     steps: [
-      'The facilitator creates a session and shares the code / link',
-      'Team members join using their name',
-      'For each category, everyone votes a health color (green, orange, red) and a trend (improving, stable, worsening)',
-      'Votes can be anonymous, visible to the facilitator only, or named — the facilitator chooses',
-      'After all votes are in, discuss as a team',
-      'Download a recap (Markdown + PDF) at the end',
+      {
+        title: 'Prepare',
+        text: 'The facilitator picks the categories, the time per category and how anonymous the votes are, plus a previous session to compare with.',
+      },
+      {
+        title: 'Invite',
+        text: 'Share the code, link or QR code. Everyone joins from their phone with their name.',
+      },
+      {
+        title: 'Vote',
+        text: 'For each category, everyone picks a health colour and a trend. Votes stay hidden until the round is revealed.',
+      },
+      {
+        title: 'Discuss',
+        text: 'The results, median and comparison with last time show on the shared screen. Talk it through, especially where votes differ.',
+      },
+      {
+        title: 'Keep a record',
+        text: 'Download the recap as Markdown, PDF or JSON. Next time, the JSON lets you compare with this session.',
+      },
     ],
   },
 
@@ -225,7 +239,7 @@ const en = {
   },
 
   intro: {
-    title: 'Squad Health Check',
+    title: 'Introduction',
     what: 'A quick look at how the squad is doing. For each category, everyone picks a health colour and a trend, then we discuss the results together.',
     colorsTitle: 'Health colours',
     trendsTitle: 'Trend',
@@ -262,6 +276,12 @@ const en = {
     waiting: 'waiting',
     allNotes: 'Notes per category',
     loadingNotes: 'Loading notes…',
+    offlineHint: 'Use + and − to count the votes of people in the room who are not connected.',
+    offlineCount: (n: number) => `Including ${plural(n, 'vote')} you added.`,
+    addOfflineVote: (color: string, trend: string) => `Add a vote: ${color}, ${trend}`,
+    removeOfflineVote: (color: string, trend: string) => `Remove a vote you added: ${color}, ${trend}`,
+    offlineInCell: (n: number) => `${plural(n, 'vote')} added manually`,
+    resetOffline: 'Reset manual votes',
   },
 
   notes: {
@@ -326,7 +346,7 @@ const fr: Messages = {
   home: {
     welcome: 'Squad Health Check',
     intro:
-      "Animez des bilans de santé avec votre équipe. Votez sur des catégories, discutez des résultats et suivez le bien-être de votre squad.",
+      "Faites le bilan de santé de votre équipe.",
     createTitle: 'Créer une session',
     createText: 'Configurez les catégories et invitez votre équipe',
     createButton: 'Créer la session',
@@ -337,12 +357,26 @@ const fr: Messages = {
     joinButton: 'Rejoindre la session',
     howItWorks: 'Comment ça marche',
     steps: [
-      'Le facilitateur crée une session et partage le code / lien',
-      "Les membres de l'équipe la rejoignent avec leur nom",
-      'Pour chaque catégorie, chacun vote une couleur (vert, orange, rouge) et une tendance (en amélioration, stable, en dégradation)',
-      'Les votes peuvent être anonymes, visibles du facilitateur seulement, ou nominatifs — le facilitateur choisit',
-      "Une fois tous les votes reçus, l'équipe en discute",
-      'Téléchargez un récapitulatif (Markdown + PDF) à la fin',
+      {
+        title: 'Préparer',
+        text: "Le facilitateur choisit les catégories, le temps par catégorie et le niveau d'anonymat des votes, ainsi qu'une session précédente à comparer.",
+      },
+      {
+        title: 'Inviter',
+        text: 'Partagez le code, le lien ou le QR code. Chacun rejoint depuis son téléphone avec son nom.',
+      },
+      {
+        title: 'Voter',
+        text: 'Pour chaque catégorie, chacun choisit une couleur et une tendance. Les votes restent cachés jusqu\'à ce que la manche soit révélée.',
+      },
+      {
+        title: 'Discuter',
+        text: "Les résultats, la médiane et la comparaison avec la dernière fois s'affichent sur l'écran partagé. Discutez-en, surtout là où les votes divergent.",
+      },
+      {
+        title: 'Garder une trace',
+        text: 'Téléchargez le récapitulatif en Markdown, PDF ou JSON. La prochaine fois, le JSON permet de comparer avec cette session.',
+      },
     ],
   },
 
@@ -465,7 +499,7 @@ const fr: Messages = {
   },
 
   intro: {
-    title: 'Squad Health Check',
+    title: 'Introduction',
     what: "Un rapide tour de l'état de la squad. Pour chaque catégorie, chacun choisit une couleur et une tendance, puis nous discutons ensemble des résultats.",
     colorsTitle: 'Couleurs de santé',
     trendsTitle: 'Tendance',
@@ -501,6 +535,12 @@ const fr: Messages = {
     waiting: 'en attente',
     allNotes: 'Notes par catégorie',
     loadingNotes: 'Chargement des notes…',
+    offlineHint: 'Utilisez + et − pour compter les votes des personnes présentes mais non connectées.',
+    offlineCount: (n) => `Dont ${pluralFr(n, 'vote')} ajouté${n > 1 ? 's' : ''} par vous.`,
+    addOfflineVote: (color, trend) => `Ajouter un vote : ${color}, ${trend}`,
+    removeOfflineVote: (color, trend) => `Retirer un vote ajouté : ${color}, ${trend}`,
+    offlineInCell: (n) => `${pluralFr(n, 'vote')} ajouté${n > 1 ? 's' : ''} manuellement`,
+    resetOffline: 'Réinitialiser les votes manuels',
   },
 
   notes: {

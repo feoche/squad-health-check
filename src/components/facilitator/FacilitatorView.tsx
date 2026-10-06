@@ -9,7 +9,7 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { useEffect, useState } from 'react';
-import { ClientSessionState, VoteColor, VoteTrend } from '../../types';
+import { ClientSessionState, Vote, VoteColor, VoteTrend } from '../../types';
 import { t } from '../../lib/i18n';
 import {
   clearPreviousSession,
@@ -40,6 +40,10 @@ export interface FacilitatorActions {
   reveal: () => void;
   next: () => void;
   end: () => void;
+  /** Adds or removes, in the current round, a vote for someone present but not connected */
+  adjustOfflineVote: (vote: Vote, delta: 1 | -1) => void;
+  /** Removes every vote added that way in the current round */
+  resetOfflineVotes: () => void;
   changeNote: (categoryIndex: number, value: string) => void;
 }
 
@@ -96,6 +100,12 @@ function FacilitatorView({ session, actions }: Props) {
   /* Shown from the reveal only, so the facilitator runs the round without last time's result in mind */
   const previousOfRound = findPrevious(previous, session.categories[current]);
 
+  const offline = {
+    offlineVotes: session.offlineVotes[current],
+    onAdjust: actions.adjustOfflineVote,
+    onResetOffline: actions.resetOfflineVotes,
+  };
+
   const category = (
     <CurrentCategory
       session={session}
@@ -103,12 +113,17 @@ function FacilitatorView({ session, actions }: Props) {
       voteCount={(phase === 'voting' ? session.liveResults : session.currentResults)?.length}
     >
       {phase === 'voting' && session.liveResults && (
-        <ResultsGrid votes={session.liveResults} inline />
+        <ResultsGrid votes={session.liveResults} inline {...offline} />
       )}
       {phase === 'revealed' &&
         (session.currentResults ? (
           <>
-            <ResultsGrid votes={session.currentResults} namedVotes={session.namedVotes[current]} inline />
+            <ResultsGrid
+              votes={session.currentResults}
+              namedVotes={session.namedVotes[current]}
+              inline
+              {...offline}
+            />
             <div className="inline wrap facilitator-view__round-summary">
               <VoteSummary votes={session.currentResults} />
               {previousOfRound && <PreviousResult previous={previousOfRound} votes={session.currentResults} />}
