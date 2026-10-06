@@ -74,9 +74,9 @@ const en = {
 
   colors: { green: 'Green', orange: 'Orange', red: 'Red' },
   colorFallbacks: {
-    green: 'All good: we are happy with how things are.',
-    orange: 'Some problems, but nothing alarming.',
-    red: 'Things are not working: this needs fixing.',
+    green: "Not perfect, but we're happy with how things are and see no need to improve right now.",
+    orange: "Significant problems we need to address, but it's not a disaster.",
+    red: "This really isn't working and needs to improve quickly.",
   },
   trends: { up: 'Improving', stable: 'Stable', down: 'Getting worse' },
 
@@ -214,7 +214,8 @@ const en = {
     introScriptTitle: 'Introduction to read out',
     introScript: [
       "Thanks for joining this Squad Health Check. It's a quick, honest look at how we feel about our work. It's not an evaluation, and there are no wrong answers.",
-      "For each category, vote on your phone with a colour (green: all good, orange: some problems, red: needs to change) and a trend (improving, stable or getting worse).",
+      "For each category, vote on your phone with a colour and a trend (improving, stable or getting worse).",
+      "Green doesn't mean perfect: it just means we're happy with how things are and see no need to improve right now. Orange means there are significant problems to address, but it's not a disaster. Red means it really isn't working and needs to improve quickly.",
       "Votes are anonymous. After each one, we'll discuss the results, especially where we disagree. Let's start!",
     ],
     startFirst: 'Start first category',
@@ -277,9 +278,9 @@ const fr: Messages = {
 
   colors: { green: 'Vert', orange: 'Orange', red: 'Rouge' },
   colorFallbacks: {
-    green: 'Tout va bien : nous sommes satisfaits de la situation.',
-    orange: "Quelques problèmes, mais rien d'alarmant.",
-    red: 'Ça ne va pas : il faut y remédier.',
+    green: "Pas parfait, mais nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant.",
+    orange: "Des problèmes importants à traiter, mais ce n'est pas une catastrophe.",
+    red: "Ça ne fonctionne vraiment pas et doit être amélioré très rapidement.",
   },
   trends: { up: 'En amélioration', stable: 'Stable', down: 'En dégradation' },
 
@@ -415,7 +416,8 @@ const fr: Messages = {
     introScriptTitle: "Introduction à lire",
     introScript: [
       "Merci de participer à ce Squad Health Check. C'est un regard rapide et honnête sur la façon dont nous vivons notre travail. Ce n'est pas une évaluation, et il n'y a pas de mauvaise réponse.",
-      "Pour chaque catégorie, votez sur votre téléphone avec une couleur (vert : tout va bien, orange : quelques problèmes, rouge : il faut changer) et une tendance (en amélioration, stable ou en dégradation).",
+      "Pour chaque catégorie, votez sur votre téléphone avec une couleur et une tendance (en amélioration, stable ou en dégradation).",
+      "Vert ne veut pas dire parfait : cela signifie simplement que nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant. Orange signifie qu'il y a des problèmes importants à traiter, mais ce n'est pas une catastrophe. Rouge signifie que ça ne fonctionne vraiment pas et que cela doit être amélioré très rapidement.",
       "Les votes sont anonymes. Après chacun, nous discuterons des résultats, surtout là où nous ne sommes pas d'accord. C'est parti !",
     ],
     startFirst: 'Lancer la première catégorie',
