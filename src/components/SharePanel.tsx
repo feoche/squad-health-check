@@ -31,6 +31,8 @@ function SharePanel({ code }: { code: string }) {
           marginSize={2}
           className="share-panel__qr"
           title={t.lobby.qrTitle}
+          role="img"
+          aria-label={t.lobby.qrTitle}
         />
         <Text preset={TEXT_PRESET.caption}>{t.lobby.scanToJoin}</Text>
       </div>

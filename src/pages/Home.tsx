@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -16,17 +16,21 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { t } from '../lib/i18n';
+import { usePageTitle } from '../lib/usePageTitle';
 
 function Home() {
   const [sessionCode, setSessionCode] = useState('');
   const [codeMissing, setCodeMissing] = useState(false);
   const navigate = useNavigate();
+  const codeInput = useRef<HTMLInputElement>(null);
+  usePageTitle();
 
   const handleJoin = (e: React.FormEvent) => {
     e.preventDefault();
     const code = sessionCode.trim().toUpperCase();
     if (!code) {
       setCodeMissing(true);
+      codeInput.current?.focus();
       return;
     }
     setCodeMissing(false);
@@ -42,7 +46,7 @@ function Home() {
 
       <div className="grid-2 home__actions">
         <Card className="card-body home__create">
-          <Text preset={TEXT_PRESET.heading4} className="inline">
+          <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
             <Icon name={ICON_NAME.plus} />
             {t.home.createTitle}
           </Text>
@@ -51,7 +55,7 @@ function Home() {
         </Card>
 
         <Card className="card-body home__join">
-          <Text preset={TEXT_PRESET.heading4} className="inline">
+          <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
             <Icon name={ICON_NAME.chainLink} />
             {t.home.joinTitle}
           </Text>
@@ -62,6 +66,10 @@ function Home() {
                 <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
               </FormFieldLabel>
               <Input
+                ref={codeInput}
+                required
+                autoComplete="off"
+                autoCapitalize="characters"
                 placeholder={t.home.codePlaceholder}
                 value={sessionCode}
                 onChange={(e) => {
@@ -85,7 +93,7 @@ function Home() {
       </div>
 
       <Card className="card-body home__how-it-works">
-        <Text preset={TEXT_PRESET.heading4} className="inline">
+        <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
           <Icon name={ICON_NAME.list} />
           {t.home.howItWorks}
         </Text>
@@ -96,7 +104,7 @@ function Home() {
                 {i + 1}
               </span>
               <div className="home__step-body">
-                <Text preset={TEXT_PRESET.heading6}>{step.title}</Text>
+                <Text preset={TEXT_PRESET.heading6} as="h4">{step.title}</Text>
                 <Text preset={TEXT_PRESET.paragraph}>{step.text}</Text>
               </div>
             </li>

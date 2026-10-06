@@ -7,7 +7,7 @@ import ParticipantBadges from '../ParticipantBadges';
 function ParticipantsPanel({ session }: { session: ClientSessionState }) {
   return (
     <Card className="card-body participants-panel">
-      <Text preset={TEXT_PRESET.heading4}>
+      <Text preset={TEXT_PRESET.heading4} as="h2">
         {t.lobby.participants(session.participants.length)}
       </Text>
       <ParticipantBadges

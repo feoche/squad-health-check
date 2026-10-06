@@ -19,14 +19,15 @@ interface Props {
 function FinishedNotes({ session, previous, onChangeNote }: Props) {
   return (
     <Card className="card-body finished-notes">
-      <Text preset={TEXT_PRESET.heading3}>{t.facilitator.allNotes}</Text>
+      <Text preset={TEXT_PRESET.heading3} as="h2">{t.facilitator.allNotes}</Text>
       {summaryIndexes(session).map((i) => {
         const before = findPrevious(previous, session.categories[i]);
+        const title = localizeCategory(session.categories[i]).title;
         return (
           <div key={i} className="stack finished-notes__item">
             <div className="inline wrap finished-notes__heading">
-              <Text preset={TEXT_PRESET.heading5}>
-                {i + 1}. {localizeCategory(session.categories[i]).title}
+              <Text preset={TEXT_PRESET.heading5} as="h3">
+                {i + 1}. {title}
                 {session.categoryResults[i] && ` (${t.votes(session.categoryResults[i].length)})`}
               </Text>
               {session.categoryResults[i] ? (
@@ -39,6 +40,7 @@ function FinishedNotes({ session, previous, onChangeNote }: Props) {
             <NoteFields
               note={session.facilitatorNotes[i] ?? EMPTY_NOTE}
               hideLabel
+              hiddenLabel={`${t.notes.discussion}: ${title}`}
               onChange={(_field, value) => onChangeNote(i, value)}
             />
           </div>

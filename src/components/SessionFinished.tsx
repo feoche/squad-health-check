@@ -24,7 +24,7 @@ function SessionFinished({ session }: Props) {
           return (
             <Card key={result.categoryIndex} className="card-body session-finished__card">
               <div className="inline wrap session-finished__heading">
-                <Text preset={TEXT_PRESET.heading4}>
+                <Text preset={TEXT_PRESET.heading4} as="h3">
                   {result.categoryIndex + 1}. {localizeCategory(cat).title} ({t.votes(result.votes.length)})
                 </Text>
                 <VoteSummary votes={result.votes} prefix={false} />

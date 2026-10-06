@@ -52,7 +52,7 @@ function PreviousSessionPicker({ previous, onImport, onRemove }: Props) {
       <input ref={fileInput} type="file" accept=".json,application/json" hidden onChange={importFile} />
 
       {invalid && (
-        <Message className="message-full" color={MESSAGE_COLOR.critical} dismissible={false}>
+        <Message className="message-full" color={MESSAGE_COLOR.critical} dismissible={false} role="alert">
           <MessageIcon name={ICON_NAME.triangleExclamation} />
           <MessageBody>{t.notes.invalidImport}</MessageBody>
         </Message>

@@ -159,7 +159,7 @@ function FacilitatorView({ session, actions }: Props) {
 
       {phase === 'intro' && (
         <Card className="card-body facilitator-view__intro-script">
-          <Text preset={TEXT_PRESET.heading3}>{t.facilitator.introScriptTitle}</Text>
+          <Text preset={TEXT_PRESET.heading3} as="h2">{t.facilitator.introScriptTitle}</Text>
           {[
             ...t.facilitator.introScript,
             `${t.intro.anonymity[session.anonymity]} ${t.facilitator.introScriptEnd}`,

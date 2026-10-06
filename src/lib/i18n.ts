@@ -73,6 +73,9 @@ const en = {
   connecting: 'Connecting to session…',
   reconnecting: 'Reconnecting…',
   switchLang: 'Passer en français',
+  skipToContent: 'Skip to main content',
+  pageTitle: (page?: string) => (page ? `${page} – Squad Health Check` : 'Squad Health Check'),
+  sessionTitle: (code: string) => `Session ${code}`,
 
   colors: { green: 'Green', orange: 'Orange', red: 'Red' },
   colorFallbacks: {
@@ -141,6 +144,7 @@ const en = {
     youVote: 'You take part in the vote',
     youDontVote: "You don't take part in the vote",
     categoryMinutes: 'Time per category (minutes)',
+    minutesInvalid: (min: number, max: number) => `Enter a whole number of minutes from ${min} to ${max}.`,
   },
 
   timer: {
@@ -174,6 +178,12 @@ const en = {
     suggestions: 'Suggested categories',
     addSuggestion: (name: string) => `Add ${name}`,
     deleteSuggestion: (name: string) => `Delete ${name} for good`,
+    list: 'Session categories',
+    moveUp: (name: string) => `Move ${name} up`,
+    moveDown: (name: string) => `Move ${name} down`,
+    moved: (name: string, position: number, total: number) => `${name} moved to position ${position} of ${total}`,
+    added: (name: string) => `${name} added`,
+    removed: (name: string) => `${name} removed`,
   },
 
   join: {
@@ -193,6 +203,7 @@ const en = {
     linkCopied: 'Link copied',
     participants: (n: number) => `Participants (${n})`,
     you: ' (You)',
+    facilitator: ', facilitator',
     categoriesToReview: (n: number) =>
       `${n} ${n !== 1 ? 'categories' : 'category'} to review`,
     waiting: 'Waiting for the facilitator to start the session…',
@@ -219,6 +230,7 @@ const en = {
     noVotes: 'No votes',
     medianPrefix: 'Median:',
     byPerson: 'Votes',
+    matrixCaption: 'Votes by health colour and trend',
     descriptions: 'Health descriptions',
     unknownVoter: 'Former participant',
   },
@@ -231,6 +243,7 @@ const en = {
 
   presenter: {
     open: 'Presenter window',
+    openNewWindow: 'Presenter window (opens a new window)',
     hint: 'Share the presenter window with the team and keep this one to yourself.',
     allowPopups: 'Allow pop-ups for this site to open the presenter window.',
     documentTitle: (code: string) => `Presenter — ${code}`,
@@ -334,6 +347,9 @@ const fr: Messages = {
   connecting: 'Connexion à la session…',
   reconnecting: 'Reconnexion…',
   switchLang: 'Switch to English',
+  skipToContent: 'Aller au contenu principal',
+  pageTitle: (page) => (page ? `${page} – Squad Health Check` : 'Squad Health Check'),
+  sessionTitle: (code) => `Session ${code}`,
 
   colors: { green: 'Vert', orange: 'Orange', red: 'Rouge' },
   colorFallbacks: {
@@ -402,6 +418,7 @@ const fr: Messages = {
     youVote: 'Vous participez au vote',
     youDontVote: 'Vous ne participez pas au vote',
     categoryMinutes: 'Temps par catégorie (minutes)',
+    minutesInvalid: (min, max) => `Saisissez un nombre entier de minutes entre ${min} et ${max}.`,
   },
 
   timer: {
@@ -435,6 +452,12 @@ const fr: Messages = {
     suggestions: 'Catégories suggérées',
     addSuggestion: (name) => `Ajouter ${name}`,
     deleteSuggestion: (name) => `Supprimer définitivement ${name}`,
+    list: 'Catégories de la session',
+    moveUp: (name) => `Monter ${name}`,
+    moveDown: (name) => `Descendre ${name}`,
+    moved: (name, position, total) => `« ${name} » est maintenant en position ${position} sur ${total}`,
+    added: (name) => `Catégorie « ${name} » ajoutée`,
+    removed: (name) => `Catégorie « ${name} » retirée`,
   },
 
   join: {
@@ -454,6 +477,7 @@ const fr: Messages = {
     linkCopied: 'Lien copié',
     participants: (n) => `Participants (${n})`,
     you: ' (vous)',
+    facilitator: ', facilitateur',
     categoriesToReview: (n) => `${n} catégorie${n !== 1 ? 's' : ''} à passer en revue`,
     waiting: 'En attente du lancement de la session par le facilitateur…',
   },
@@ -479,6 +503,7 @@ const fr: Messages = {
     noVotes: 'Aucun vote',
     medianPrefix: 'Médiane :',
     byPerson: 'Votes',
+    matrixCaption: 'Votes par couleur de santé et tendance',
     descriptions: 'Description des couleurs',
     unknownVoter: 'Ancien participant',
   },
@@ -491,6 +516,7 @@ const fr: Messages = {
 
   presenter: {
     open: 'Fenêtre de présentation',
+    openNewWindow: "Fenêtre de présentation (s'ouvre dans une nouvelle fenêtre)",
     hint: "Partagez la fenêtre de présentation avec l'équipe et gardez celle-ci pour vous.",
     allowPopups: "Autorisez les pop-ups pour ce site afin d'ouvrir la fenêtre de présentation.",
     documentTitle: (code) => `Présentation — ${code}`,

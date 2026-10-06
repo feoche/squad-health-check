@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Badge,
   BUTTON_VARIANT,
@@ -14,9 +14,6 @@ import {
   Text,
   TEXT_PRESET,
   Tile,
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
 } from '@ovhcloud/ods-react';
 import { Category, Vote, VoteColor, VoteTrend } from '../types';
 import { COLOR_OPTIONS, TREND_OPTIONS_WORST_FIRST, colorDescription } from './voteOptions';
@@ -35,20 +32,27 @@ function VotingPanel({ category, onSubmitVote, initialVote, onCancel }: Props) {
   const [selectedColor, setSelectedColor] = useState<VoteColor | null>(initialVote?.color ?? null);
   const [selectedTrend, setSelectedTrend] = useState<VoteTrend | null>(initialVote?.trend ?? null);
   const [submitted, setSubmitted] = useState(false);
+  const form = useRef<HTMLFormElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
     if (selectedColor && selectedTrend) {
       onSubmitVote(selectedColor, selectedTrend);
+      return;
     }
+    // Take the voter to the first question left unanswered, where its error is read out
+    const field = selectedColor ? 'trend' : 'color';
+    form.current
+      ?.querySelector<HTMLInputElement>(`.voting-panel__field--${field} input:not(:disabled)`)
+      ?.focus();
   };
 
   const colorMissing = submitted && !selectedColor;
   const trendMissing = submitted && !selectedTrend;
 
   return (
-    <form className="stack voting-panel" onSubmit={handleSubmit} noValidate>
+    <form className="stack voting-panel" ref={form} onSubmit={handleSubmit} noValidate>
       <FormField className="voting-panel__field voting-panel__field--color" invalid={colorMissing}>
         <FormFieldLabel className="voting-panel__field-label">{t.voting.healthColor}</FormFieldLabel>
         <RadioGroup
@@ -88,23 +92,19 @@ function VotingPanel({ category, onSubmitVote, initialVote, onCancel }: Props) {
           value={selectedTrend ?? undefined}
           onValueChange={({ value }) => setSelectedTrend(value as VoteTrend)}
         >
+          {/* Captioned rather than in a tooltip: a tooltip never shows on touch or to keyboard users */}
           {TREND_OPTIONS_WORST_FIRST.map(({ value, label, icon }) => (
-            <Tooltip key={value}>
-              <TooltipTrigger asChild>
-                <Tile selected={selectedTrend === value}>
-                  <Radio className="voting-panel__radio" value={value}>
-                    <div className="voting-panel__radio-body">
-                      <RadioControl />
-                      <RadioLabel>
-                        <Icon name={icon} />
-                        <span className="voting-panel__trend-caption visually-hidden">{label}</span>
-                      </RadioLabel>
-                    </div>
-                  </Radio>
-                </Tile>
-              </TooltipTrigger>
-              <TooltipContent>{label}</TooltipContent>
-            </Tooltip>
+            <Tile key={value} selected={selectedTrend === value}>
+              <Radio className="voting-panel__radio" value={value}>
+                <div className="voting-panel__radio-body">
+                  <RadioControl />
+                  <RadioLabel>
+                    <Icon name={icon} />
+                    <span className="voting-panel__trend-caption">{label}</span>
+                  </RadioLabel>
+                </div>
+              </Radio>
+            </Tile>
           ))}
         </RadioGroup>
         <FormFieldError>{t.voting.pickTrend}</FormFieldError>

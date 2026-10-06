@@ -18,7 +18,7 @@ import SharePanel from './SharePanel';
 import VoteProgress from './VoteProgress';
 import VoteSummary from './VoteSummary';
 import { sharedNamedVotes } from '../lib/deriveClientState';
-import { t } from '../lib/i18n';
+import { LANG, t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
 /** The screen-shared view: no controls and no notes, in any phase (the share link stays copyable). */
@@ -34,7 +34,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
           <Text preset={TEXT_PRESET.heading2} className="presenter-view__join-title">{t.presenter.joinTitle}</Text>
           <SharePanel code={session.code} />
           <div className="stack presenter-view__participants">
-            <Text preset={TEXT_PRESET.heading4}>
+            <Text preset={TEXT_PRESET.heading4} as="h3">
               {t.lobby.participants(session.participants.length)}
             </Text>
             <ParticipantBadges
@@ -65,12 +65,20 @@ function PresenterView({ session }: { session: ClientSessionState }) {
 
       <div className="presenter-view__category">
         <div className="inline wrap presenter-view__heading">
-          <Text preset={TEXT_PRESET.heading1} className="presenter-view__title">
+          <Text preset={TEXT_PRESET.heading1} as="h2" className="presenter-view__title">
             {results ? `${title} (${t.votes(results.length)})` : title}
           </Text>
           {results && <VoteSummary votes={results} large />}
         </div>
-        {subtitle && <Text preset={TEXT_PRESET.paragraph} className="presenter-view__subtitle">{subtitle}</Text>}
+        {subtitle && (
+          <Text
+            preset={TEXT_PRESET.paragraph}
+            className="presenter-view__subtitle"
+            lang={LANG === 'fr' ? 'en' : 'fr'}
+          >
+            {subtitle}
+          </Text>
+        )}
         {/* Once revealed, the results come first and the descriptions fold away below them */}
         {phase !== 'revealed' && <ColorCards category={category} large />}
       </div>
@@ -90,7 +98,8 @@ function PresenterView({ session }: { session: ClientSessionState }) {
         <Accordion className="presenter-view__descriptions">
           <AccordionItem value="descriptions">
             <AccordionTrigger>
-              <Text preset={TEXT_PRESET.heading4}>{t.results.descriptions}</Text>
+              {/* A heading would lose its role inside the trigger button, so only its look is kept */}
+              <Text preset={TEXT_PRESET.heading4} as="span">{t.results.descriptions}</Text>
             </AccordionTrigger>
             <AccordionContent>
               <ColorCards category={category} large />

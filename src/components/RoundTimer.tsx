@@ -10,7 +10,10 @@ interface Props {
   categoryMinutes: number;
 }
 
-/** Time spent on the current category; turns to the warning colour, quietly, once past the slot, then critical at 150% of it. */
+/**
+ * Time spent on the current category; turns to the warning colour, quietly, once past the slot, then critical at 150% of it.
+ * The icon changes with the colour, so the overrun does not rely on colour alone.
+ */
 function RoundTimer({ startedAt, categoryMinutes }: Props) {
   const [offset, setOffset] = useState(0);
   const [now, setNow] = useState(() => Date.now());
@@ -36,7 +39,10 @@ function RoundTimer({ startedAt, categoryMinutes }: Props) {
       title={label}
       aria-label={`${label}: ${time}`}
     >
-      <Icon name={ICON_NAME.timer} aria-hidden />
+      <Icon
+        name={farOver ? ICON_NAME.hexagonExclamation : over ? ICON_NAME.triangleExclamation : ICON_NAME.timer}
+        aria-hidden
+      />
       <span>{time}</span>
     </Badge>
   );

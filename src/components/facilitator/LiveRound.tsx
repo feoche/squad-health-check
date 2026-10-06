@@ -7,25 +7,27 @@ function LiveRound({ session }: { session: ClientSessionState }) {
   const voted = new Set(session.voterIds);
 
   return (
-    <div className="inline wrap live-round">
+    <ul className="inline wrap live-round">
       {session.eligibleVoters.map((p) => {
         const hasVoted = voted.has(p.id);
         return (
-          <Badge
-            key={p.id}
-            className={hasVoted ? 'live-round__voter live-round__voter--voted' : 'live-round__voter'}
-            color={hasVoted ? BADGE_COLOR.success : BADGE_COLOR.neutral}>
-            {hasVoted && <Icon name={ICON_NAME.check} />}
-            {p.id === session.facilitatorId && <Icon name={ICON_NAME.crown} />}
-            {p.name}
-            <span className="visually-hidden">
-              {' — '}
-              {hasVoted ? t.facilitator.voted : t.facilitator.waiting}
-            </span>
-          </Badge>
+          <li key={p.id} className="live-round__item">
+            <Badge
+              className={hasVoted ? 'live-round__voter live-round__voter--voted' : 'live-round__voter'}
+              color={hasVoted ? BADGE_COLOR.success : BADGE_COLOR.neutral}>
+              {hasVoted && <Icon name={ICON_NAME.check} />}
+              {p.id === session.facilitatorId && <Icon name={ICON_NAME.crown} />}
+              {p.name}
+              <span className="visually-hidden">
+                {p.id === session.facilitatorId && t.lobby.facilitator}
+                {' — '}
+                {hasVoted ? t.facilitator.voted : t.facilitator.waiting}
+              </span>
+            </Badge>
+          </li>
         );
       })}
-    </div>
+    </ul>
   );
 }
 

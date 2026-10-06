@@ -12,7 +12,7 @@ import ParticipantBadges from './ParticipantBadges';
 import SessionProgress from './SessionProgress';
 import VoteSubmitted from './VoteSubmitted';
 import VotingPanel from './VotingPanel';
-import { t } from '../lib/i18n';
+import { LANG, t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
 interface Props {
@@ -41,7 +41,7 @@ function ParticipantView({ session, onSubmitVote }: Props) {
     return (
       <div className="page page-narrow participant-view participant-view--lobby">
         <Card className="card-body participant-view__lobby">
-          <Text preset={TEXT_PRESET.heading4}>
+          <Text preset={TEXT_PRESET.heading4} as="h2">
             {t.lobby.participants(session.participants.length)}
           </Text>
           <ParticipantBadges
@@ -50,7 +50,8 @@ function ParticipantView({ session, onSubmitVote }: Props) {
             myId={session.myId}
           />
           <div className="stack stack-center participant-view__waiting">
-            <Spinner />
+            {/* The text beside it says what is loading */}
+            <Spinner aria-hidden />
             <Text preset={TEXT_PRESET.paragraph}>{t.lobby.waiting}</Text>
           </div>
         </Card>
@@ -77,7 +78,11 @@ function ParticipantView({ session, onSubmitVote }: Props) {
 
       <div className="participant-view__category">
         <Text preset={TEXT_PRESET.heading2} className="participant-view__title">{title}</Text>
-        {subtitle && <Text className="participant-view__subtitle">{subtitle}</Text>}
+        {subtitle && (
+          <Text className="participant-view__subtitle" lang={LANG === 'fr' ? 'en' : 'fr'}>
+            {subtitle}
+          </Text>
+        )}
         {/* While picking, the descriptions live in the vote tiles instead */}
         {!isPicking && <ColorCards category={category} />}
       </div>

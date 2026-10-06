@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Button,
@@ -23,11 +23,25 @@ import { CODE_PATTERN } from '../lib/sessionCode';
 import { shouldAutoReveal } from '../lib/deriveClientState';
 import * as store from '../lib/sessionStore';
 import { t } from '../lib/i18n';
+import { usePageTitle } from '../lib/usePageTitle';
+import { localizeCategory } from '../lib/localizeCategory';
 import ParticipantView from '../components/ParticipantView';
 import FacilitatorView, { type FacilitatorActions } from '../components/facilitator/FacilitatorView';
 import { Connecting, SessionNotice } from '../components/SessionStatus';
 
 const warn = (err: unknown) => console.warn('[session]', err);
+
+/** What a participant is told when the facilitator moves the session on, since their screen changes on its own */
+function phaseAnnouncement(session: ClientSessionState): string {
+  const { phase, categories, currentCategoryIndex: index } = session;
+  if (phase === 'intro') return t.intro.title;
+  if (phase === 'voting') {
+    return `${t.categoryOf(index + 1, categories.length)}: ${localizeCategory(categories[index]).title}`;
+  }
+  if (phase === 'revealed') return t.participant.resultsOnScreen;
+  if (phase === 'finished') return t.finished.title;
+  return '';
+}
 
 function SessionView() {
   const { code = '' } = useParams<{ code: string }>();
@@ -42,6 +56,8 @@ function SessionView() {
   const [notFound, setNotFound] = useState(false);
   const [joined, setJoined] = useState(false);
   const [connected, setConnected] = useState(true);
+  const nameInput = useRef<HTMLInputElement>(null);
+  usePageTitle(t.sessionTitle(code));
 
   /* Sign in, check the session exists, and auto-rejoin if this browser already joined */
   useEffect(() => {
@@ -101,6 +117,7 @@ function SessionView() {
     const trimmed = name.trim();
     if (!trimmed) {
       setNameMissing(true);
+      nameInput.current?.focus();
       return;
     }
     setNameMissing(false);
@@ -160,6 +177,9 @@ function SessionView() {
                 <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
               </FormFieldLabel>
               <Input
+                ref={nameInput}
+                required
+                autoComplete="nickname"
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -176,6 +196,7 @@ function SessionView() {
                 className="join-session__error"
                 color={MESSAGE_COLOR.critical}
                 dismissible={false}
+                role="alert"
               >
                 <MessageIcon name={ICON_NAME.hexagonExclamation} />
                 <MessageBody>{store.describeError(error)}</MessageBody>
@@ -208,12 +229,18 @@ function SessionView() {
           className="connection-banner"
           color={MESSAGE_COLOR.warning}
           dismissible={false}
+          role="status"
         >
           <MessageIcon name={ICON_NAME.triangleExclamation} />
           <MessageBody>{t.reconnecting}</MessageBody>
         </Message>
       )}
       {view}
+      {!session.isFacilitator && (
+        <div role="status" className="visually-hidden">
+          {phaseAnnouncement(session)}
+        </div>
+      )}
     </>
   );
 }
