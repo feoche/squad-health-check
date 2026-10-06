@@ -289,8 +289,20 @@ body {
   gap: 4px;
 }
 
+.facilitator-view__round-summary {
+  column-gap: calc(var(--ods-theme-column-gap) * 3);
+}
+
+.previous-result__evolution {
+  gap: 4px;
+}
+
 .finished-notes__item + .finished-notes__item {
   padding-top: calc(var(--ods-theme-row-gap) * 2);
+}
+
+.previous-session-picker__chosen {
+  justify-content: space-between;
 }
 
 .steps {

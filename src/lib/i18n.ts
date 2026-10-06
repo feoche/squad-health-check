@@ -55,6 +55,8 @@ if (typeof window !== 'undefined') {
 }
 
 const plural = (n: number, word: string) => `${n} ${word}${n !== 1 ? 's' : ''}`;
+/** French keeps 0 and 1 singular */
+const pluralFr = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
 
 const en = {
   mandatory: ' - mandatory',
@@ -108,6 +110,8 @@ const en = {
     intro: 'Customise the categories for your health check, then start the session.',
     noCategories: 'Add at least one category before starting the session.',
     start: 'Start Session',
+    previousTitle: 'Previous session',
+    previousHint: 'Import the JSON export of your last session to compare each category with it.',
   },
 
   settings: {
@@ -196,7 +200,6 @@ const en = {
   },
 
   results: {
-    title: (n: number) => `Results (${plural(n, 'vote')})`,
     next: 'Next Category',
     finish: 'Finish Session',
     noVotes: 'No votes',
@@ -266,6 +269,13 @@ const en = {
     privacy: 'Only you can see these notes. Keep this window out of your screen share.',
     downloadMarkdown: 'Download Markdown',
     downloadPdf: 'Download PDF',
+    downloadJson: 'Download JSON',
+    importPrevious: 'Import previous session',
+    comparedWith: (date: string) => `Compared with the session of ${date}`,
+    removePrevious: 'Remove',
+    invalidImport: 'This file is not a Squad Health Check JSON export.',
+    previous: 'Previous:',
+    evolution: { better: 'Better', same: 'Same', worse: 'Worse' },
     discussion: 'Discussion notes',
     placeholder: 'Write down key discussion points…',
   },
@@ -278,18 +288,12 @@ const en = {
   },
 
   report: {
-    sessionCode: 'Session Code',
-    participants: 'Participants',
-    summary: 'Results Summary',
     category: 'Category',
-    trend: 'Trend',
-    median: 'Median',
-    score: 'Score',
-    details: 'Detailed Results',
     votes: 'Votes',
-    discussion: 'Discussion Notes',
-    session: 'Session',
-    pdfTrends: { up: 'Up', stable: 'Stable', down: 'Down' },
+    median: 'Median',
+    notes: 'Notes',
+    voters: (n: number) => `Voters: ${n}`,
+    medianOf: (median: string) => `Median: ${median}`,
   },
 };
 
@@ -300,7 +304,7 @@ const fr: Messages = {
   save: 'Enregistrer',
   cancel: 'Annuler',
   code: (code) => `Code : ${code}`,
-  votes: (n) => plural(n, 'vote'),
+  votes: (n) => pluralFr(n, 'vote'),
   votesReceived: (n, total) => `${n} / ${total} votes reçus`,
   categoryOf: (i, n) => `Catégorie ${i} sur ${n}`,
   categoryPosition: (i, n) => `catégorie ${i} sur ${n}`,
@@ -347,6 +351,8 @@ const fr: Messages = {
     intro: 'Personnalisez les catégories de votre bilan, puis lancez la session.',
     noCategories: 'Ajoutez au moins une catégorie avant de lancer la session.',
     start: 'Lancer la session',
+    previousTitle: 'Session précédente',
+    previousHint: "Importez l'export JSON de votre dernière session pour comparer chaque catégorie avec elle.",
   },
 
   settings: {
@@ -434,7 +440,6 @@ const fr: Messages = {
   },
 
   results: {
-    title: (n) => `Résultats (${plural(n, 'vote')})`,
     next: 'Catégorie suivante',
     finish: 'Terminer la session',
     noVotes: 'Aucun vote',
@@ -503,6 +508,13 @@ const fr: Messages = {
     privacy: "Vous seul voyez ces notes. Gardez cette fenêtre hors de votre partage d'écran.",
     downloadMarkdown: 'Télécharger le Markdown',
     downloadPdf: 'Télécharger le PDF',
+    downloadJson: 'Télécharger le JSON',
+    importPrevious: 'Importer la session précédente',
+    comparedWith: (date) => `Comparé à la session du ${date}`,
+    removePrevious: 'Retirer',
+    invalidImport: "Ce fichier n'est pas un export JSON Squad Health Check.",
+    previous: 'Précédente :',
+    evolution: { better: 'Mieux', same: 'Pareil', worse: 'Moins bien' },
     discussion: 'Notes de discussion',
     placeholder: 'Notez les points clés de la discussion…',
   },
@@ -515,18 +527,12 @@ const fr: Messages = {
   },
 
   report: {
-    sessionCode: 'Code de session',
-    participants: 'Participants',
-    summary: 'Synthèse des résultats',
     category: 'Catégorie',
-    trend: 'Tendance',
-    median: 'Médiane',
-    score: 'Score',
-    details: 'Résultats détaillés',
     votes: 'Votes',
-    discussion: 'Notes de discussion',
-    session: 'Session',
-    pdfTrends: { up: 'Hausse', stable: 'Stable', down: 'Baisse' },
+    median: 'Médiane',
+    notes: 'Notes',
+    voters: (n: number) => `Nombre de votants : ${n}`,
+    medianOf: (median: string) => `Médiane : ${median}`,
   },
 };
 

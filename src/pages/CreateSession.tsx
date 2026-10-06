@@ -26,8 +26,10 @@ import {
 import { ANONYMITY_LEVELS, Anonymity, Category, SessionSettings } from '../types';
 import { defaultCategories } from '../data/defaultCategories';
 import CategoryEditor from '../components/CategoryEditor';
+import PreviousSessionPicker from '../components/PreviousSessionPicker';
 import { clearStoredCategories, loadSelectedCategories, saveSelectedCategories } from '../lib/categoryStorage';
 import { DEFAULT_SESSION_SETTINGS, createSession, describeError } from '../lib/sessionStore';
+import { loadLastSession, savePreviousSession, SessionExport } from '../lib/sessionHistory';
 import { t } from '../lib/i18n';
 import {
   ASSUMED_VOTERS,
@@ -59,6 +61,8 @@ function CreateSession() {
   /** Kept as typed, so the field can be cleared while editing; settings keep the last valid value */
   const [minutesText, setMinutesText] = useState(String(DEFAULT_SESSION_SETTINGS.categoryMinutes));
   const minutesInvalid = !isValidMinutes(Number(minutesText));
+  /** The session the new one is compared with: the last one finished in this browser, unless imported or removed */
+  const [previous, setPrevious] = useState<SessionExport | null>(loadLastSession);
   const [isCreating, setIsCreating] = useState(false);
   /** Kept raw and described at render time, so it follows language switches */
   const [error, setError] = useState<unknown>(null);
@@ -71,6 +75,7 @@ function CreateSession() {
     setError(null);
     try {
       const code = await createSession(categories, settings);
+      if (previous) savePreviousSession(code, previous);
       navigate(`/session/${code}`);
     } catch (err) {
       setError(err);
@@ -156,6 +161,11 @@ function CreateSession() {
               ))}
             </RadioGroup>
           </FormField>
+          <div className="stack create-session__previous">
+            <Text preset={TEXT_PRESET.label}>{t.create.previousTitle}</Text>
+            {!previous && <Text preset={TEXT_PRESET.caption}>{t.create.previousHint}</Text>}
+            <PreviousSessionPicker previous={previous} onImport={setPrevious} onRemove={() => setPrevious(null)} />
+          </div>
           {(noCategories || error != null) && (
             <Message
               className="create-session__error"

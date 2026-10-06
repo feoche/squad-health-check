@@ -44,61 +44,50 @@ const empty = (categoryIndex: number): CategoryResult => ({
   notes: '',
 });
 
+const funVotes: CategoryResult = {
+  categoryIndex: 0,
+  votes: [
+    { color: 'orange', trend: 'stable' },
+    { color: 'orange', trend: 'up' },
+  ],
+  notes: 'we laughed a lot',
+};
+
+const section = (md: string, from: string, to?: string) =>
+  md.slice(md.indexOf(from), to ? md.indexOf(to) : undefined);
+
 describe('generateMarkdown', () => {
-  it('includes the discussion notes', () => {
-    const md = generateMarkdown(
-      finished([
-        {
-          categoryIndex: 0,
-          votes: [{ color: 'green', trend: 'up' }],
-          notes: 'we laughed a lot',
-        },
-        empty(1),
-      ]),
-    );
-    const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Ownership'));
-    expect(fun).toContain('**Discussion Notes:**');
-    expect(fun).toContain('we laughed a lot');
+  it('opens with the session date and the number of voters', () => {
+    const md = generateMarkdown(finished([funVotes, empty(1)]), new Date(2026, 9, 6));
+    expect(md.startsWith('# Squad Health Check — 2026/10/06\n\nDate: 6 October 2026\nVoters: 1\n\n')).toBe(true);
   });
 
-  it('omits notes when empty', () => {
-    const md = generateMarkdown(finished([empty(0), empty(1)]));
+  it('gives each category its vote count, median and note', () => {
+    const md = generateMarkdown(finished([funVotes, empty(1)]));
+    expect(md).toContain('## Notes');
+    expect(section(md, '### 1. Fun', '### 2. Ownership')).toBe(
+      '### 1. Fun (2 votes)\nMedian: 🟠 ↗\n\nwe laughed a lot\n\n',
+    );
+    expect(section(md, '### 2. Ownership')).toBe('### 2. Ownership (0 votes)\nMedian: —\n\n');
+  });
+
+  it('leaves out what the recap does not show', () => {
+    const md = generateMarkdown(finished([funVotes, empty(1)]));
+    expect(md).not.toContain('ABC234');
+    expect(md).not.toContain('Participants');
+    expect(md).not.toContain('/9');
+    expect(md).not.toContain('🟢');
+    expect(md).not.toContain('Trend');
+    expect(md).not.toContain('**Green:**');
     expect(md).not.toContain('Discussion Notes');
-  });
-
-  it('shows the median cell and score of each category', () => {
-    const md = generateMarkdown(
-      finished([
-        {
-          categoryIndex: 0,
-          votes: [
-            { color: 'orange', trend: 'stable' },
-            { color: 'orange', trend: 'up' },
-          ],
-          notes: '',
-        },
-        empty(1),
-      ]),
-    );
-    expect(md).toContain('| # | Category | Median | Score |');
-    expect(md).toContain('| 1 | Fun | 🟠 ↗ | 5.5/9 |');
-    const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Ownership'));
-    expect(fun).toContain('**Median:** 🟠 ↗ (5.5/9)');
-  });
-
-  it('shows a dash instead of a median for a category without votes', () => {
-    const md = generateMarkdown(finished([empty(0), empty(1)]));
-    expect(md).toContain('| 2 | Ownership | — | — |');
+    expect(md).not.toContain('| # |');
   });
 
   it('writes the report in French for French users', () => {
     const md = generateMarkdown(finished([empty(0), empty(1)]), new Date(2026, 9, 5), 'fr');
-    expect(md).toContain('5 octobre 2026');
-    expect(md).toContain('## Synthèse des résultats');
-    expect(md).toContain('| # | Catégorie | Médiane | Score |');
-    expect(md).toContain('| 2 | Responsabilité | — | — |');
-    expect(md).toContain('### 2. Responsabilité (Ownership)');
-    expect(md).toContain('**Vert:** p');
+    expect(md).toContain('# Squad Health Check — 2026/10/05');
+    expect(md).toContain('Date: 5 octobre 2026\nNombre de votants : 1');
+    expect(md).toContain('### 2. Responsabilité (0 vote)\nMédiane : —');
   });
 
   it('lists no names, even when they are available', () => {
@@ -107,7 +96,6 @@ describe('generateMarkdown', () => {
         0: [{ id: 'fac', name: 'Alice', vote: { color: 'green', trend: 'up' } }],
       }),
     );
-    expect(md).not.toContain('Votes by person');
-    expect(md).not.toContain('Alice:');
+    expect(md).not.toContain('Alice');
   });
 });

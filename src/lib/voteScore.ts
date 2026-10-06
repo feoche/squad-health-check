@@ -1,5 +1,4 @@
 import { Vote, VoteColor, VoteTrend } from '../types';
-import { LANG, Lang } from './i18n';
 
 /* ─── Vote weights: 1 (red, getting worse) to 9 (green, improving); colour outweighs trend ─── */
 
@@ -25,6 +24,3 @@ export function scoreCell(score: number): Vote {
   const index = Math.ceil(score) - 1;
   return { color: COLORS_WORST_FIRST[Math.floor(index / 3)], trend: TRENDS_WORST_FIRST[index % 3] };
 }
-
-export const formatScore = (score: number, lang: Lang = LANG) =>
-  `${score.toLocaleString(lang === 'fr' ? 'fr-FR' : 'en-GB')}/${MAX_SCORE}`;

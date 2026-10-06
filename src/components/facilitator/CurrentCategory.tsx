@@ -9,12 +9,14 @@ import VotingPanel from '../VotingPanel';
 interface Props {
   session: ClientSessionState;
   onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
+  /** Number of votes shown in the results, added to the title once they have loaded */
+  voteCount?: number;
   /** The round's results, shown in the same card */
   children?: ReactNode;
 }
 
 /** The round's category, with the facilitator's own vote form while they take part in the vote, then its results. */
-function CurrentCategory({ session, onSubmitVote, children }: Props) {
+function CurrentCategory({ session, onSubmitVote, voteCount, children }: Props) {
   const { categories, currentCategoryIndex: index } = session;
   const voting = session.phase === 'voting' && session.facilitatorVotes;
   /* Tied to the round, so moving on to the next category ends the edit */
@@ -24,7 +26,8 @@ function CurrentCategory({ session, onSubmitVote, children }: Props) {
   return (
     <Card className="card-body current-category">
       <Text preset={TEXT_PRESET.heading3} className="current-category__title">
-        {localizeCategory(categories[index]).title}{' '}
+        {localizeCategory(categories[index]).title}
+        {voteCount !== undefined && ` (${t.votes(voteCount)})`}{' '}
       </Text>
       <Text className="current-category__position">
           ({t.categoryPosition(index + 1, categories.length)})
