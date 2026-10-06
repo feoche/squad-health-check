@@ -1,14 +1,10 @@
-import { Button, BUTTON_VARIANT, Card, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../../types';
 import { summaryIndexes } from '../../lib/deriveClientState';
-import { downloadMarkdown, downloadPDF } from '../../lib/exportReport';
 import { t } from '../../lib/i18n';
 import { localizeCategory } from '../../lib/localizeCategory';
-import NamedVotes from '../NamedVotes';
 import NoteFields, { EMPTY_NOTE } from '../NoteFields';
 import VoteSummary from '../VoteSummary';
-
-const warn = (err: unknown) => console.warn('[export]', err);
 
 interface Props {
   session: ClientSessionState;
@@ -18,39 +14,29 @@ interface Props {
 /** Every category's note stays editable once finished, before exporting the report. */
 function FinishedNotes({ session, onChangeNote }: Props) {
   return (
-    <>
-      <Card className="card-body finished-notes">
-        <Text preset={TEXT_PRESET.heading3}>{t.facilitator.allNotes}</Text>
-        {summaryIndexes(session).map((i) => (
-          <div key={i} className="stack finished-notes__item">
+    <Card className="card-body finished-notes">
+      <Text preset={TEXT_PRESET.heading3}>{t.facilitator.allNotes}</Text>
+      {summaryIndexes(session).map((i) => (
+        <div key={i} className="stack finished-notes__item">
+          <div className="inline wrap finished-notes__heading">
             <Text preset={TEXT_PRESET.heading5}>
               {i + 1}. {localizeCategory(session.categories[i]).title}
+              {session.categoryResults[i] && ` (${t.votes(session.categoryResults[i].length)})`}
             </Text>
             {session.categoryResults[i] ? (
               <VoteSummary votes={session.categoryResults[i]} />
             ) : (
               <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
             )}
-            {session.namedVotes[i] && <NamedVotes votes={session.namedVotes[i]} />}
-            <NoteFields
-              note={session.facilitatorNotes[i] ?? EMPTY_NOTE}
-              onChange={(_field, value) => onChangeNote(i, value)}
-            />
           </div>
-        ))}
-      </Card>
-
-      <div className="actions finished-notes__exports">
-        <Button onClick={() => downloadMarkdown(session)}>
-          <Icon name={ICON_NAME.download} />
-          {t.notes.downloadMarkdown}
-        </Button>
-        <Button variant={BUTTON_VARIANT.outline} onClick={() => downloadPDF(session).catch(warn)}>
-          <Icon name={ICON_NAME.download} />
-          {t.notes.downloadPdf}
-        </Button>
-      </div>
-    </>
+          <NoteFields
+            note={session.facilitatorNotes[i] ?? EMPTY_NOTE}
+            hideLabel
+            onChange={(_field, value) => onChangeNote(i, value)}
+          />
+        </div>
+      ))}
+    </Card>
   );
 }
 

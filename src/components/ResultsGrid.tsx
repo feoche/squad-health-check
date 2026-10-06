@@ -11,17 +11,24 @@ interface Props {
   inline?: boolean;
 }
 
-/** Results in their own card, or `inline` as a section of an enclosing card. */
+/**
+ * Results in their own card, titled by the page around it, or `inline` as a titled section of an enclosing card.
+ * Who voted what sits beside the matrix, 70:30.
+ */
 function ResultsGrid({ votes, namedVotes, inline = false }: Props) {
   const content = (
     <>
-      <Text preset={inline ? TEXT_PRESET.heading5 : TEXT_PRESET.heading3} className="results-grid__title">
-        {t.results.title(votes.length)}
-      </Text>
-      <div className="table-scroll results-grid__matrix">
-        <VoteMatrix votes={votes} />
+      {inline && (
+        <Text preset={TEXT_PRESET.heading5} className="results-grid__title">
+          {t.results.title(votes.length)}
+        </Text>
+      )}
+      <div className={namedVotes?.length ? 'results-grid__body results-grid__body--split' : 'results-grid__body'}>
+        <div className="table-scroll results-grid__matrix">
+          <VoteMatrix votes={votes} />
+        </div>
+        {namedVotes && <NamedVotes votes={namedVotes} />}
       </div>
-      {namedVotes && <NamedVotes votes={namedVotes} />}
     </>
   );
   return inline ? (

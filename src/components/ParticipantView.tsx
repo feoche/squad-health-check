@@ -82,12 +82,6 @@ function ParticipantView({ session, onSubmitVote }: Props) {
         {!isPicking && <ColorCards category={category} />}
       </div>
 
-      {isPicking && session.anonymity !== 'full' && (
-        <Text preset={TEXT_PRESET.caption} className="participant-view__anonymity">
-          {t.intro.anonymity[session.anonymity]}
-        </Text>
-      )}
-
       {isPicking && (
         <VotingPanel
           key={`${currentCategoryIndex}-${isEditing}`}

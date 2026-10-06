@@ -285,8 +285,11 @@ body {
 
 /* ─── Feature-specific layout ─── */
 
+.vote-summary__badge {
+  gap: 4px;
+}
+
 .finished-notes__item + .finished-notes__item {
-  border-top: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
   padding-top: calc(var(--ods-theme-row-gap) * 2);
 }
 
@@ -408,6 +411,20 @@ body {
 .share-panel,
 .results-grid--inline {
   gap: calc(var(--ods-theme-row-gap) * 2);
+}
+
+/* The vote matrix and who voted what, 70:30 */
+.results-grid__body--split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .results-grid__body--split {
+    grid-template-columns: 1fr;
+  }
 }
 
 .vote-progress__bar {
@@ -651,11 +668,6 @@ body {
     gap: var(--ods-theme-row-gap);
   }
 
-  /* The intro already told voters the anonymity level */
-  .participant-view__anonymity {
-    display: none;
-  }
-
   .voting-panel__field-label {
     position: absolute;
     width: 1px;
@@ -754,23 +766,26 @@ body {
 
 /* ─── Named votes ─── */
 
+/* Badges stack down a column, then wrap into the next one */
 .named-votes__list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: var(--ods-theme-row-gap) calc(var(--ods-theme-column-gap) * 2);
+  columns: 8.5rem;
+  column-gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
 .named-votes__item {
-  display: flex;
-  align-items: center;
-  gap: var(--ods-theme-column-gap);
+  break-inside: avoid;
+  margin-bottom: var(--ods-theme-row-gap);
+}
+
+.named-votes__badge {
+  font-size: 1.25rem;
+  max-width: 100%;
 }
 
 .named-votes__name {
-  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
 }
