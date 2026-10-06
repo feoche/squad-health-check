@@ -5,7 +5,7 @@ import { ensureSignedIn } from '../lib/firebase';
 import { CODE_PATTERN } from '../lib/sessionCode';
 import * as store from '../lib/sessionStore';
 import { t } from '../lib/i18n';
-import { useLang } from '../lib/useLang';
+import { usePageTitle } from '../lib/usePageTitle';
 import { Connecting, SessionNotice } from '../components/SessionStatus';
 import PresenterView from '../components/PresenterView';
 
@@ -17,16 +17,9 @@ function PresenterScreen() {
   const [notFound, setNotFound] = useState(false);
   /** Kept raw and described at render time, so it follows language switches */
   const [error, setError] = useState<unknown>(null);
-  const lang = useLang();
 
   /* Distinct title so this window is easy to pick in the screen-share dialog */
-  useEffect(() => {
-    const previous = document.title;
-    document.title = t.presenter.documentTitle(code);
-    return () => {
-      document.title = previous;
-    };
-  }, [code, lang]);
+  usePageTitle(t.presenter.documentTitle(code));
 
   useEffect(() => {
     let cancelled = false;

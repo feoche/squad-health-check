@@ -31,7 +31,7 @@ function ResultsGrid({ votes, namedVotes, inline = false, offlineVotes, onAdjust
       </div>
       {onAdjust && (
         <div className="inline wrap results-grid__offline">
-          <Text preset={TEXT_PRESET.caption}>
+          <Text preset={TEXT_PRESET.caption} aria-live="polite">
             {t.facilitator.offlineHint}
             {offlineVotes?.length ? ` ${t.facilitator.offlineCount(offlineVotes.length)}` : ''}
           </Text>

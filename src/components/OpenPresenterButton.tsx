@@ -28,7 +28,7 @@ function OpenPresenterButton({ code, className, inHeader = false }: Props) {
       className={className ? `open-presenter-button ${className}` : 'open-presenter-button'}
       size={inHeader ? BUTTON_SIZE.xs : BUTTON_SIZE.sm}
       variant={inHeader ? BUTTON_VARIANT.outline : BUTTON_VARIANT.ghost}
-      aria-label={t.presenter.open}
+      aria-label={t.presenter.openNewWindow}
       onClick={open}
     >
       <Icon name={ICON_NAME.monitor} />

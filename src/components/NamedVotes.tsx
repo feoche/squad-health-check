@@ -8,7 +8,7 @@ function NamedVotes({ votes }: { votes: NamedVote[] }) {
   if (!votes.length) return null;
   return (
     <div className="stack named-votes">
-      <Text preset={TEXT_PRESET.heading5}>{t.results.byPerson}</Text>
+      <Text preset={TEXT_PRESET.heading5} as="h3">{t.results.byPerson}</Text>
       <ul className="named-votes__list">
         {votes.map(({ id, name, vote }) => {
           const color = COLOR_OPTIONS.find((o) => o.value === vote.color)!;

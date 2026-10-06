@@ -34,23 +34,29 @@ function SessionCodeButton({ code }: { code: string }) {
   };
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          className={copied ? 'session-code-button session-code-button--copied' : 'session-code-button'}
-          size={BUTTON_SIZE.xs}
-          variant={BUTTON_VARIANT.outline}
-          onClick={copy}
-        >
-          {t.code(code)}
-          <Icon
-            className="session-code-button__icon"
-            name={copied ? ICON_NAME.check : ICON_NAME.fileCopy}
-          />
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent>{copied ? t.lobby.linkCopied : t.lobby.copyLink}</TooltipContent>
-    </Tooltip>
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            className={copied ? 'session-code-button session-code-button--copied' : 'session-code-button'}
+            size={BUTTON_SIZE.xs}
+            variant={BUTTON_VARIANT.outline}
+            onClick={copy}
+          >
+            {t.code(code)}
+            <Icon
+              className="session-code-button__icon"
+              name={copied ? ICON_NAME.check : ICON_NAME.fileCopy}
+            />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>{copied ? t.lobby.linkCopied : t.lobby.copyLink}</TooltipContent>
+      </Tooltip>
+      {/* The tooltip only shows on hover or focus: tell screen readers the copy worked */}
+      <span role="status" className="visually-hidden">
+        {copied ? t.lobby.linkCopied : ''}
+      </span>
+    </>
   );
 }
 

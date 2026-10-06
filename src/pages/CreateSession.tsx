@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Card,
   FormField,
+  FormFieldError,
   FormFieldLabel,
   Message,
   MESSAGE_COLOR,
@@ -31,6 +32,7 @@ import { clearStoredCategories, loadSelectedCategories, saveSelectedCategories }
 import { DEFAULT_SESSION_SETTINGS, createSession, describeError } from '../lib/sessionStore';
 import { loadLastSession, savePreviousSession, SessionExport } from '../lib/sessionHistory';
 import { t } from '../lib/i18n';
+import { usePageTitle } from '../lib/usePageTitle';
 import {
   ASSUMED_VOTERS,
   MAX_CATEGORY_MINUTES,
@@ -61,6 +63,8 @@ function CreateSession() {
   /** Kept as typed, so the field can be cleared while editing; settings keep the last valid value */
   const [minutesText, setMinutesText] = useState(String(DEFAULT_SESSION_SETTINGS.categoryMinutes));
   const minutesInvalid = !isValidMinutes(Number(minutesText));
+  /* Quantity does not pick up the FormField error by itself */
+  const minutesErrorId = useId();
   /** The session the new one is compared with: the last one finished in this browser, unless imported or removed */
   const [previous, setPrevious] = useState<SessionExport | null>(loadLastSession);
   const [isCreating, setIsCreating] = useState(false);
@@ -68,6 +72,7 @@ function CreateSession() {
   const [error, setError] = useState<unknown>(null);
   const navigate = useNavigate();
   const noCategories = categories.length === 0;
+  usePageTitle(t.create.title);
 
   const handleCreate = async () => {
     if (noCategories || minutesInvalid) return;
@@ -98,7 +103,7 @@ function CreateSession() {
         />
 
         <Card className="card-body stack create-session__settings">
-          <Text preset={TEXT_PRESET.heading4}>{t.settings.title}</Text>
+          <Text preset={TEXT_PRESET.heading4} as="h3">{t.settings.title}</Text>
           <Toggle
             checked={settings.facilitatorVotes}
             onCheckedChange={({ checked }) => setSettings((s) => ({ ...s, facilitatorVotes: checked }))}
@@ -120,9 +125,10 @@ function CreateSession() {
               }}
             >
               <QuantityControl>
-                <QuantityInput />
+                <QuantityInput aria-describedby={minutesInvalid ? minutesErrorId : undefined} />
               </QuantityControl>
             </Quantity>
+            <FormFieldError id={minutesErrorId}>{t.settings.minutesInvalid(MIN_CATEGORY_MINUTES, MAX_CATEGORY_MINUTES)}</FormFieldError>
           </FormField>
           {categories.length > 0 && (
             <Message className="create-session__time-hint" color={MESSAGE_COLOR.information} dismissible={false}>
@@ -171,6 +177,7 @@ function CreateSession() {
               className="create-session__error"
               color={MESSAGE_COLOR.critical}
               dismissible={false}
+              role="alert"
             >
               <MessageIcon name={ICON_NAME.hexagonExclamation} />
               <MessageBody>{noCategories ? t.create.noCategories : describeError(error)}</MessageBody>

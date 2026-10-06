@@ -25,7 +25,7 @@ function CurrentCategory({ session, onSubmitVote, voteCount, children }: Props) 
 
   return (
     <Card className="card-body current-category">
-      <Text preset={TEXT_PRESET.heading3} className="current-category__title">
+      <Text preset={TEXT_PRESET.heading3} as="h2" className="current-category__title">
         {localizeCategory(categories[index]).title}
         {voteCount !== undefined && ` (${t.votes(voteCount)})`}{' '}
       </Text>

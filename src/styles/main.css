@@ -7,6 +7,8 @@
 html {
   font-family: var(--ods-theme-font-family);
   color: var(--ods-theme-text-color);
+  /* Keeps a focused or anchored element from scrolling under the sticky header */
+  scroll-padding-top: calc(var(--app-header-height, 0px) + var(--ods-theme-row-gap));
 }
 
 body {
@@ -16,6 +18,29 @@ body {
 }
 
 /* ─── App shell ─── */
+
+/* Off screen until focused by the keyboard, then over the header's left end */
+.skip-link {
+  position: absolute;
+  top: var(--ods-theme-padding-vertical);
+  left: var(--ods-theme-padding-horizontal);
+  z-index: calc(var(--ods-theme-overlay-z-index) + 1);
+  padding: var(--ods-theme-padding-vertical) var(--ods-theme-padding-horizontal);
+  border-radius: var(--ods-theme-border-radius);
+  background: var(--ods-theme-background-color);
+  color: var(--ods-color-primary-500);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* Elements focused by script only (page, confirmations) need no focus ring: they are not controls */
+[tabindex='-1']:focus {
+  outline: none;
+}
 
 .app {
   min-height: 100vh;
@@ -37,17 +62,14 @@ body {
   gap: var(--app-header-gap);
 }
 
-/* Shrinks with an ellipsis rather than pushing the progress onto a new line */
+/* Shrinks onto more lines rather than pushing the progress onto a new line; never cut, so it stays readable when zoomed */
 .app__brand {
   min-width: 0;
-  overflow: hidden;
 }
 
 .app__brand > * {
   display: block;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .app__header-slot {
@@ -64,10 +86,10 @@ body {
 .lang-switch {
   flex: none;
   margin-left: auto;
-  /* The flag is the whole button: no padding or min size around it */
-  padding: 2px 2px 2px 0;
-  min-width: 0;
-  min-height: 0;
+  /* The flag is the whole button, padded just enough for a 24px target */
+  padding: 4px 2px 4px 0;
+  min-width: 24px;
+  min-height: 24px;
   height: auto;
 }
 
@@ -182,6 +204,15 @@ body {
 
 .wrap {
   flex-wrap: wrap;
+}
+
+/* Lists marked up for screen readers, laid out by their own classes */
+.participant-badges,
+.live-round,
+.category-editor__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .grow {
@@ -436,14 +467,17 @@ body {
   grid-column: 2;
 }
 
-/* Trends show only a big arrow (label in a tooltip), centred beside the radio */
+/* Trends show a big arrow captioned below, centred beside the radio */
 .voting-panel__options--trend .voting-panel__radio-body {
   align-items: center;
 }
 
 .voting-panel__options--trend [data-ods='radio-label'] {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
 .voting-panel__options--trend [data-ods='radio-label'] > [data-ods='icon'] {
@@ -657,22 +691,6 @@ body {
     grid-template-columns: repeat(3, 1fr);
   }
 
-  /* No hover on phones, so the tooltip never shows: caption the arrow instead */
-  .voting-panel__options--trend [data-ods='radio-label'] {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-
-  .voting-panel__options--trend .voting-panel__trend-caption {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip-path: none;
-    white-space: normal;
-  }
-
   .voting-panel__submit {
     position: sticky;
     bottom: 0;
@@ -747,7 +765,8 @@ body {
   margin-top: var(--ods-theme-row-gap);
 }
 
-.category-editor__suggestions {
+.category-editor__suggestions,
+.category-editor__suggestions > .category-editor__list {
   gap: calc(var(--ods-theme-row-gap) / 2);
 }
 
@@ -789,7 +808,8 @@ body {
   }
 }
 
-.create-session .category-editor {
+.create-session .category-editor,
+.create-session .category-editor__list {
   gap: calc(var(--ods-theme-row-gap) / 2);
 }
 
@@ -853,4 +873,17 @@ body {
 .vote-matrix__adjust {
   justify-content: center;
   gap: 0;
+}
+
+/* ─── Reduced motion ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

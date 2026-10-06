@@ -13,8 +13,8 @@ import { t } from '../lib/i18n';
 
 export function Connecting() {
   return (
-    <div className="stack stack-center connecting">
-      <Spinner size={SPINNER_SIZE.lg} />
+    <div className="stack stack-center connecting" role="status">
+      <Spinner size={SPINNER_SIZE.lg} aria-hidden />
       <Text preset={TEXT_PRESET.paragraph}>{t.connecting}</Text>
     </div>
   );

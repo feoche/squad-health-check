@@ -16,20 +16,22 @@ function ParticipantBadges({ participants, facilitatorId, myId }: Props) {
   );
 
   return (
-    <div className="inline wrap participant-badges">
+    <ul className="inline wrap participant-badges">
       {ordered.map((p) => (
-        <Badge
-          key={p.id}
-          className={`participant-badges__badge${p.id === facilitatorId ? ' participant-badges__badge--facilitator' : ''}${
-            p.id === myId ? ' participant-badges__badge--me' : ''
-          }`}
-          color={p.id === myId ? BADGE_COLOR.primary : BADGE_COLOR.neutral}>
-          {p.id === facilitatorId && <Icon name={ICON_NAME.crown} />}
-          {p.name}
-          {p.id === myId && t.lobby.you}
-        </Badge>
+        <li key={p.id} className="participant-badges__item">
+          <Badge
+            className={`participant-badges__badge${p.id === facilitatorId ? ' participant-badges__badge--facilitator' : ''}${
+              p.id === myId ? ' participant-badges__badge--me' : ''
+            }`}
+            color={p.id === myId ? BADGE_COLOR.primary : BADGE_COLOR.neutral}>
+            {p.id === facilitatorId && <Icon name={ICON_NAME.crown} />}
+            {p.name}
+            {p.id === myId && t.lobby.you}
+            {p.id === facilitatorId && <span className="visually-hidden">{t.lobby.facilitator}</span>}
+          </Badge>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 }
 

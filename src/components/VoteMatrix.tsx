@@ -38,6 +38,7 @@ function VoteMatrix({ votes, compact = false, offlineVotes = [], onAdjust }: Pro
 
   return (
     <table className={compact ? 'vote-matrix vote-matrix--compact' : 'vote-matrix'}>
+      <caption className="visually-hidden">{messages.results.matrixCaption}</caption>
       <thead>
         <tr>
           <td />
@@ -68,13 +69,16 @@ function VoteMatrix({ votes, compact = false, offlineVotes = [], onAdjust }: Pro
                   className="vote-matrix__cell"
                   style={
                     {
-                      '--cell-color': `var(--ods-color-${badge}-300)`,
+                      '--cell-color': `var(--ods-color-${badge}-100)`,
                       '--cell-strength': `${(n / max) * 100}%`,
                     } as React.CSSProperties
                   }
                 >
                   <span className="vote-matrix__count">
-                    <Text preset={n ? (compact ? TEXT_PRESET.label : TEXT_PRESET.heading4) : TEXT_PRESET.caption}>
+                    <Text
+                      preset={n ? (compact ? TEXT_PRESET.label : TEXT_PRESET.heading4) : TEXT_PRESET.caption}
+                      as="span"
+                    >
                       {n}
                     </Text>
                     {added > 0 && (

@@ -23,9 +23,11 @@ function IntroContent({ categories, anonymity, compact = false }: Props) {
 
   return (
     <div className={compact ? 'stack intro-content intro-content--compact' : 'stack intro-content'}>
-      {!compact && (
+      {compact ? (
+        <Text preset={TEXT_PRESET.heading2} className="visually-hidden">{t.intro.title}</Text>
+      ) : (
         <>
-          <Text preset={TEXT_PRESET.heading1}>{t.intro.title}</Text>
+          <Text preset={TEXT_PRESET.heading1} as="h2">{t.intro.title}</Text>
           <Text preset={TEXT_PRESET.paragraph}>{t.intro.what}</Text>
         </>
       )}

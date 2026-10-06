@@ -38,16 +38,18 @@ interface Props {
   onChange: (field: NoteField, value: string) => void;
   /** Keep the label for screen readers only, when the heading around already says what the field is */
   hideLabel?: boolean;
+  /** Screen-reader label when hidden, telling apart several note fields on one page */
+  hiddenLabel?: string;
 }
 
-function NoteFields({ note, onChange, hideLabel = false }: Props) {
+function NoteFields({ note, onChange, hideLabel = false, hiddenLabel }: Props) {
   const notes = useSyncedValue(note.notes);
 
   return (
     <div className="stack note-fields">
       <FormField className="note-fields__field">
         <FormFieldLabel className={hideLabel ? 'visually-hidden' : undefined}>
-          <Text preset={TEXT_PRESET.heading4} as="span">{t.notes.discussion}</Text>
+          <Text preset={TEXT_PRESET.heading4} as="span">{(hideLabel && hiddenLabel) || t.notes.discussion}</Text>
         </FormFieldLabel>
         <Textarea
           className="note-fields__textarea"
