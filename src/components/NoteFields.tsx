@@ -36,15 +36,17 @@ function useSyncedValue(remote: string) {
 interface Props {
   note: FacilitatorNote;
   onChange: (field: NoteField, value: string) => void;
+  /** Keep the label for screen readers only, when the heading around already says what the field is */
+  hideLabel?: boolean;
 }
 
-function NoteFields({ note, onChange }: Props) {
+function NoteFields({ note, onChange, hideLabel = false }: Props) {
   const notes = useSyncedValue(note.notes);
 
   return (
     <div className="stack note-fields">
       <FormField className="note-fields__field">
-        <FormFieldLabel>
+        <FormFieldLabel className={hideLabel ? 'visually-hidden' : undefined}>
           <Text preset={TEXT_PRESET.heading4} as="span">{t.notes.discussion}</Text>
         </FormFieldLabel>
         <Textarea

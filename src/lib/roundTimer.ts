@@ -1,4 +1,4 @@
-/* ─── Per-category time slot: the round timer turns to a warning colour past it ─── */
+/* ─── Per-category time slot: the round timer turns to a warning colour past it, critical well past it ─── */
 
 /** 10 categories × 10 min + intro and wrap-up ≈ 2 hours */
 export const DEFAULT_CATEGORY_MINUTES = 10;
@@ -22,8 +22,15 @@ export function formatElapsed(ms: number): string {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
+/** Share of the slot past which the round timer turns critical */
+const CRITICAL_SLOT_RATIO = 1.5;
+
 export function isOverSlot(elapsedMs: number, categoryMinutes: number): boolean {
   return elapsedMs > categoryMinutes * 60_000;
+}
+
+export function isFarOverSlot(elapsedMs: number, categoryMinutes: number): boolean {
+  return elapsedMs >= categoryMinutes * 60_000 * CRITICAL_SLOT_RATIO;
 }
 
 /** Time per voter on each category for the assumed squad; in seconds, rounded to 5 s */

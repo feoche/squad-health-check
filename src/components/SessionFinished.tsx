@@ -1,8 +1,7 @@
 import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
-import NamedVotes from './NamedVotes';
 import VoteMatrix from './VoteMatrix';
-import { sharedNamedVotes } from '../lib/deriveClientState';
+import VoteSummary from './VoteSummary';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
@@ -24,16 +23,13 @@ function SessionFinished({ session }: Props) {
           const cat = session.categories[result.categoryIndex];
           return (
             <Card key={result.categoryIndex} className="card-body session-finished__card">
-              <Text preset={TEXT_PRESET.heading4}>
-                {result.categoryIndex + 1}. {localizeCategory(cat).title}
-              </Text>
-              <Text preset={TEXT_PRESET.caption}>
-                {t.votes(result.votes.length)}
-              </Text>
+              <div className="inline wrap session-finished__heading">
+                <Text preset={TEXT_PRESET.heading4}>
+                  {result.categoryIndex + 1}. {localizeCategory(cat).title} ({t.votes(result.votes.length)})
+                </Text>
+                <VoteSummary votes={result.votes} prefix={false} />
+              </div>
               <VoteMatrix votes={result.votes} compact />
-              {sharedNamedVotes(session, result.categoryIndex) && (
-                <NamedVotes votes={sharedNamedVotes(session, result.categoryIndex)!} />
-              )}
             </Card>
           );
         })}

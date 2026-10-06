@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { CategoryResult, ClientSessionState } from '../types';
-import { dominantColor, dominantTrend, generateMarkdown } from './exportReport';
+import { generateMarkdown } from './exportReport';
 
 const categories = [
   { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
@@ -66,7 +66,27 @@ describe('generateMarkdown', () => {
     expect(md).not.toContain('Discussion Notes');
   });
 
-  it('shows a dash instead of a dominant value for a category without votes', () => {
+  it('shows the median cell and score of each category', () => {
+    const md = generateMarkdown(
+      finished([
+        {
+          categoryIndex: 0,
+          votes: [
+            { color: 'orange', trend: 'stable' },
+            { color: 'orange', trend: 'up' },
+          ],
+          notes: '',
+        },
+        empty(1),
+      ]),
+    );
+    expect(md).toContain('| # | Category | Median | Score |');
+    expect(md).toContain('| 1 | Fun | 🟠 ↗ | 5.5/9 |');
+    const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Ownership'));
+    expect(fun).toContain('**Median:** 🟠 ↗ (5.5/9)');
+  });
+
+  it('shows a dash instead of a median for a category without votes', () => {
     const md = generateMarkdown(finished([empty(0), empty(1)]));
     expect(md).toContain('| 2 | Ownership | — | — |');
   });
@@ -75,50 +95,19 @@ describe('generateMarkdown', () => {
     const md = generateMarkdown(finished([empty(0), empty(1)]), new Date(2026, 9, 5), 'fr');
     expect(md).toContain('5 octobre 2026');
     expect(md).toContain('## Synthèse des résultats');
+    expect(md).toContain('| # | Catégorie | Médiane | Score |');
     expect(md).toContain('| 2 | Responsabilité | — | — |');
     expect(md).toContain('### 2. Responsabilité (Ownership)');
     expect(md).toContain('**Vert:** p');
   });
 
-  it('lists who voted what when names are available', () => {
+  it('lists no names, even when they are available', () => {
     const md = generateMarkdown(
       finished([{ categoryIndex: 0, votes: [{ color: 'green', trend: 'up' }], notes: '' }, empty(1)], {
-        0: [
-          { id: 'fac', name: 'Alice', vote: { color: 'green', trend: 'up' } },
-          { id: 'gone', name: null, vote: { color: 'red', trend: 'down' } },
-        ],
+        0: [{ id: 'fac', name: 'Alice', vote: { color: 'green', trend: 'up' } }],
       }),
     );
-    const fun = md.slice(md.indexOf('### 1. Fun'), md.indexOf('### 2. Ownership'));
-    expect(fun).toContain('**Votes by person:**');
-    expect(fun).toContain('- Alice: 🟢 ↗');
-    expect(fun).toContain('- Former participant: 🔴 ↘');
-  });
-
-  it('lists no names in anonymous sessions', () => {
-    const md = generateMarkdown(finished([empty(0), empty(1)]));
     expect(md).not.toContain('Votes by person');
-  });
-});
-
-describe('dominantColor / dominantTrend', () => {
-  it('returns null without votes', () => {
-    expect(dominantColor([])).toBeNull();
-    expect(dominantTrend([])).toBeNull();
-  });
-
-  it('favours the healthier value on ties', () => {
-    expect(dominantColor([{ color: 'green', trend: 'down' }, { color: 'red', trend: 'up' }])).toBe('green');
-    expect(dominantTrend([{ color: 'green', trend: 'down' }, { color: 'red', trend: 'up' }])).toBe('up');
-  });
-
-  it('picks the most voted value', () => {
-    const votes = [
-      { color: 'orange', trend: 'stable' },
-      { color: 'red', trend: 'down' },
-      { color: 'red', trend: 'down' },
-    ] as const;
-    expect(dominantColor([...votes])).toBe('red');
-    expect(dominantTrend([...votes])).toBe('down');
+    expect(md).not.toContain('Alice:');
   });
 });

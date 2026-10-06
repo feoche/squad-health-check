@@ -1,36 +1,29 @@
-import { Badge, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_SIZE, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Vote } from '../types';
-import { countColors, countTrends, dominantColor, dominantTrend } from '../lib/exportReport';
+import { medianScore, scoreCell } from '../lib/voteScore';
 import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
 import { t } from '../lib/i18n';
 
-/** One-line result of a category: dominant colour and trend, then the counts. */
-function VoteSummary({ votes }: { votes: Vote[] }) {
-  const color = COLOR_OPTIONS.find((o) => o.value === dominantColor(votes));
-  const trend = TREND_OPTIONS.find((o) => o.value === dominantTrend(votes));
-  if (!color || !trend) return (
-      <Text preset={TEXT_PRESET.caption} className="vote-summary vote-summary--empty">
-        {t.results.noVotes}
-      </Text>
-    );;
+/** Result of a category: its median health, as one badge in the colour, reading the trend, after a "Median:" prefix unless `prefix` is off. `large` for the shared screen. */
+function VoteSummary({ votes, large = false, prefix = true }: { votes: Vote[]; large?: boolean; prefix?: boolean }) {
+  const score = medianScore(votes);
+  if (score === null) return <Text preset={TEXT_PRESET.caption}>{t.results.noVotes}</Text>;
 
-  const colors = countColors(votes);
-  const trends = countTrends(votes);
+  const cell = scoreCell(score);
+  const color = COLOR_OPTIONS.find((o) => o.value === cell.color)!;
+  const trend = TREND_OPTIONS.find((o) => o.value === cell.trend)!;
 
   return (
-    <div className="inline wrap vote-summary">
-      <Text preset={TEXT_PRESET.label}>{t.results.mostly}</Text>
-      <Badge className="vote-summary__color" color={color.badge}>{color.label}</Badge>
-      <Text preset={TEXT_PRESET.span} className="vote-summary__trend">
-        <Icon name={trend.icon} /> {trend.label}
-      </Text>
-      <Text preset={TEXT_PRESET.caption} className="vote-summary__counts">
-        {COLOR_OPTIONS.map((o) => `${o.label} ${colors[o.value]}`).join(' · ')}
-        {' — '}
-        {TREND_OPTIONS.map((o) => `${o.label} ${trends[o.value]}`).join(' · ')}
-        {` (${t.votes(votes.length)})`}
-      </Text>
-    </div>
+    <span className="inline vote-summary">
+      {prefix && (
+        <Text preset={large ? TEXT_PRESET.heading4 : TEXT_PRESET.span} as="span">{t.results.medianPrefix}</Text>
+      )}
+      <Badge className="vote-summary__badge" color={color.badge} size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}>
+        <span className="visually-hidden">{color.label}, </span>
+        <span>{trend.label}</span>
+        <Icon name={trend.icon} aria-hidden />
+      </Badge>
+    </span>
   );
 }
 

@@ -1,9 +1,9 @@
-import { Badge, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_SIZE, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { NamedVote } from '../types';
 import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
 import { t } from '../lib/i18n';
 
-/** Each voter with their colour and trend, under a vote matrix. */
+/** Each voter as a badge in their colour with their trend, stacked in columns. */
 function NamedVotes({ votes }: { votes: NamedVote[] }) {
   if (!votes.length) return null;
   return (
@@ -15,14 +15,14 @@ function NamedVotes({ votes }: { votes: NamedVote[] }) {
           const trend = TREND_OPTIONS.find((o) => o.value === vote.trend)!;
           return (
             <li key={id} className="named-votes__item">
-              <Text preset={TEXT_PRESET.span} className="named-votes__name">
-                {name ?? t.results.unknownVoter}
-              </Text>
-              <Badge color={color.badge}>{color.label}</Badge>
-              <span className="named-votes__trend" title={trend.label}>
+              <Badge className="named-votes__badge" color={color.badge} size={BADGE_SIZE.lg}>
+                <span className="named-votes__name">{name ?? t.results.unknownVoter}</span>
                 <Icon name={trend.icon} aria-hidden="true" />
-                <span className="visually-hidden">{trend.label}</span>
-              </span>
+                <span className="visually-hidden">
+                  {' — '}
+                  {color.label}, {trend.label}
+                </span>
+              </Badge>
             </li>
           );
         })}

@@ -1,4 +1,5 @@
-import { Badge, BADGE_COLOR, ProgressBar, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import type { ReactNode } from 'react';
+import { ProgressBar, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import HeaderSlot from './HeaderSlot';
 import RoundTimer from './RoundTimer';
@@ -7,12 +8,12 @@ import { t } from '../lib/i18n';
 
 interface Props {
   session: ClientSessionState;
-  /** The shared screen shows the code as a plain badge, with nothing to click. */
-  copyable?: boolean;
+  /** Extra navbar buttons, placed just before the session code */
+  children?: ReactNode;
 }
 
-/** Navbar content: category progress and time spent during a round, then the session code (a click copies the link to join, except on the shared screen). */
-function SessionProgress({ session, copyable = true }: Props) {
+/** Navbar content: category progress and time spent during a round, any extra buttons, then the session code (a click copies the link to join). */
+function SessionProgress({ session, children }: Props) {
   const { currentCategoryIndex: index, categories, phase } = session;
   const inRound = phase === 'voting' || phase === 'revealed';
 
@@ -42,13 +43,8 @@ function SessionProgress({ session, copyable = true }: Props) {
             categoryMinutes={session.categoryMinutes}
           />
         )}
-        {copyable ? (
-          <SessionCodeButton code={session.code} />
-        ) : (
-          <Badge className="session-progress__code" color={BADGE_COLOR.neutral}>
-            <span>{t.code(session.code)}</span>
-          </Badge>
-        )}
+        {children}
+        <SessionCodeButton code={session.code} />
       </div>
     </HeaderSlot>
   );

@@ -1,6 +1,7 @@
 import { ClientSessionState, Vote, VoteColor, VoteTrend } from '../types';
 import { LANG, Lang, messagesFor, t } from './i18n';
 import { localizeCategory } from './localizeCategory';
+import { formatScore, medianScore, scoreCell } from './voteScore';
 
 /* ─── Counting helpers ─── */
 
@@ -20,26 +21,14 @@ export function countTrends(votes: Vote[]): Record<VoteTrend, number> {
   };
 }
 
-/* ─── Dominant helpers (ties favour the healthier value; null without votes) ─── */
-
-export function dominantColor(votes: Vote[]): VoteColor | null {
-  if (!votes.length) return null;
-  const c = countColors(votes);
-  if (c.green >= c.orange && c.green >= c.red) return 'green';
-  if (c.orange >= c.red) return 'orange';
-  return 'red';
-}
-
-export function dominantTrend(votes: Vote[]): VoteTrend | null {
-  if (!votes.length) return null;
-  const t = countTrends(votes);
-  if (t.up >= t.stable && t.up >= t.down) return 'up';
-  if (t.stable >= t.down) return 'stable';
-  return 'down';
-}
-
 const COLOR_EMOJI: Record<VoteColor, string> = { green: '🟢', orange: '🟠', red: '🔴' };
 const TREND_ARROW: Record<VoteTrend, string> = { up: '↗', stable: '→', down: '↘' };
+
+/** Median cell as emoji and arrow, e.g. "🟠 ↗" */
+function medianCell(score: number): string {
+  const { color, trend } = scoreCell(score);
+  return `${COLOR_EMOJI[color]} ${TREND_ARROW[trend]}`;
+}
 
 const formatDate = (date: Date, lang: Lang = LANG) =>
   date.toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-GB', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -57,16 +46,15 @@ export function generateMarkdown(
   md += `**${r.sessionCode}:** ${session.code}  \n`;
   md += `**${r.participants}:** ${session.participants.length}\n\n`;
   md += `## ${r.summary}\n\n`;
-  md += `| # | ${r.category} | ${r.health} | ${r.trend} | 🟢 | 🟠 | 🔴 | ↗ | → | ↘ |\n`;
+  md += `| # | ${r.category} | ${r.median} | ${r.score} | 🟢 | 🟠 | 🔴 | ↗ | → | ↘ |\n`;
   md += `|---|----------|--------|-------|-----|-----|-----|-----|-----|-----|\n`;
 
   for (const result of session.allResults) {
     const cat = localizeCategory(session.categories[result.categoryIndex], lang);
     const cc = countColors(result.votes);
     const tc = countTrends(result.votes);
-    const dc = dominantColor(result.votes);
-    const dt = dominantTrend(result.votes);
-    md += `| ${result.categoryIndex + 1} | ${cat.title} | ${dc ? COLOR_EMOJI[dc] : '—'} | ${dt ? TREND_ARROW[dt] : '—'} | ${cc.green} | ${cc.orange} | ${cc.red} | ${tc.up} | ${tc.stable} | ${tc.down} |\n`;
+    const score = medianScore(result.votes);
+    md += `| ${result.categoryIndex + 1} | ${cat.title} | ${score === null ? '—' : medianCell(score)} | ${score === null ? '—' : formatScore(score, lang)} | ${cc.green} | ${cc.orange} | ${cc.red} | ${tc.up} | ${tc.stable} | ${tc.down} |\n`;
   }
 
   md += `\n## ${r.details}\n\n`;
@@ -85,14 +73,8 @@ export function generateMarkdown(
     md += `**${r.votes} (${result.votes.length}):** 🟢 ${cc.green} | 🟠 ${cc.orange} | 🔴 ${cc.red}  \n`;
     md += `**${r.trend}:** ↗ ${tc.up} | → ${tc.stable} | ↘ ${tc.down}\n\n`;
 
-    const named = session.namedVotes[result.categoryIndex];
-    if (named?.length) {
-      md += `**${r.byPerson}:**\n\n`;
-      for (const { name, vote } of named) {
-        md += `- ${name ?? m.results.unknownVoter}: ${COLOR_EMOJI[vote.color]} ${TREND_ARROW[vote.trend]}\n`;
-      }
-      md += `\n`;
-    }
+    const score = medianScore(result.votes);
+    if (score !== null) md += `**${r.median}:** ${medianCell(score)} (${formatScore(score, lang)})\n\n`;
 
     if (result.notes) {
       md += `**${r.discussion}:**\n\n${result.notes}\n\n`;
@@ -118,6 +100,12 @@ function downloadFile(content: string, filename: string, type: string) {
 
 export function downloadMarkdown(session: ClientSessionState): void {
   downloadFile(generateMarkdown(session), `squad-health-check-${session.code}.md`, 'text/markdown');
+}
+
+/** Median in words, e.g. "6/9 – Orange, improving": jsPDF's built-in fonts have no arrows */
+function pdfMedian(score: number): string {
+  const { color, trend } = scoreCell(score);
+  return `${formatScore(score)} – ${t.colors[color]}, ${t.trends[trend].toLowerCase()}`;
 }
 
 /** jsPDF is loaded on demand: only the facilitator ever exports. */
@@ -147,8 +135,10 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
   const tableBody = session.allResults.map((r) => {
     const cc = countColors(r.votes);
     const tc = countTrends(r.votes);
+    const score = medianScore(r.votes);
     return [
       localizeCategory(session.categories[r.categoryIndex]).title,
+      score === null ? '—' : pdfMedian(score),
       String(cc.green),
       String(cc.orange),
       String(cc.red),
@@ -162,6 +152,7 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
     startY: 42,
     head: [[
       t.report.category,
+      t.report.median,
       t.colors.green,
       t.colors.orange,
       t.colors.red,
@@ -174,34 +165,14 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
     headStyles: { fillColor: [74, 144, 217], fontSize: 9 },
     bodyStyles: { fontSize: 9 },
     columnStyles: {
-      1: { halign: 'center' },
       2: { halign: 'center' },
       3: { halign: 'center' },
       4: { halign: 'center' },
       5: { halign: 'center' },
       6: { halign: 'center' },
+      7: { halign: 'center' },
     },
   });
-
-  /* Votes by person, when the session was not fully anonymous */
-  const namedRows = session.allResults.flatMap((r) =>
-    (session.namedVotes[r.categoryIndex] ?? []).map(({ name, vote }) => [
-      localizeCategory(session.categories[r.categoryIndex]).title,
-      name ?? t.results.unknownVoter,
-      t.colors[vote.color],
-      t.trends[vote.trend],
-    ]),
-  );
-  if (namedRows.length) {
-    autoTable(doc, {
-      startY: (doc as any).lastAutoTable.finalY + 8,
-      head: [[t.report.category, t.report.person, t.report.health, t.report.trend]],
-      body: namedRows,
-      theme: 'grid',
-      headStyles: { fillColor: [74, 144, 217], fontSize: 9 },
-      bodyStyles: { fontSize: 9 },
-    });
-  }
 
   /* Notes */
   let y = (doc as any).lastAutoTable.finalY + 12;

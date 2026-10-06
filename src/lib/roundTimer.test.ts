@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   formatElapsed,
+  isFarOverSlot,
   formatHoursMinutes,
   formatMinutesSeconds,
   isOverSlot,
@@ -35,6 +36,14 @@ describe('isOverSlot', () => {
     expect(isOverSlot(10 * 60_000 - 1, 10)).toBe(false);
     expect(isOverSlot(10 * 60_000, 10)).toBe(false);
     expect(isOverSlot(10 * 60_000 + 1, 10)).toBe(true);
+  });
+});
+
+describe('isFarOverSlot', () => {
+  it('turns true once 150% of the slot is reached', () => {
+    expect(isFarOverSlot(15 * 60_000 - 1, 10)).toBe(false);
+    expect(isFarOverSlot(15 * 60_000, 10)).toBe(true);
+    expect(isFarOverSlot(3 * 60_000, 2)).toBe(true);
   });
 });
 

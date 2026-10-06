@@ -20,6 +20,7 @@ import CurrentCategory from './CurrentCategory';
 import FacilitatorControls from './FacilitatorControls';
 import FinishedNotes from './FinishedNotes';
 import ParticipantsPanel from './ParticipantsPanel';
+import ReportExports from './ReportExports';
 
 export interface FacilitatorActions {
   startWorkshop: () => void;
@@ -126,7 +127,7 @@ function FacilitatorView({ session, actions }: Props) {
 
   const side = (
     <>
-      {controls}
+      {phase === 'finished' ? <ReportExports session={session} /> : controls}
       <ParticipantsPanel session={session} />
     </>
   );
@@ -149,7 +150,9 @@ function FacilitatorView({ session, actions }: Props) {
 
   return (
     <div className={`page facilitator-view facilitator-view--${phase}`}>
-      <SessionProgress session={session} />
+      <SessionProgress session={session}>
+        <OpenPresenterButton inHeader code={session.code} />
+      </SessionProgress>
 
       {phase === 'lobby' && showHint && (
         <Message

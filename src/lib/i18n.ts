@@ -128,6 +128,7 @@ const en = {
   timer: {
     label: 'Time on this category',
     over: 'Time on this category, past the time slot',
+    farOver: 'Time on this category, well past the time slot',
   },
 
   editor: {
@@ -199,8 +200,9 @@ const en = {
     next: 'Next Category',
     finish: 'Finish Session',
     noVotes: 'No votes',
-    mostly: 'Mostly',
-    byPerson: 'Who voted what',
+    medianPrefix: 'Median:',
+    byPerson: 'Votes',
+    descriptions: 'Health descriptions',
     unknownVoter: 'Former participant',
   },
 
@@ -280,14 +282,13 @@ const en = {
     participants: 'Participants',
     summary: 'Results Summary',
     category: 'Category',
-    health: 'Health',
     trend: 'Trend',
+    median: 'Median',
+    score: 'Score',
     details: 'Detailed Results',
     votes: 'Votes',
     discussion: 'Discussion Notes',
     session: 'Session',
-    byPerson: 'Votes by person',
-    person: 'Person',
     pdfTrends: { up: 'Up', stable: 'Stable', down: 'Down' },
   },
 };
@@ -366,6 +367,7 @@ const fr: Messages = {
   timer: {
     label: 'Temps passé sur cette catégorie',
     over: 'Temps passé sur cette catégorie, au-delà du créneau prévu',
+    farOver: 'Temps passé sur cette catégorie, bien au-delà du créneau prévu',
   },
 
   editor: {
@@ -436,8 +438,9 @@ const fr: Messages = {
     next: 'Catégorie suivante',
     finish: 'Terminer la session',
     noVotes: 'Aucun vote',
-    mostly: 'Majoritairement',
-    byPerson: 'Qui a voté quoi',
+    medianPrefix: 'Médiane :',
+    byPerson: 'Votes',
+    descriptions: 'Description des couleurs',
     unknownVoter: 'Ancien participant',
   },
 
@@ -516,14 +519,13 @@ const fr: Messages = {
     participants: 'Participants',
     summary: 'Synthèse des résultats',
     category: 'Catégorie',
-    health: 'Santé',
     trend: 'Tendance',
+    median: 'Médiane',
+    score: 'Score',
     details: 'Résultats détaillés',
     votes: 'Votes',
     discussion: 'Notes de discussion',
     session: 'Session',
-    byPerson: 'Votes par personne',
-    person: 'Personne',
     pdfTrends: { up: 'Hausse', stable: 'Stable', down: 'Baisse' },
   },
 };

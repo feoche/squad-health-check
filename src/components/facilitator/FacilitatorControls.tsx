@@ -10,7 +10,6 @@ import {
 import { ClientSessionState } from '../../types';
 import { canStartWorkshop } from '../../lib/deriveClientState';
 import { t } from '../../lib/i18n';
-import OpenPresenterButton from '../OpenPresenterButton';
 import LiveRound from './LiveRound';
 import type { FacilitatorActions } from './FacilitatorView';
 
@@ -70,8 +69,6 @@ function FacilitatorControls({ session, actions }: Props) {
             <Icon name={ICON_NAME.arrowRight} />
           </Button>
         ))}
-
-      <OpenPresenterButton code={session.code} />
     </Card>
   );
 }

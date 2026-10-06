@@ -1,4 +1,12 @@
-import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+  Card,
+  Text,
+  TEXT_PRESET,
+} from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import ColorCards from './ColorCards';
 import IntroContent from './IntroContent';
@@ -8,6 +16,7 @@ import SessionFinished from './SessionFinished';
 import SessionProgress from './SessionProgress';
 import SharePanel from './SharePanel';
 import VoteProgress from './VoteProgress';
+import VoteSummary from './VoteSummary';
 import { sharedNamedVotes } from '../lib/deriveClientState';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
@@ -48,15 +57,22 @@ function PresenterView({ session }: { session: ClientSessionState }) {
 
   const category = categories[currentCategoryIndex];
   const { title, subtitle } = localizeCategory(category);
+  const results = phase === 'revealed' ? session.currentResults : null;
 
   return (
     <div className={`page presenter-view presenter-view--round presenter-view--${phase}`}>
-      <SessionProgress session={session} copyable={false} />
+      <SessionProgress session={session} />
 
       <div className="presenter-view__category">
-        <Text preset={TEXT_PRESET.heading1} className="presenter-view__title">{title}</Text>
+        <div className="inline wrap presenter-view__heading">
+          <Text preset={TEXT_PRESET.heading1} className="presenter-view__title">
+            {results ? `${title} (${t.votes(results.length)})` : title}
+          </Text>
+          {results && <VoteSummary votes={results} large />}
+        </div>
         {subtitle && <Text preset={TEXT_PRESET.paragraph} className="presenter-view__subtitle">{subtitle}</Text>}
-        <ColorCards category={category} large />
+        {/* Once revealed, the results come first and the descriptions fold away below them */}
+        {phase !== 'revealed' && <ColorCards category={category} large />}
       </div>
 
       {phase === 'voting' && (
@@ -64,14 +80,24 @@ function PresenterView({ session }: { session: ClientSessionState }) {
       )}
 
       {phase === 'revealed' &&
-        (session.currentResults ? (
-          <ResultsGrid
-            votes={session.currentResults}
-            namedVotes={sharedNamedVotes(session, currentCategoryIndex)}
-          />
+        (results ? (
+          <ResultsGrid votes={results} namedVotes={sharedNamedVotes(session, currentCategoryIndex)} />
         ) : (
           <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
         ))}
+
+      {phase === 'revealed' && (
+        <Accordion className="presenter-view__descriptions">
+          <AccordionItem value="descriptions">
+            <AccordionTrigger>
+              <Text preset={TEXT_PRESET.heading4}>{t.results.descriptions}</Text>
+            </AccordionTrigger>
+            <AccordionContent>
+              <ColorCards category={category} large />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      )}
     </div>
   );
 }
