@@ -305,8 +305,45 @@ body {
   justify-content: space-between;
 }
 
-.steps {
-  padding-left: calc(var(--ods-theme-padding-horizontal) * 3);
+/* Grow so each card's button sits at the bottom, level with its neighbour's */
+.home__join-form {
+  flex: 1;
+}
+
+.home__card-action {
+  margin-top: auto;
+}
+
+.home__steps {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--ods-theme-row-gap) * 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home__step {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.home__step-number {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--ods-color-primary-100);
+  color: var(--ods-color-primary-700);
+  font-weight: 600;
+}
+
+.home__step-body > * {
+  margin: 0;
 }
 
 .share-panel__qr {
@@ -800,4 +837,20 @@ body {
 .named-votes__name {
   min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.vote-matrix__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vote-matrix__manual {
+  display: inline-flex;
+  color: var(--ods-color-primary-500);
+}
+
+.vote-matrix__adjust {
+  justify-content: center;
+  gap: 0;
 }

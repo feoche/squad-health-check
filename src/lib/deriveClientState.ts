@@ -6,6 +6,7 @@ import {
   ClientSessionState,
   FacilitatorNote,
   NamedVote,
+  OfflineVoteCounts,
   SessionPhase,
   Vote,
 } from '../types';
@@ -44,6 +45,8 @@ export interface RawSession {
   ballots: Record<string, Ballot | null>;
   /** Everyone's ballots per category index, where the rules allow reading them (see readableBallotIndexes) */
   roundBallots: Record<string, Record<string, Ballot> | null>;
+  /** Votes the facilitator added per category index, readable wherever the votes are */
+  offlineVotes: Record<string, OfflineVoteCounts | null>;
 }
 
 export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
@@ -51,8 +54,21 @@ export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | und
   return (coll as Record<string, T | null | undefined>)[String(idx)] ?? undefined;
 }
 
+/** One vote per unit of each cell's count */
+export function expandOfflineVotes(counts: OfflineVoteCounts | null | undefined): Vote[] {
+  return Object.entries(counts ?? {}).flatMap(([color, trends]) =>
+    Object.entries(trends ?? {}).flatMap(([trend, n]) =>
+      Array.from({ length: n ?? 0 }, () => ({ color, trend }) as Vote),
+    ),
+  );
+}
+
+/** Participants' votes, then the ones the facilitator added for people without the app */
 function votesAt(raw: RawSession, idx: number): Vote[] {
-  return Object.values(at(raw.votes, idx) ?? {});
+  return [
+    ...Object.values(at(raw.votes, idx) ?? {}),
+    ...expandOfflineVotes(raw.offlineVotes[String(idx)]),
+  ];
 }
 
 function myVote(ballot: Ballot | null | undefined): Vote | null {
@@ -115,6 +131,12 @@ export function deriveClientState(
     if (at(raw.votes, i) !== undefined) categoryResults[i] = votesAt(raw, i);
   });
 
+  const offlineVotes: Record<number, Vote[]> = {};
+  categories.forEach((_, i) => {
+    const counts = raw.offlineVotes[String(i)];
+    if (counts) offlineVotes[i] = expandOfflineVotes(counts);
+  });
+
   const allResults: CategoryResult[] =
     phase === 'finished'
       ? categories.map((_, i) => ({
@@ -158,6 +180,7 @@ export function deriveClientState(
     facilitatorNotesLoaded: isFacilitator && raw.facilitator !== undefined,
     categoryResults,
     namedVotes,
+    offlineVotes,
   };
 }
 

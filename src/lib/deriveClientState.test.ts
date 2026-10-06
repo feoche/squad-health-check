@@ -29,11 +29,33 @@ function raw(overrides: Partial<RawSession> = {}): RawSession {
     closed: null,
     ballots: {},
     roundBallots: {},
+    offlineVotes: {},
     ...overrides,
   };
 }
 
 describe('deriveClientState', () => {
+  it('adds the facilitator\'s offline votes to the round\'s results, and lists them apart', () => {
+    const k = 'k'.repeat(20);
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { phase: 'revealed', currentCategoryIndex: 0 },
+        votes: { 0: { [k]: { color: 'green', trend: 'up' } } },
+        offlineVotes: { 0: { red: { down: 2 }, green: { stable: 0 } } },
+      }),
+      'fac',
+    )!;
+    expect(s.currentResults).toEqual([
+      { color: 'green', trend: 'up' },
+      { color: 'red', trend: 'down' },
+      { color: 'red', trend: 'down' },
+    ]);
+    expect(s.categoryResults[0]).toHaveLength(3);
+    expect(s.offlineVotes).toEqual({ 0: [{ color: 'red', trend: 'down' }, { color: 'red', trend: 'down' }] });
+    expect(s.voteCount).toBe(0);
+  });
+
   it('returns null until meta and state are loaded', () => {
     expect(deriveClientState('ABC234', raw({ meta: null }), 'fac')).toBeNull();
     expect(deriveClientState('ABC234', raw({ state: null }), 'fac')).toBeNull();

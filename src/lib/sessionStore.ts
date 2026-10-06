@@ -1,13 +1,22 @@
 import {
   DataSnapshot,
   get,
+  increment,
   onValue,
   ref,
   serverTimestamp,
   set,
   update,
 } from 'firebase/database';
-import { Ballot, Category, ClientSessionState, FacilitatorNote, SessionSettings, Vote } from '../types';
+import {
+  Ballot,
+  Category,
+  ClientSessionState,
+  FacilitatorNote,
+  OfflineVoteCounts,
+  SessionSettings,
+  Vote,
+} from '../types';
 import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, randomKey } from './sessionCode';
 import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
@@ -128,9 +137,11 @@ export function subscribeSession(
     closed: null,
     ballots: {},
     roundBallots: {},
+    offlineVotes: {},
   };
   const unsubs: Unsubscribe[] = [];
   const voteUnsubs = new Map<number, Unsubscribe>();
+  const offlineVoteUnsubs = new Map<number, Unsubscribe>();
   const roundBallotUnsubs = new Map<number, Unsubscribe>();
   let ballotListener: { index: number; unsubscribe: Unsubscribe } | null = null;
   let facilitatorListening = false;
@@ -169,6 +180,24 @@ export function subscribeSession(
             // Unexpected for the facilitator: keep cached data and allow re-attaching on the next sync
             voteUnsubs.delete(i);
             warnCancelled(`votes/${i}`)(err);
+          },
+        ),
+      );
+    }
+    /* Same read rule as the votes they add to */
+    for (const i of readable) {
+      if (offlineVoteUnsubs.has(i)) continue;
+      offlineVoteUnsubs.set(
+        i,
+        onValue(
+          sessionRef(code, `offlineVotes/${i}`),
+          (snap: DataSnapshot) => {
+            raw.offlineVotes[String(i)] = snap.val() as OfflineVoteCounts | null;
+            emit();
+          },
+          (err: Error) => {
+            offlineVoteUnsubs.delete(i);
+            warnCancelled(`offlineVotes/${i}`)(err);
           },
         ),
       );
@@ -259,6 +288,7 @@ export function subscribeSession(
   return () => {
     unsubs.forEach((u) => u());
     voteUnsubs.forEach((u) => u());
+    offlineVoteUnsubs.forEach((u) => u());
     roundBallotUnsubs.forEach((u) => u());
     ballotListener?.unsubscribe();
   };
@@ -315,6 +345,24 @@ export async function nextCategory(s: ClientSessionState): Promise<void> {
 export async function endSession(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator) return;
   await writeState(s, { phase: 'finished' });
+}
+
+/**
+ * Adds or removes a vote for someone present but not connected, in the current round's results.
+ * Only the facilitator's added votes can be removed: participants' votes stay theirs.
+ */
+export async function adjustOfflineVote(s: ClientSessionState, vote: Vote, delta: 1 | -1): Promise<void> {
+  if (!s.isFacilitator || (s.phase !== 'voting' && s.phase !== 'revealed')) return;
+  const idx = s.currentCategoryIndex;
+  const { color, trend } = vote;
+  if (delta < 0 && !s.offlineVotes[idx]?.some((v) => v.color === color && v.trend === trend)) return;
+  await set(sessionRef(s.code, `offlineVotes/${idx}/${color}/${trend}`), increment(delta));
+}
+
+/** Removes every vote the facilitator added in the current round, leaving participants' votes */
+export async function resetOfflineVotes(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || (s.phase !== 'voting' && s.phase !== 'revealed')) return;
+  await set(sessionRef(s.code, `offlineVotes/${s.currentCategoryIndex}`), null);
 }
 
 export type NoteField = keyof FacilitatorNote;
