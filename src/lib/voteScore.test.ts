@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Vote, VoteColor, VoteTrend } from '../types';
-import { formatScore, medianScore, scoreCell, voteWeight } from './voteScore';
+import { medianScore, scoreCell, voteWeight } from './voteScore';
 
 const vote = (color: VoteColor, trend: VoteTrend): Vote => ({ color, trend });
 
@@ -43,13 +43,5 @@ describe('scoreCell', () => {
   it('rounds a half score up to the healthier cell', () => {
     expect(scoreCell(5.5)).toEqual(vote('orange', 'up'));
     expect(scoreCell(6.5)).toEqual(vote('green', 'down'));
-  });
-});
-
-describe('formatScore', () => {
-  it('writes the score out of 9 with the language decimal separator', () => {
-    expect(formatScore(6, 'en')).toBe('6/9');
-    expect(formatScore(5.5, 'en')).toBe('5.5/9');
-    expect(formatScore(5.5, 'fr')).toBe('5,5/9');
   });
 });

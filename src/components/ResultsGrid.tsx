@@ -1,8 +1,7 @@
-import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Card } from '@ovhcloud/ods-react';
 import { NamedVote, Vote } from '../types';
 import NamedVotes from './NamedVotes';
 import VoteMatrix from './VoteMatrix';
-import { t } from '../lib/i18n';
 
 interface Props {
   votes: Vote[];
@@ -12,17 +11,12 @@ interface Props {
 }
 
 /**
- * Results in their own card, titled by the page around it, or `inline` as a titled section of an enclosing card.
+ * Results in their own card, or `inline` as a section of an enclosing card; the page around titles them.
  * Who voted what sits beside the matrix, 70:30.
  */
 function ResultsGrid({ votes, namedVotes, inline = false }: Props) {
   const content = (
     <>
-      {inline && (
-        <Text preset={TEXT_PRESET.heading5} className="results-grid__title">
-          {t.results.title(votes.length)}
-        </Text>
-      )}
       <div className={namedVotes?.length ? 'results-grid__body results-grid__body--split' : 'results-grid__body'}>
         <div className="table-scroll results-grid__matrix">
           <VoteMatrix votes={votes} />

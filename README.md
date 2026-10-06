@@ -92,7 +92,7 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 | Realtime | Firebase Realtime Database + Anonymous Auth |
 | Hosting | GitHub Pages (GitHub Actions) |
 | Styling | Custom CSS (no framework) |
-| PDF export | jsPDF + jsPDF-AutoTable |
+| PDF export | jsPDF |
 
 ## Project Structure
 

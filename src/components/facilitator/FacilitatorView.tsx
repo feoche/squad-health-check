@@ -8,12 +8,23 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ClientSessionState, VoteColor, VoteTrend } from '../../types';
 import { t } from '../../lib/i18n';
+import {
+  clearPreviousSession,
+  loadPreviousSession,
+  saveLastSession,
+  savePreviousSession,
+  findPrevious,
+  SessionExport,
+  toSessionExport,
+} from '../../lib/sessionHistory';
 import OpenPresenterButton from '../OpenPresenterButton';
 import NoteFields, { EMPTY_NOTE } from '../NoteFields';
 import ResultsGrid from '../ResultsGrid';
+import VoteSummary from '../VoteSummary';
+import PreviousResult from './PreviousResult';
 import SessionProgress from '../SessionProgress';
 import SharePanel from '../SharePanel';
 import CurrentCategory from './CurrentCategory';
@@ -62,18 +73,47 @@ function FacilitatorView({ session, actions }: Props) {
       /* Storage blocked: the hint stays closed until the page is reloaded */
     }
   };
+
+  const [previous, setPrevious] = useState(() => loadPreviousSession(session.code));
+  const importPrevious = (data: SessionExport) => {
+    setPrevious(data);
+    savePreviousSession(session.code, data);
+  };
+  const removePrevious = () => {
+    setPrevious(null);
+    clearPreviousSession(session.code);
+  };
+
+  /* Once finished, this session is the previous one of the next created in this browser; note edits keep it current */
+  useEffect(() => {
+    if (phase === 'finished' && session.facilitatorNotesLoaded) saveLastSession(toSessionExport(session));
+  }, [phase, session]);
+
   const loadingNotes = <Text preset={TEXT_PRESET.caption}>{t.facilitator.loadingNotes}</Text>;
 
   const controls = <FacilitatorControls session={session} actions={actions} />;
 
+  /* Shown from the reveal only, so the facilitator runs the round without last time's result in mind */
+  const previousOfRound = findPrevious(previous, session.categories[current]);
+
   const category = (
-    <CurrentCategory session={session} onSubmitVote={actions.submitVote}>
+    <CurrentCategory
+      session={session}
+      onSubmitVote={actions.submitVote}
+      voteCount={(phase === 'voting' ? session.liveResults : session.currentResults)?.length}
+    >
       {phase === 'voting' && session.liveResults && (
         <ResultsGrid votes={session.liveResults} inline />
       )}
       {phase === 'revealed' &&
         (session.currentResults ? (
-          <ResultsGrid votes={session.currentResults} namedVotes={session.namedVotes[current]} inline />
+          <>
+            <ResultsGrid votes={session.currentResults} namedVotes={session.namedVotes[current]} inline />
+            <div className="inline wrap facilitator-view__round-summary">
+              <VoteSummary votes={session.currentResults} />
+              {previousOfRound && <PreviousResult previous={previousOfRound} votes={session.currentResults} />}
+            </div>
+          </>
         ) : (
           <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
         ))}
@@ -118,7 +158,7 @@ function FacilitatorView({ session, actions }: Props) {
 
       {phase === 'finished' &&
         (session.facilitatorNotesLoaded ? (
-          <FinishedNotes session={session} onChangeNote={actions.changeNote} />
+          <FinishedNotes session={session} previous={previous} onChangeNote={actions.changeNote} />
         ) : (
           loadingNotes
         ))}
@@ -127,7 +167,11 @@ function FacilitatorView({ session, actions }: Props) {
 
   const side = (
     <>
-      {phase === 'finished' ? <ReportExports session={session} /> : controls}
+      {phase === 'finished' ? (
+        <ReportExports session={session} previous={previous} onImport={importPrevious} onRemove={removePrevious} />
+      ) : (
+        controls
+      )}
       <ParticipantsPanel session={session} />
     </>
   );
