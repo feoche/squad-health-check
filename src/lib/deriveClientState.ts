@@ -1,9 +1,11 @@
 import {
+  Anonymity,
   Ballot,
   Category,
   CategoryResult,
   ClientSessionState,
   FacilitatorNote,
+  NamedVote,
   SessionPhase,
   Vote,
 } from '../types';
@@ -19,6 +21,8 @@ export interface SessionStateNode {
   currentCategoryIndex: number;
   /** Absent in sessions created before the setting existed: counts as true */
   facilitatorVotes?: boolean;
+  /** Absent in sessions created before the setting existed: counts as 'full' */
+  anonymity?: Anonymity;
 }
 
 /** Raw contents of /sessions/{code}, one field per listened child. */
@@ -33,6 +37,8 @@ export interface RawSession {
   closed: Indexed<true> | null;
   /** The current user's own ballots, by category index */
   ballots: Record<string, Ballot | null>;
+  /** Everyone's ballots per category index, where the rules allow reading them (see readableBallotIndexes) */
+  roundBallots: Record<string, Record<string, Ballot> | null>;
 }
 
 export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
@@ -47,6 +53,10 @@ function votesAt(raw: RawSession, idx: number): Vote[] {
 function myVote(ballot: Ballot | null | undefined): Vote | null {
   return ballot ? { color: ballot.color, trend: ballot.trend } : null;
 }
+
+/** By name, voters who left (no name) last */
+const byName = (a: NamedVote, b: NamedVote) =>
+  a.name === null ? (b.name === null ? 0 : 1) : b.name === null ? -1 : a.name.localeCompare(b.name);
 
 export function deriveClientState(
   code: string,
@@ -71,6 +81,19 @@ export function deriveClientState(
     ? participants
     : participants.filter((p) => p.id !== facilitatorId);
   const voterIds = eligibleVoters.filter((p) => roundVoters[p.id]).map((p) => p.id);
+
+  const anonymity: Anonymity = raw.state.anonymity ?? 'full';
+  const names = new Map(participants.map((p) => [p.id, p.name]));
+  const namedVotes: Record<number, NamedVote[]> = {};
+  if (anonymity !== 'full') {
+    categories.forEach((_, i) => {
+      const ballots = raw.roundBallots[String(i)];
+      if (ballots === undefined) return;
+      namedVotes[i] = Object.entries(ballots ?? {})
+        .map(([id, b]) => ({ id, name: names.get(id) ?? null, vote: { color: b.color, trend: b.trend } }))
+        .sort(byName);
+    });
+  }
 
   const facilitatorNotes: Record<number, FacilitatorNote> = {};
   if (isFacilitator) {
@@ -105,6 +128,7 @@ export function deriveClientState(
     voteCount: voterIds.length,
     totalVoters: eligibleVoters.length,
     facilitatorVotes,
+    anonymity,
     eligibleVoters,
     voterIds,
     hasVoted: Boolean(roundVoters[myId]),
@@ -126,6 +150,7 @@ export function deriveClientState(
     facilitatorNotes,
     facilitatorNotesLoaded: isFacilitator && raw.facilitator !== undefined,
     categoryResults,
+    namedVotes,
   };
 }
 
@@ -153,6 +178,36 @@ export function readableVoteIndexes(
         i === state.currentCategoryIndex &&
         (facilitatorVoted || state.facilitatorVotes === false)),
   );
+}
+
+/**
+ * Ballot indexes the rules allow reading in sessions that are not fully anonymous:
+ * the revealed round, closed rounds for the facilitator, everything once finished —
+ * for everyone when 'off', for the facilitator only when 'facilitator'. Never while voting.
+ */
+export function readableBallotIndexes(
+  state: SessionStateNode,
+  categoryCount: number,
+  closed: Indexed<true> | null = null,
+  isFacilitator = false,
+): number[] {
+  const allowed = state.anonymity === 'off' || (state.anonymity === 'facilitator' && isFacilitator);
+  if (!allowed) return [];
+  const all = Array.from({ length: categoryCount }, (_, i) => i);
+  if (state.phase === 'finished') return all;
+  return all.filter(
+    (i) =>
+      (state.phase === 'revealed' && i === state.currentCategoryIndex) ||
+      (isFacilitator && at(closed, i) === true),
+  );
+}
+
+/** Names on shared screens (presenter window): only when votes are not anonymous at all. */
+export function sharedNamedVotes(
+  session: Pick<ClientSessionState, 'anonymity' | 'namedVotes'>,
+  index: number,
+): NamedVote[] | undefined {
+  return session.anonymity === 'off' ? session.namedVotes[index] : undefined;
 }
 
 /** Categories listed in the notes-page summary: those already moved past, or all once finished. */

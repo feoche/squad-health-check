@@ -8,6 +8,7 @@ import SessionFinished from './SessionFinished';
 import SessionProgress from './SessionProgress';
 import SharePanel from './SharePanel';
 import VoteProgress from './VoteProgress';
+import { sharedNamedVotes } from '../lib/deriveClientState';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
@@ -40,7 +41,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
   if (phase === 'intro') {
     return (
       <div className="page presenter-view presenter-view--intro">
-        <IntroContent categories={categories} />
+        <IntroContent categories={categories} anonymity={session.anonymity} />
       </div>
     );
   }
@@ -64,7 +65,10 @@ function PresenterView({ session }: { session: ClientSessionState }) {
 
       {phase === 'revealed' &&
         (session.currentResults ? (
-          <ResultsGrid votes={session.currentResults} />
+          <ResultsGrid
+            votes={session.currentResults}
+            namedVotes={sharedNamedVotes(session, currentCategoryIndex)}
+          />
         ) : (
           <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
         ))}

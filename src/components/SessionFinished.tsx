@@ -1,6 +1,8 @@
 import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
+import NamedVotes from './NamedVotes';
 import VoteMatrix from './VoteMatrix';
+import { sharedNamedVotes } from '../lib/deriveClientState';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
@@ -29,6 +31,9 @@ function SessionFinished({ session }: Props) {
                 {t.votes(result.votes.length)}
               </Text>
               <VoteMatrix votes={result.votes} compact />
+              {sharedNamedVotes(session, result.categoryIndex) && (
+                <NamedVotes votes={sharedNamedVotes(session, result.categoryIndex)!} />
+              )}
             </Card>
           );
         })}

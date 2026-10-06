@@ -83,7 +83,7 @@ const en = {
   home: {
     welcome: 'Squad Health Check',
     intro:
-      "Run anonymous health check sessions with your team. Vote on categories, discuss results, and track your squad's well-being.",
+      "Run health check sessions with your team. Vote on categories, discuss results, and track your squad's well-being.",
     createTitle: 'Create a New Session',
     createText: 'Set up categories and invite your team',
     createButton: 'Create Session',
@@ -97,7 +97,7 @@ const en = {
       'The facilitator creates a session and shares the code / link',
       'Team members join using their name',
       'For each category, everyone votes a health color (green, orange, red) and a trend (improving, stable, worsening)',
-      'Votes are anonymous — results show only aggregate counts',
+      'Votes can be anonymous, visible to the facilitator only, or named — the facilitator chooses',
       'After all votes are in, discuss as a team',
       'Download a recap (Markdown + PDF) at the end',
     ],
@@ -108,6 +108,20 @@ const en = {
     intro: 'Customise the categories for your health check, then start the session.',
     noCategories: 'Add at least one category before starting the session.',
     start: (n: number) => `Start Session (${n} ${n !== 1 ? 'categories' : 'category'})`,
+  },
+
+  settings: {
+    title: 'Session settings',
+    facilitatorVotes: 'I take part in the vote',
+    anonymity: 'Vote anonymization',
+    levels: { off: 'Off', facilitator: 'Facilitator only', full: 'Full' },
+    levelHints: {
+      off: 'Everyone sees who voted what once a round is revealed.',
+      facilitator: 'Only you see who voted what once a round is revealed; the team sees totals.',
+      full: 'Nobody sees who voted what, only totals.',
+    },
+    youVote: 'You take part in the vote',
+    youDontVote: "You don't take part in the vote",
   },
 
   editor: {
@@ -173,6 +187,8 @@ const en = {
     finish: 'Finish Session',
     noVotes: 'No votes',
     mostly: 'Mostly',
+    byPerson: 'Who voted what',
+    unknownVoter: 'Former participant',
   },
 
   finished: {
@@ -202,6 +218,11 @@ const en = {
       `${n} ${n !== 1 ? 'categories' : 'category'}`,
       ' to tackle together.',
     ],
+    anonymity: {
+      off: 'Votes are named: everyone sees who voted what once each round is revealed.',
+      facilitator: 'Votes are anonymous to the team; only the facilitator sees who voted what.',
+      full: 'Votes are anonymous: results only show totals.',
+    },
   },
   participant: {
     waitingOthers: 'Waiting for the others…',
@@ -216,11 +237,9 @@ const en = {
       "Thanks for joining this Squad Health Check. It's a quick, honest look at how we feel about our work. It's not an evaluation, and there are no wrong answers.",
       "For each category, vote on your phone with a colour and a trend (improving, stable or getting worse).",
       "Green doesn't mean perfect: it just means we're happy with how things are and see no need to improve right now. Orange means there are significant problems to address, but it's not a disaster. Red means it really isn't working and needs to improve quickly.",
-      "Votes are anonymous. After each one, we'll discuss the results, especially where we disagree. Let's start!",
     ],
+    introScriptEnd: "After each vote, we'll discuss the results, especially where we disagree. Let's start!",
     startFirst: 'Start first category',
-    facilitatorVotes: 'I take part in the vote',
-    facilitatorVotesHint: 'Can only be changed before the workshop starts.',
     voted: 'voted',
     waiting: 'waiting',
     allNotes: 'Notes per category',
@@ -254,6 +273,8 @@ const en = {
     votes: 'Votes',
     discussion: 'Discussion Notes',
     session: 'Session',
+    byPerson: 'Votes by person',
+    person: 'Person',
     pdfTrends: { up: 'Up', stable: 'Stable', down: 'Down' },
   },
 };
@@ -287,7 +308,7 @@ const fr: Messages = {
   home: {
     welcome: 'Squad Health Check',
     intro:
-      "Animez des bilans de santé anonymes avec votre équipe. Votez sur des catégories, discutez des résultats et suivez le bien-être de votre squad.",
+      "Animez des bilans de santé avec votre équipe. Votez sur des catégories, discutez des résultats et suivez le bien-être de votre squad.",
     createTitle: 'Créer une session',
     createText: 'Configurez les catégories et invitez votre équipe',
     createButton: 'Créer la session',
@@ -300,8 +321,8 @@ const fr: Messages = {
     steps: [
       'Le facilitateur crée une session et partage le code / lien',
       "Les membres de l'équipe la rejoignent avec leur nom",
-      'Pour chaque catégorie, chacun vote une couleur de santé (vert, orange, rouge) et une tendance (en amélioration, stable, en dégradation)',
-      'Les votes sont anonymes — les résultats ne montrent que des totaux',
+      'Pour chaque catégorie, chacun vote une couleur (vert, orange, rouge) et une tendance (en amélioration, stable, en dégradation)',
+      'Les votes peuvent être anonymes, visibles du facilitateur seulement, ou nominatifs — le facilitateur choisit',
       "Une fois tous les votes reçus, l'équipe en discute",
       'Téléchargez un récapitulatif (Markdown + PDF) à la fin',
     ],
@@ -312,6 +333,20 @@ const fr: Messages = {
     intro: 'Personnalisez les catégories de votre bilan, puis lancez la session.',
     noCategories: 'Ajoutez au moins une catégorie avant de lancer la session.',
     start: (n) => `Lancer la session (${n} catégorie${n !== 1 ? 's' : ''})`,
+  },
+
+  settings: {
+    title: 'Paramètres de la session',
+    facilitatorVotes: 'Je participe au vote',
+    anonymity: 'Anonymisation des votes',
+    levels: { off: 'Désactivée', facilitator: 'Facilitateur uniquement', full: 'Complète' },
+    levelHints: {
+      off: "Tout le monde voit qui a voté quoi une fois la manche révélée.",
+      facilitator: "Vous seul voyez qui a voté quoi une fois la manche révélée ; l'équipe voit les totaux.",
+      full: 'Personne ne voit qui a voté quoi, seulement les totaux.',
+    },
+    youVote: 'Vous participez au vote',
+    youDontVote: 'Vous ne participez pas au vote',
   },
 
   editor: {
@@ -357,9 +392,9 @@ const fr: Messages = {
 
   voting: {
     sessionProgress: 'Progression de la session',
-    healthColor: 'Couleur de santé',
+    healthColor: 'Couleur',
     trend: 'Tendance',
-    pickColor: 'Choisissez une couleur de santé.',
+    pickColor: 'Choisissez une couleur.',
     pickTrend: 'Choisissez une tendance.',
     submit: 'Voter',
     update: 'Modifier le vote',
@@ -376,6 +411,8 @@ const fr: Messages = {
     finish: 'Terminer la session',
     noVotes: 'Aucun vote',
     mostly: 'Majoritairement',
+    byPerson: 'Qui a voté quoi',
+    unknownVoter: 'Ancien participant',
   },
 
   finished: {
@@ -395,7 +432,7 @@ const fr: Messages = {
 
   intro: {
     title: 'Squad Health Check',
-    what: "Un rapide tour de l'état de la squad. Pour chaque catégorie, chacun choisit une couleur de santé et une tendance, puis nous discutons ensemble des résultats.",
+    what: "Un rapide tour de l'état de la squad. Pour chaque catégorie, chacun choisit une couleur et une tendance, puis nous discutons ensemble des résultats.",
     colorsTitle: 'Couleurs de santé',
     trendsTitle: 'Tendance',
     trendsHint: 'Par rapport à la situation récente.',
@@ -404,6 +441,11 @@ const fr: Messages = {
       `${n}`,
       ` catégorie${n !== 1 ? 's' : ''} à aborder ensemble.`,
     ],
+    anonymity: {
+      off: 'Les votes sont nominatifs : tout le monde voit qui a voté quoi une fois chaque manche révélée.',
+      facilitator: "Les votes sont anonymes pour l'équipe ; seul le facilitateur voit qui a voté quoi.",
+      full: 'Les votes sont anonymes : les résultats ne montrent que des totaux.',
+    },
   },
   participant: {
     waitingOthers: 'En attente des autres…',
@@ -418,11 +460,9 @@ const fr: Messages = {
       "Merci de participer à ce Squad Health Check. C'est un regard rapide et honnête sur la façon dont nous vivons notre travail. Ce n'est pas une évaluation, et il n'y a pas de mauvaise réponse.",
       "Pour chaque catégorie, votez sur votre téléphone avec une couleur et une tendance (en amélioration, stable ou en dégradation).",
       "Vert ne veut pas dire parfait : cela signifie simplement que nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant. Orange signifie qu'il y a des problèmes importants à traiter, mais ce n'est pas une catastrophe. Rouge signifie que ça ne fonctionne vraiment pas et que cela doit être amélioré très rapidement.",
-      "Les votes sont anonymes. Après chacun, nous discuterons des résultats, surtout là où nous ne sommes pas d'accord. C'est parti !",
     ],
+    introScriptEnd: "Après chaque vote, nous discuterons des résultats, surtout là où nous ne sommes pas d'accord. C'est parti !",
     startFirst: 'Lancer la première catégorie',
-    facilitatorVotes: 'Je participe au vote',
-    facilitatorVotesHint: "Modifiable uniquement avant le début de l'atelier.",
     voted: 'a voté',
     waiting: 'en attente',
     allNotes: 'Notes par catégorie',
@@ -456,6 +496,8 @@ const fr: Messages = {
     votes: 'Votes',
     discussion: 'Notes de discussion',
     session: 'Session',
+    byPerson: 'Votes par personne',
+    person: 'Personne',
     pdfTrends: { up: 'Hausse', stable: 'Stable', down: 'Baisse' },
   },
 };

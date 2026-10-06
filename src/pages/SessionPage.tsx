@@ -133,7 +133,6 @@ function SessionView() {
       reveal: () => void store.revealVotes(session).catch(warn),
       next: () => void store.nextCategory(session).catch(warn),
       end: () => void store.endSession(session).catch(warn),
-      setFacilitatorVotes: (value) => void store.setFacilitatorVotes(session, value).catch(warn),
       changeNote: (index, value) =>
         void store.updateFacilitatorNote(session, index, 'notes', value).catch(warn),
     };

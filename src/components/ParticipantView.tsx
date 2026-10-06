@@ -61,7 +61,7 @@ function ParticipantView({ session, onSubmitVote }: Props) {
   if (phase === 'intro') {
     return (
       <div className="page participant-view participant-view--intro">
-        <IntroContent categories={categories} compact />
+        <IntroContent categories={categories} anonymity={session.anonymity} compact />
       </div>
     );
   }
@@ -81,6 +81,12 @@ function ParticipantView({ session, onSubmitVote }: Props) {
         {/* While picking, the descriptions live in the vote tiles instead */}
         {!isPicking && <ColorCards category={category} />}
       </div>
+
+      {isPicking && session.anonymity !== 'full' && (
+        <Text preset={TEXT_PRESET.caption} className="participant-view__anonymity">
+          {t.intro.anonymity[session.anonymity]}
+        </Text>
+      )}
 
       {isPicking && (
         <VotingPanel

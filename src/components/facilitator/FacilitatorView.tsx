@@ -28,7 +28,6 @@ export interface FacilitatorActions {
   reveal: () => void;
   next: () => void;
   end: () => void;
-  setFacilitatorVotes: (value: boolean) => void;
   changeNote: (categoryIndex: number, value: string) => void;
 }
 
@@ -73,7 +72,7 @@ function FacilitatorView({ session, actions }: Props) {
       )}
       {phase === 'revealed' &&
         (session.currentResults ? (
-          <ResultsGrid votes={session.currentResults} inline />
+          <ResultsGrid votes={session.currentResults} namedVotes={session.namedVotes[current]} inline />
         ) : (
           <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
         ))}
@@ -105,7 +104,10 @@ function FacilitatorView({ session, actions }: Props) {
       {phase === 'intro' && (
         <Card className="card-body facilitator-view__intro-script">
           <Text preset={TEXT_PRESET.heading3}>{t.facilitator.introScriptTitle}</Text>
-          {t.facilitator.introScript.map((paragraph) => (
+          {[
+            ...t.facilitator.introScript,
+            `${t.intro.anonymity[session.anonymity]} ${t.facilitator.introScriptEnd}`,
+          ].map((paragraph) => (
             <Text key={paragraph} preset={TEXT_PRESET.paragraph}>
               {paragraph}
             </Text>
@@ -125,7 +127,7 @@ function FacilitatorView({ session, actions }: Props) {
   const side = (
     <>
       {controls}
-      <ParticipantsPanel session={session} onSetFacilitatorVotes={actions.setFacilitatorVotes} />
+      <ParticipantsPanel session={session} />
     </>
   );
 

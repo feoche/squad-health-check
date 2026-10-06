@@ -85,6 +85,15 @@ export function generateMarkdown(
     md += `**${r.votes} (${result.votes.length}):** 🟢 ${cc.green} | 🟠 ${cc.orange} | 🔴 ${cc.red}  \n`;
     md += `**${r.trend}:** ↗ ${tc.up} | → ${tc.stable} | ↘ ${tc.down}\n\n`;
 
+    const named = session.namedVotes[result.categoryIndex];
+    if (named?.length) {
+      md += `**${r.byPerson}:**\n\n`;
+      for (const { name, vote } of named) {
+        md += `- ${name ?? m.results.unknownVoter}: ${COLOR_EMOJI[vote.color]} ${TREND_ARROW[vote.trend]}\n`;
+      }
+      md += `\n`;
+    }
+
     if (result.notes) {
       md += `**${r.discussion}:**\n\n${result.notes}\n\n`;
     }
@@ -173,6 +182,26 @@ export async function downloadPDF(session: ClientSessionState): Promise<void> {
       6: { halign: 'center' },
     },
   });
+
+  /* Votes by person, when the session was not fully anonymous */
+  const namedRows = session.allResults.flatMap((r) =>
+    (session.namedVotes[r.categoryIndex] ?? []).map(({ name, vote }) => [
+      localizeCategory(session.categories[r.categoryIndex]).title,
+      name ?? t.results.unknownVoter,
+      t.colors[vote.color],
+      t.trends[vote.trend],
+    ]),
+  );
+  if (namedRows.length) {
+    autoTable(doc, {
+      startY: (doc as any).lastAutoTable.finalY + 8,
+      head: [[t.report.category, t.report.person, t.report.health, t.report.trend]],
+      body: namedRows,
+      theme: 'grid',
+      headStyles: { fillColor: [74, 144, 217], fontSize: 9 },
+      bodyStyles: { fontSize: 9 },
+    });
+  }
 
   /* Notes */
   let y = (doc as any).lastAutoTable.finalY + 12;

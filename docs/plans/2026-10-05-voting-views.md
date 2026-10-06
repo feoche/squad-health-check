@@ -922,7 +922,7 @@ In `fr`, at the same place:
 
   intro: {
     title: 'Bienvenue dans notre bilan de santé de squad',
-    what: "Un rapide tour de l'état de la squad. Pour chaque catégorie, chacun choisit une couleur de santé et une tendance, puis nous discutons ensemble des résultats.",
+    what: "Un rapide tour de l'état de la squad. Pour chaque catégorie, chacun choisit une couleur et une tendance, puis nous discutons ensemble des résultats.",
     colorsTitle: 'Couleurs de santé',
     trendsTitle: 'Tendance',
     trendsHint: 'Par rapport à la situation récente.',

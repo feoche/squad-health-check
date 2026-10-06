@@ -7,13 +7,19 @@ import {
   set,
   update,
 } from 'firebase/database';
-import { Ballot, Category, ClientSessionState, FacilitatorNote, Vote } from '../types';
+import { Ballot, Category, ClientSessionState, FacilitatorNote, SessionSettings, Vote } from '../types';
 import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, randomKey } from './sessionCode';
 import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
 import { t } from './i18n';
 import { toFirebaseCategories } from './serialize';
-import { RawSession, at, deriveClientState, readableVoteIndexes } from './deriveClientState';
+import {
+  RawSession,
+  at,
+  deriveClientState,
+  readableBallotIndexes,
+  readableVoteIndexes,
+} from './deriveClientState';
 
 type Unsubscribe = () => void;
 
@@ -43,7 +49,10 @@ export function describeError(err: unknown): string {
 
 const MAX_CODE_ATTEMPTS = 3;
 
-export async function createSession(categories: Category[]): Promise<string> {
+export const DEFAULT_SESSION_SETTINGS: SessionSettings = { facilitatorVotes: true, anonymity: 'off' };
+
+/** Settings are written once here: the rules refuse any later change */
+export async function createSession(categories: Category[], settings: SessionSettings): Promise<string> {
   const uid = await ensureSignedIn();
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
     const code = generateSessionCode();
@@ -54,7 +63,7 @@ export async function createSession(categories: Category[]): Promise<string> {
           categories: toFirebaseCategories(categories),
           createdAt: serverTimestamp(),
         },
-        state: { phase: 'lobby', currentCategoryIndex: 0, facilitatorVotes: true },
+        state: { phase: 'lobby', currentCategoryIndex: 0, ...settings },
       });
       return code;
     } catch (err) {
@@ -113,9 +122,11 @@ export function subscribeSession(
     facilitator: undefined,
     closed: null,
     ballots: {},
+    roundBallots: {},
   };
   const unsubs: Unsubscribe[] = [];
   const voteUnsubs = new Map<number, Unsubscribe>();
+  const roundBallotUnsubs = new Map<number, Unsubscribe>();
   let ballotListener: { index: number; unsubscribe: Unsubscribe } | null = null;
   let facilitatorListening = false;
 
@@ -150,9 +161,40 @@ export function subscribeSession(
             emit();
           },
           (err: Error) => {
-            // Expected for participants once the round is closed: keep cached data, re-attach when finished
+            // Unexpected for the facilitator: keep cached data and allow re-attaching on the next sync
             voteUnsubs.delete(i);
             warnCancelled(`votes/${i}`)(err);
+          },
+        ),
+      );
+    }
+  };
+
+  /* Everyone's ballots, in sessions that are not fully anonymous and only where the rules allow */
+  const syncRoundBallotListeners = () => {
+    // Only the facilitator's views and the presenter window (signed in as the facilitator) render results
+    if (!isFacilitator()) return;
+    if (!raw.meta || !raw.state) return;
+    const readable = readableBallotIndexes(
+      raw.state,
+      raw.meta.categories.length,
+      raw.closed,
+      isFacilitator(),
+    );
+    for (const i of readable) {
+      if (roundBallotUnsubs.has(i)) continue;
+      roundBallotUnsubs.set(
+        i,
+        onValue(
+          sessionRef(code, `ballots/${i}`),
+          (snap: DataSnapshot) => {
+            raw.roundBallots[String(i)] = snap.val() as Record<string, Ballot> | null;
+            emit();
+          },
+          (err: Error) => {
+            // Expected for participants once the round is closed: keep cached data, re-attach when finished
+            roundBallotUnsubs.delete(i);
+            warnCancelled(`ballots/${i}`)(err);
           },
         ),
       );
@@ -185,7 +227,10 @@ export function subscribeSession(
           (raw as unknown as Record<string, unknown>)[key] = snap.val();
           if (key === 'meta') syncFacilitatorListeners();
           if (key === 'state') syncBallotListener();
-          if (key !== 'participants' && key !== 'facilitator') syncVoteListeners();
+          if (key !== 'participants' && key !== 'facilitator') {
+            syncVoteListeners();
+            syncRoundBallotListeners();
+          }
           emit();
         },
         warnCancelled(key),
@@ -209,6 +254,7 @@ export function subscribeSession(
   return () => {
     unsubs.forEach((u) => u());
     voteUnsubs.forEach((u) => u());
+    roundBallotUnsubs.forEach((u) => u());
     ballotListener?.unsubscribe();
   };
 }
@@ -231,12 +277,6 @@ const writeState = (s: ClientSessionState, patch: Record<string, unknown>) =>
 export async function startWorkshop(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator || s.phase !== 'lobby') return;
   await writeState(s, { phase: 'intro' });
-}
-
-/** Locked once the workshop starts, so the vote count of a round never changes under it. */
-export async function setFacilitatorVotes(s: ClientSessionState, value: boolean): Promise<void> {
-  if (!s.isFacilitator || s.phase !== 'lobby') return;
-  await writeState(s, { facilitatorVotes: value });
 }
 
 export async function startVoting(s: ClientSessionState): Promise<void> {
