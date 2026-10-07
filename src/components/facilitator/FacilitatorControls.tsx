@@ -3,6 +3,7 @@ import {
   Button,
   BUTTON_VARIANT,
   Card,
+  CARD_COLOR,
   Icon,
   ICON_NAME,
   Text,
@@ -51,7 +52,7 @@ function FacilitatorControls({ session, actions }: Props) {
             : null;
 
   return (
-    <Card className="card-body facilitator-controls">
+    <Card className="card-body facilitator-controls" color={CARD_COLOR.neutral}>
       {(phase === 'voting' || phase === 'revealed') && <LiveRound session={session} />}
       {phase === 'intro' && <Text preset={TEXT_PRESET.paragraph}>{t.facilitator.introHint}</Text>}
       {action && (

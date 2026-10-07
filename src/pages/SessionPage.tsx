@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import {
   Button,
   Card,
+  CARD_COLOR,
   FormField,
   FormFieldError,
   FormFieldLabel,
@@ -167,7 +168,7 @@ function SessionView() {
   if (!joined) {
     return (
       <div className="page page-narrow join-session">
-        <Card className="card-body join-session__card">
+        <Card className="card-body join-session__card" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading2}>{t.join.title}</Text>
           <Text preset={TEXT_PRESET.paragraph}>
             {t.join.session} <Text preset={TEXT_PRESET.code}>{code}</Text>

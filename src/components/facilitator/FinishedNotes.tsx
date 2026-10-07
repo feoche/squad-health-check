@@ -1,4 +1,4 @@
-import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Card, CARD_COLOR, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../../types';
 import { summaryIndexes } from '../../lib/deriveClientState';
 import { t } from '../../lib/i18n';
@@ -18,7 +18,7 @@ interface Props {
 /** Every category's note stays editable once finished, before exporting the report. */
 function FinishedNotes({ session, previous, onChangeNote }: Props) {
   return (
-    <Card className="card-body finished-notes">
+    <Card className="card-body finished-notes" color={CARD_COLOR.neutral}>
       <Text preset={TEXT_PRESET.heading3} as="h2">{t.facilitator.allNotes}</Text>
       {summaryIndexes(session).map((i) => {
         const before = findPrevious(previous, session.categories[i]);

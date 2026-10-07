@@ -1,5 +1,5 @@
 import { ReactNode, useState } from 'react';
-import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Card, CARD_COLOR, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState, VoteColor, VoteTrend } from '../../types';
 import { t } from '../../lib/i18n';
 import { localizeCategory } from '../../lib/localizeCategory';
@@ -24,7 +24,7 @@ function CurrentCategory({ session, onSubmitVote, voteCount, children }: Props) 
   const isEditing = session.hasVoted && session.myVote !== null && editingIndex === index;
 
   return (
-    <Card className="card-body current-category">
+    <Card className="card-body current-category" color={CARD_COLOR.neutral}>
       <Text preset={TEXT_PRESET.heading3} as="h2" className="current-category__title">
         {localizeCategory(categories[index]).title}
         {voteCount !== undefined && ` (${t.votes(voteCount)})`}{' '}

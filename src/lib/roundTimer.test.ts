@@ -3,9 +3,7 @@ import {
   formatElapsed,
   isFarOverSlot,
   formatHoursMinutes,
-  formatMinutesSeconds,
   isOverSlot,
-  secondsPerVoter,
   workshopMinutes,
 } from './roundTimer';
 
@@ -44,30 +42,6 @@ describe('isFarOverSlot', () => {
     expect(isFarOverSlot(15 * 60_000 - 1, 10)).toBe(false);
     expect(isFarOverSlot(15 * 60_000, 10)).toBe(true);
     expect(isFarOverSlot(3 * 60_000, 2)).toBe(true);
-  });
-});
-
-describe('secondsPerVoter', () => {
-  it('splits the time per category between the squad voters', () => {
-    expect(secondsPerVoter(10)).toBe(75);
-    expect(secondsPerVoter(20)).toBe(150);
-  });
-
-  it('rounds to 5 seconds', () => {
-    expect(secondsPerVoter(7)).toBe(55);
-    expect(secondsPerVoter(1)).toBe(10);
-  });
-});
-
-describe('formatMinutesSeconds', () => {
-  it('uses seconds under a minute', () => {
-    expect(formatMinutesSeconds(40)).toBe('40 s');
-  });
-
-  it('uses minutes, with seconds when not round', () => {
-    expect(formatMinutesSeconds(120)).toBe('2 min');
-    expect(formatMinutesSeconds(75)).toBe('1 min 15');
-    expect(formatMinutesSeconds(65)).toBe('1 min 05');
   });
 });
 

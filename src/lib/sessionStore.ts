@@ -182,6 +182,9 @@ export function subscribeSession(
 
   /* Attach vote listeners only where the rules allow reading (see readableVoteIndexes) */
   const syncVoteListeners = () => {
+    // Only the facilitator's views and the presenter window render results; a participant's
+    // listener would also be cancelled with PERMISSION_DENIED as soon as the round moves on
+    if (!isFacilitator()) return;
     if (!raw.meta || !raw.state) return;
     const readable = readableVoteIndexes(
       raw.state,

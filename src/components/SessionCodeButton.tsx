@@ -43,7 +43,9 @@ function SessionCodeButton({ code }: { code: string }) {
             variant={BUTTON_VARIANT.outline}
             onClick={copy}
           >
-            {t.code(code)}
+            {/* Phones show the word alone; screen readers still hear the label */}
+            <span className="session-code-button__label">{t.codeLabel} </span>
+            {code}
             <Icon
               className="session-code-button__icon"
               name={copied ? ICON_NAME.check : ICON_NAME.fileCopy}

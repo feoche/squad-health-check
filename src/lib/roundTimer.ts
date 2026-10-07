@@ -33,22 +33,9 @@ export function isFarOverSlot(elapsedMs: number, categoryMinutes: number): boole
   return elapsedMs >= categoryMinutes * 60_000 * CRITICAL_SLOT_RATIO;
 }
 
-/** Time per voter on each category for the assumed squad; in seconds, rounded to 5 s */
-export function secondsPerVoter(categoryMinutes: number): number {
-  return Math.round((categoryMinutes * 60) / ASSUMED_VOTERS / 5) * 5;
-}
-
 /** Whole workshop, intro and wrap-up included */
 export function workshopMinutes(categoryCount: number, categoryMinutes: number): number {
   return categoryCount * categoryMinutes + FRAMING_MINUTES;
-}
-
-/** "40 s", "2 min", "1 min 15" */
-export function formatMinutesSeconds(seconds: number): string {
-  if (seconds < 60) return `${seconds} s`;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return s === 0 ? `${m} min` : `${m} min ${pad(s)}`;
 }
 
 /** "45 min", "2h", "1h40" */

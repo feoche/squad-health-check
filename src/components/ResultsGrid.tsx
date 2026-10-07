@@ -1,4 +1,4 @@
-import { Button, BUTTON_SIZE, BUTTON_VARIANT, Card, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Button, BUTTON_SIZE, BUTTON_VARIANT, Card, CARD_COLOR, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { t } from '../lib/i18n';
 import { NamedVote, Vote } from '../types';
 import NamedVotes from './NamedVotes';
@@ -48,7 +48,7 @@ function ResultsGrid({ votes, namedVotes, inline = false, offlineVotes, onAdjust
   return inline ? (
     <div className="stack results-grid results-grid--inline">{content}</div>
   ) : (
-    <Card className="card-body results-grid">{content}</Card>
+    <Card className="card-body results-grid" color={CARD_COLOR.neutral}>{content}</Card>
   );
 }
 

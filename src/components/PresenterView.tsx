@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
   Card,
+  CARD_COLOR,
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
@@ -30,7 +31,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
   if (phase === 'lobby') {
     return (
       <div className="page page-narrow presenter-view presenter-view--lobby">
-        <Card className="card-body presenter-view__lobby">
+        <Card className="card-body presenter-view__lobby" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading2} className="presenter-view__join-title">{t.presenter.joinTitle}</Text>
           <SharePanel code={session.code} />
           <div className="stack presenter-view__participants">

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Card,
+  CARD_COLOR,
   FormField,
   FormFieldError,
   FormFieldLabel,
@@ -38,8 +39,6 @@ import {
   MAX_CATEGORY_MINUTES,
   MIN_CATEGORY_MINUTES,
   formatHoursMinutes,
-  formatMinutesSeconds,
-  secondsPerVoter,
   workshopMinutes,
 } from '../lib/roundTimer';
 
@@ -102,7 +101,7 @@ function CreateSession() {
           onReset={resetCategories}
         />
 
-        <Card className="card-body stack create-session__settings">
+        <Card className="card-body stack create-session__settings" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading4} as="h3">{t.settings.title}</Text>
           <Toggle
             checked={settings.facilitatorVotes}
@@ -136,14 +135,11 @@ function CreateSession() {
               <MessageBody>
                 {t.editor.timeHint(categories.length)}
                 <span className="create-session__time-line">
-                  {t.editor.timePerVoter(formatMinutesSeconds(secondsPerVoter(settings.categoryMinutes)))}
-                </span>
-                <Text preset={TEXT_PRESET.caption} className="create-session__time-example">
                   {t.editor.timeExample(
                     formatHoursMinutes(workshopMinutes(categories.length, settings.categoryMinutes)),
                     ASSUMED_VOTERS,
                   )}
-                </Text>
+                </span>
               </MessageBody>
             </Message>
           )}
@@ -167,11 +163,7 @@ function CreateSession() {
               ))}
             </RadioGroup>
           </FormField>
-          <div className="stack create-session__previous">
-            <Text preset={TEXT_PRESET.label}>{t.create.previousTitle}</Text>
-            {!previous && <Text preset={TEXT_PRESET.caption}>{t.create.previousHint}</Text>}
-            <PreviousSessionPicker previous={previous} onImport={setPrevious} onRemove={() => setPrevious(null)} />
-          </div>
+          <PreviousSessionPicker previous={previous} onImport={setPrevious} onRemove={() => setPrevious(null)} />
           {(noCategories || error != null) && (
             <Message
               className="create-session__error"

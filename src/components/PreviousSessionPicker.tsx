@@ -25,6 +25,7 @@ interface Props {
 /** Picks the previous session to compare with: imports its JSON export, shows which one is chosen, removes it. */
 function PreviousSessionPicker({ previous, onImport, onRemove }: Props) {
   const fileInput = useRef<HTMLInputElement>(null);
+  const importButton = useRef<HTMLButtonElement>(null);
   const [invalid, setInvalid] = useState(false);
 
   const importFile = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -41,15 +42,20 @@ function PreviousSessionPicker({ previous, onImport, onRemove }: Props) {
   const remove = () => {
     setInvalid(false);
     onRemove();
+    // The focused button goes away with the comparison
+    importButton.current?.focus();
   };
 
   return (
-    <>
-      <Button variant={BUTTON_VARIANT.ghost} onClick={() => fileInput.current?.click()}>
-        <Icon name={ICON_NAME.upload} />
-        {t.notes.importPrevious}
-      </Button>
-      <input ref={fileInput} type="file" accept=".json,application/json" hidden onChange={importFile} />
+    <div className="stack previous-session-picker">
+      <div className="previous-session-picker__heading">
+        <Text preset={TEXT_PRESET.label}>{t.notes.previousTitle}</Text>
+        <div role="status">
+          <Text preset={TEXT_PRESET.caption}>
+            {previous ? t.notes.comparedWith(formatDate(exportDate(previous.date))) : t.notes.previousHint}
+          </Text>
+        </div>
+      </div>
 
       {invalid && (
         <Message className="message-full" color={MESSAGE_COLOR.critical} dismissible={false} role="alert">
@@ -58,16 +64,20 @@ function PreviousSessionPicker({ previous, onImport, onRemove }: Props) {
         </Message>
       )}
 
-      {previous && (
-        <div className="inline wrap previous-session-picker__chosen">
-          <Text preset={TEXT_PRESET.caption}>{t.notes.comparedWith(formatDate(exportDate(previous.date)))}</Text>
+      <div className="inline wrap">
+        <Button ref={importButton} variant={BUTTON_VARIANT.outline} onClick={() => fileInput.current?.click()}>
+          <Icon name={ICON_NAME.upload} />
+          {previous ? t.notes.changePrevious : t.notes.importPrevious}
+        </Button>
+        {previous && (
           <Button variant={BUTTON_VARIANT.ghost} onClick={remove}>
-            <Icon name={ICON_NAME.trash} />
+            <Icon name={ICON_NAME.xmark} />
             {t.notes.removePrevious}
           </Button>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+      <input ref={fileInput} type="file" accept=".json,application/json" hidden onChange={importFile} />
+    </div>
   );
 }
 
