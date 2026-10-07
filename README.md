@@ -1,55 +1,96 @@
+<div align="center">
+
 # 🏥 Squad Health Check
 
-A real-time collaborative tool for running **Spotify Squad Health Check** sessions with your team. Static site on GitHub Pages; realtime sync via Firebase (free plan).
+**Run Spotify's Squad Health Check with your team, live: everyone votes on their phone and the results appear on the shared screen.**
 
-## Features
+[![Deploy](https://github.com/feoche/squad-health-check/actions/workflows/deploy.yml/badge.svg)](https://github.com/feoche/squad-health-check/actions/workflows/deploy.yml)
+[![WCAG 2.2 AA](https://img.shields.io/badge/WCAG_2.2-AA-1f7a3a)](#-accessibility)
+[![PDF/UA-1](https://img.shields.io/badge/PDF%2FUA-1-1f7a3a)](#-accessibility)
+[![React 18](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Firebase](https://img.shields.io/badge/Firebase-Realtime_DB-ffca28?logo=firebase&logoColor=black)](https://firebase.google.com)
+[![ODS](https://img.shields.io/badge/OVHcloud-Design_System-0050d7)](https://ovh.github.io/design-system/)
 
-- **Three views** — a **presenter** window to screen-share (progress, category, colours, vote count, results), a phone-first **voting** view for participants, and a **facilitator** dashboard view only the session creator can open
-- **Word codes** — Each session gets a six-letter word (*PIRATE*, *GARDEN*…) that is easy to read out and type; a word belongs to one session only, until that session is deleted a semester (183 days) after creation (enforced by database rules)
-- **Introduction step** — a built-in presentation of the workshop between the lobby and the first category
-- **Facilitator controls** — The facilitator drives the flow (start, reveal, next, end) from their own window and chooses at creation whether they take part in the vote
-- **Live results for the facilitator** — The facilitator's view fills the vote matrix as votes arrive, once they have voted (or from the start when they don't vote); the shared screen still waits for the reveal
-- **Auto-reveal** — Votes are revealed when every voter has voted (from the facilitator's open window); voters whose app is disconnected are marked in the facilitator view, which suggests revealing by hand once the others have voted
-- **Participant cap** — At most 15 people (facilitator included) can join a session (enforced by database rules)
-- **Private facilitator notes** — A note per category in the facilitator view, never on the shared screen; only the facilitator can read them (enforced by database rules)
-- **Vote anonymization** — Chosen at creation: *off* (everyone sees who voted what once a round is revealed), *facilitator only* (only the facilitator sees names; the shared screen shows totals) or *full* (totals only). Names are never visible while a round is being voted (enforced by database rules)
-- **Categories** — Edit, add, remove and reorder the categories (drag and drop or the ↑/↓ buttons); removed ones stay among the suggestions, and the last choice is the default for the next session
-- **Round timer** — Every view shows the time spent on the current category; it quietly turns amber past the time slot chosen at creation (1–30 min, 10 by default, about 2 hours for 10 categories with the intro and wrap-up), then red at 150% of it
-- **Votes for people without the app** — During a round, the facilitator adds or removes votes in the matrix for people in the room who are not connected; they are marked and can be reset
-- **Recap export** — The facilitator edits the notes of every category at the end and downloads results and notes as **Markdown**, an accessible **PDF**, or **JSON** (format: [`public/session-export.schema.json`](public/session-export.schema.json))
-- **Comparison with the previous session** — The JSON of a past session, picked at creation (the last one finished in this browser by default) or imported on the recap, shows each category's previous median and how it moved
-- **English and French** — Follows the browser language; the flag in the navbar switches it, in every open window
-- **Accessible** — WCAG 2.2 AA for the app, PDF/UA-1 for the PDF report (see [Accessibility](#accessibility))
+[**▶ Open the app**](https://feoche.github.io/squad-health-check/) · [Features](#-features) · [How to use](#-how-to-use) · [Setup](#-firebase-setup) · [Development](#-development) · [Accessibility](#-accessibility)
 
-## Firebase setup (once, ~10 min)
+A static site on GitHub Pages, synced in real time through Firebase (free plan). 🇬🇧 English and 🇫🇷 French.
 
-1. [Firebase console](https://console.firebase.google.com) → **Add project** (Analytics not needed).
-2. **Build → Authentication → Get started → Sign-in method → Anonymous → Enable.**
-3. **Authentication → Settings → Authorized domains** → add `<your-user>.github.io`.
-4. **Build → Realtime Database → Create database** → choose a location → **locked mode**.
-5. **Realtime Database → Rules** → paste [`database.rules.json`](database.rules.json) → **Publish**. Repeat whenever that file changes. Publish rule changes **before** pushing the app to `main` — the app may depend on them.
-6. **Project settings → Your apps → Web (`</>`)** → register → copy the config into [`src/lib/firebaseConfig.ts`](src/lib/firebaseConfig.ts).
+</div>
 
-The web config is public by design; access is controlled by the rules. Optionally restrict the API key to your Pages domain in Google Cloud console → APIs & Services → Credentials.
+---
 
-## Development
+## 📸 Screenshots
 
-```bash
-npm install
-npm run dev     # http://localhost:3000
-npm test        # unit tests
-npm run workshop  # simulated workshop against the dev server (see below)
+<table>
+  <tr>
+    <th>🖥️ Presenter (shared screen)</th>
+    <th>📱 Vote (phone)</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/presenter.png" alt="Presenter window after a reveal: the Easy to Release category with 7 votes, a colour by trend matrix and each participant's vote" width="560"></td>
+    <td rowspan="3" valign="top"><img src="docs/screenshots/vote.png" alt="Phone vote form: the category, its green, orange and red descriptions, then the three trend choices and a Submit Vote button" width="260"></td>
+  </tr>
+  <tr>
+    <th>🎛️ Facilitator dashboard</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/facilitator.png" alt="Facilitator view: the vote matrix with plus and minus buttons for offline votes, the private discussion notes and the Next Category button" width="560"></td>
+  </tr>
+</table>
+
+---
+
+## ✨ Features
+
+### 🎬 Running the workshop
+
+| | |
+|---|---|
+| 🪟 **Three views** | A **presenter** window to screen-share (progress, category, colours, vote count, results), a phone-first **voting** view for participants, and a **facilitator** dashboard only the session creator can open |
+| 🔤 **Word codes** | Each session gets a six-letter word (*PIRATE*, *GARDEN*…) that is easy to read out and type; a word belongs to one session only, until that session is deleted a semester (183 days) after creation 🔒 |
+| 📖 **Introduction step** | A built-in presentation of the workshop between the lobby and the first category |
+| 🎮 **Facilitator controls** | The facilitator drives the flow (start, reveal, next, end) from their own window and chooses at creation whether they take part in the vote |
+| ⏱️ **Round timer** | Every view shows the time spent on the current category; it quietly turns 🟠 amber past the time slot chosen at creation (1–30 min, 10 by default, about 2 hours for 10 categories with the intro and wrap-up), then 🔴 red at 150% of it |
+| 👥 **Participant cap** | At most 15 people (facilitator included) can join a session 🔒 |
+
+### 🗳️ Votes and results
+
+| | |
+|---|---|
+| 📊 **Live results for the facilitator** | The facilitator's view fills the vote matrix as votes arrive, once they have voted (or from the start when they don't vote); the shared screen still waits for the reveal |
+| 🎉 **Auto-reveal** | Votes are revealed when every voter has voted (from the facilitator's open window); voters whose app is disconnected are marked in the facilitator view, which suggests revealing by hand once the others have voted |
+| 🕶️ **Vote anonymization** | Chosen at creation: *off* (everyone sees who voted what once a round is revealed), *facilitator only* (only the facilitator sees names; the shared screen shows totals) or *full* (totals only). Names are never visible while a round is being voted 🔒 |
+| ➕ **Votes for people without the app** | During a round, the facilitator adds or removes votes in the matrix for people in the room who are not connected; they are marked and can be reset |
+| 📝 **Private facilitator notes** | A note per category in the facilitator view, never on the shared screen; only the facilitator can read them 🔒 |
+
+### 🧩 Preparing and following up
+
+| | |
+|---|---|
+| 🗂️ **Categories** | Edit, add, remove and reorder the categories (drag and drop or the ↑/↓ buttons); removed ones stay among the suggestions, and the last choice is the default for the next session |
+| 📤 **Recap export** | The facilitator edits the notes of every category at the end and downloads results and notes as **Markdown**, an accessible **PDF**, or **JSON** (format: [`public/session-export.schema.json`](public/session-export.schema.json)) |
+| 📈 **Comparison with the previous session** | The JSON of a past session, picked at creation (the last one finished in this browser by default) or imported on the recap, shows each category's previous median and how it moved |
+| 🌍 **English and French** | Follows the browser language; the flag in the navbar switches it, in every open window |
+| ♿ **Accessible** | WCAG 2.2 AA for the app, PDF/UA-1 for the PDF report (see [Accessibility](#-accessibility)) |
+
+<sub>🔒 = enforced by the database rules, not only by the app.</sub>
+
+---
+
+## 🚀 How to Use
+
+```mermaid
+flowchart LR
+    A["🛠️ Create session<br/><sub>categories & settings</sub>"] --> B["🖥️ Share the<br/>presenter window"]
+    B --> C["📱 Team joins<br/><sub>QR, link or word</sub>"]
+    C --> D["📖 Introduction"]
+    D --> E["🗳️ Vote"]
+    E --> F["🎉 Reveal"]
+    F --> G["💬 Discuss & note"]
+    G -->|next category| E
+    G -->|last one| H["📤 Recap & export"]
 ```
-
-`npm run workshop` plays a whole session in headless Chromium (`npx playwright install chromium` once): a facilitator, the presenter window and six participants with different behaviours (phone, French browser, keyboard only, late joiner, vote edit and reload, one who leaves). It checks every screen, runs axe on each view and phase, downloads the three reports and exits with an error on any issue. Screenshots, reports and `summary.json` land in `workshop-report/`; `BASE` and `OUT` override the app URL and that folder. It creates a real session in the Firebase project of `src/lib/firebaseConfig.ts`.
-
-## Deployment (GitHub Pages)
-
-1. Repo **Settings → Pages → Source: GitHub Actions**.
-2. Push to `main`. The workflow in `.github/workflows/deploy.yml` tests, builds and deploys.
-3. Share `https://<your-user>.github.io/squad-health-check/`.
-
-## How to Use
 
 1. **Facilitator** clicks "Create Session" → customises categories and settings (whether they vote, time per category, vote anonymization, previous session to compare with) → starts session → enters their name → lands on the facilitator view
 2. Facilitator clicks **Presenter window** and shares that window (not the facilitator one)
@@ -62,13 +103,72 @@ npm run workshop  # simulated workshop against the dev server (see below)
    - Facilitator clicks "Next Category"
 6. At the end, the shared screen shows the vote recap; the facilitator reviews every note and **downloads the report** (with notes) — keep the JSON to compare with next time
 
-Notes:
-- The facilitator's tab must stay open for auto-reveal and for moving on; reloading it is fine (identity is kept).
-- The facilitator role is tied to the browser that created the session — don't create it from a private window you'll close.
-- Two tabs in the same browser count as the same participant — use another browser or a private window to test alone.
-- Known limitation: a participant tampering via devtools could submit more than one vote per round; the vote total shown in results makes this visible.
+> [!TIP]
+> - The facilitator's tab must stay open for auto-reveal and for moving on; reloading it is fine (identity is kept).
+> - Two tabs in the same browser count as the same participant — use another browser or a private window to test alone.
 
-## Manual test checklist
+> [!WARNING]
+> - The facilitator role is tied to the browser that created the session — don't create it from a private window you'll close.
+> - Known limitation: a participant tampering via devtools could submit more than one vote per round; the vote total shown in results makes this visible.
+
+---
+
+## 🔥 Firebase setup
+
+<sub>Once, about 10 minutes.</sub>
+
+1. [Firebase console](https://console.firebase.google.com) → **Add project** (Analytics not needed).
+2. **Build → Authentication → Get started → Sign-in method → Anonymous → Enable.**
+3. **Authentication → Settings → Authorized domains** → add `<your-user>.github.io`.
+4. **Build → Realtime Database → Create database** → choose a location → **locked mode**.
+5. **Realtime Database → Rules** → paste [`database.rules.json`](database.rules.json) → **Publish**. Repeat whenever that file changes.
+6. **Project settings → Your apps → Web (`</>`)** → register → copy the config into [`src/lib/firebaseConfig.ts`](src/lib/firebaseConfig.ts).
+
+> [!IMPORTANT]
+> Publish rule changes **before** pushing the app to `main` — the app may depend on them. CI only deploys the app, never the rules.
+
+> [!NOTE]
+> The web config is public by design; access is controlled by the rules. Optionally restrict the API key to your Pages domain in Google Cloud console → APIs & Services → Credentials.
+
+---
+
+## 💻 Development
+
+```bash
+npm install
+npm run dev       # http://localhost:3000
+npm test          # unit tests
+npm run workshop  # simulated workshop against the dev server (see below)
+```
+
+### 🤖 Workshop simulation
+
+`npm run workshop` plays a whole session in headless Chromium (`npx playwright install chromium` once): a facilitator, the presenter window and six participants with different behaviours:
+
+| 📱 Phone | 🇫🇷 French browser | ⌨️ Keyboard only | 🐢 Late joiner | 🔄 Vote edit and reload | 🚪 One who leaves |
+|:-:|:-:|:-:|:-:|:-:|:-:|
+
+It checks every screen, runs axe on each view and phase, downloads the three reports and exits with an error on any issue. Screenshots, reports and `summary.json` land in `workshop-report/`; `BASE` and `OUT` override the app URL and that folder.
+
+> [!CAUTION]
+> It creates a real session in the Firebase project of `src/lib/firebaseConfig.ts`.
+
+---
+
+## 🌐 Deployment (GitHub Pages)
+
+1. Repo **Settings → Pages → Source: GitHub Actions**.
+2. Push to `main`. The workflow in [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) tests, builds and deploys.
+3. Share `https://<your-user>.github.io/squad-health-check/` 🎉
+
+---
+
+## ✅ Manual test checklist
+
+<details>
+<summary>17 steps with two browsers — click to expand</summary>
+
+<br>
 
 Use two browsers (or one normal + one private window): **A** = facilitator, **B** = participant.
 
@@ -95,49 +195,69 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 16. New session created with the JSON of test 10 as previous session: after each reveal, A's view shows the previous median and Better / Same / Worse.
 17. Accessibility, keyboard only: Tab from a fresh load → "Skip to main content" first; reorder a category with ↑/↓ and focus stays on the moved category; join, vote and run a round without the mouse; with a screen reader (NVDA + Firefox or VoiceOver + Safari), B hears each new round, the reveal and the end of the session, and A hears votes arriving. Open the PDF in Acrobat or NVDA: it reads the title, then each category's heading, median and note, without the footers.
 
-## Accessibility
+</details>
+
+---
+
+## ♿ Accessibility
 
 Target: **WCAG 2.2 level AA** for the app, **PDF/UA-1** for the PDF report. Design and decisions: [`docs/specs/2026-10-06-accessibility-design.md`](docs/specs/2026-10-06-accessibility-design.md).
 
 When changing the UI, keep:
 
-- **Headings in order** — the navbar brand is the only `h1`; a page or view titles itself with an `h2`, sections use `h3`. Pick the look with the ODS `Text` preset and the level with `as`.
-- **ODS first** — ODS components label fields, link errors and hide icons; an icon-only button still needs an `aria-label`.
-- **Focus** — when a control disappears with its view, move the focus to what replaces it (`useFocusIfLost`, or an explicit target); a failed submit focuses the first invalid field.
-- **Status messages** — anything shown without moving the focus (copied, votes received, a new round…) goes through a `role="status"` region that stays mounted; errors use `role="alert"`.
-- **Colour** — ODS tokens only, 4.5:1 for text, never colour alone to carry meaning.
-- **Strings** in both languages in [`src/lib/i18n.ts`](src/lib/i18n.ts), including the hidden ones (labels, announcements).
-- **PDF** — every text in a tagged structure element, every decoration in `artifact()`; `pdfReport.test.ts` checks the tags.
+- 🔢 **Headings in order** — the navbar brand is the only `h1`; a page or view titles itself with an `h2`, sections use `h3`. Pick the look with the ODS `Text` preset and the level with `as`.
+- 🧱 **ODS first** — ODS components label fields, link errors and hide icons; an icon-only button still needs an `aria-label`.
+- 🎯 **Focus** — when a control disappears with its view, move the focus to what replaces it (`useFocusIfLost`, or an explicit target); a failed submit focuses the first invalid field.
+- 📣 **Status messages** — anything shown without moving the focus (copied, votes received, a new round…) goes through a `role="status"` region that stays mounted; errors use `role="alert"`.
+- 🎨 **Colour** — ODS tokens only, 4.5:1 for text, never colour alone to carry meaning.
+- 🌍 **Strings** in both languages in [`src/lib/i18n.ts`](src/lib/i18n.ts), including the hidden ones (labels, announcements).
+- 📄 **PDF** — every text in a tagged structure element, every decoration in `artifact()`; `pdfReport.test.ts` checks the tags.
 
 Checking:
 
-- **App** — run the [axe DevTools](https://www.deque.com/axe/devtools/) extension (WCAG 2.2 AA rules) on each page and session phase, at desktop and 320px widths; then the keyboard and screen reader steps of the manual test checklist.
+- **App** — run the [axe DevTools](https://www.deque.com/axe/devtools/) extension (WCAG 2.2 AA rules) on each page and session phase, at desktop and 320px widths; then the keyboard and screen reader steps of the [manual test checklist](#-manual-test-checklist).
 - **PDF** — download a report and validate it with [veraPDF](https://verapdf.org):
 
   ```bash
   docker run --rm -v "$PWD":/data verapdf/cli --flavour ua1 --format text /data/squad-health-check-<CODE>.pdf
   ```
 
-## Tech Stack
+---
+
+## 🧰 Tech Stack
 
 | Layer | Tech |
 |-------|------|
-| Frontend | React 18 + TypeScript + Vite |
-| UI | [OVHcloud Design System](https://ovh.github.io/design-system/) (`@ovhcloud/ods-react`, `@ovhcloud/ods-themes`) + layout CSS on ODS tokens |
-| Realtime | Firebase Realtime Database + Anonymous Auth |
-| Hosting | GitHub Pages (GitHub Actions) |
-| PDF export | PDFKit (tagged PDF/UA) with Source Sans 3 from `source-sans`, loaded on demand |
-| Tests | Vitest; pdf.js reads the PDF back |
+| ⚛️ Frontend | React 18 + TypeScript + Vite |
+| 🎨 UI | [OVHcloud Design System](https://ovh.github.io/design-system/) (`@ovhcloud/ods-react`, `@ovhcloud/ods-themes`) + layout CSS on ODS tokens |
+| ⚡ Realtime | Firebase Realtime Database + Anonymous Auth |
+| 🌐 Hosting | GitHub Pages (GitHub Actions) |
+| 📄 PDF export | PDFKit (tagged PDF/UA) with Source Sans 3 from `source-sans`, loaded on demand |
+| 🧪 Tests | Vitest; pdf.js reads the PDF back |
 
-## Project Structure
+```mermaid
+flowchart LR
+    P["🖥️ Presenter"] <--> DB[("🔥 Firebase<br/>Realtime DB")]
+    F["🎛️ Facilitator"] <--> DB
+    V["📱 Participants"] <--> DB
+    R["🔒 database.rules.json"] -.guards.-> DB
+```
+
+## 🗺️ Project Structure
+
+<details>
+<summary>Folder tour — click to expand</summary>
 
 ```
 ├── database.rules.json     # Firebase security rules (published by hand, see Firebase setup)
 ├── docs/
+│   ├── screenshots/        # README images
 │   ├── specs/              # Design of each feature
 │   └── plans/              # Implementation plans
 ├── public/
 │   └── session-export.schema.json  # JSON export format
+├── scripts/
+│   └── workshop.mjs        # Simulated workshop (npm run workshop)
 ├── src/
 │   ├── components/         # React components
 │   │   └── facilitator/        # Facilitator dashboard
@@ -163,3 +283,10 @@ Checking:
 └── .github/workflows/      # Pages deployment
 ```
 
+</details>
+
+---
+
+<div align="center">
+<sub>Built on the <a href="https://engineering.atspotify.com/2014/09/squad-health-check-model/">Spotify Squad Health Check model</a> · Made with 💙 and the <a href="https://ovh.github.io/design-system/">OVHcloud Design System</a></sub>
+</div>
