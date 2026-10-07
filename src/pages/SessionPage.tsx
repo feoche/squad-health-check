@@ -25,6 +25,7 @@ import * as store from '../lib/sessionStore';
 import { t } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
 import { localizeCategory } from '../lib/localizeCategory';
+import { loadStoredName, saveStoredName } from '../lib/nameStorage';
 import ParticipantView from '../components/ParticipantView';
 import FacilitatorView, { type FacilitatorActions } from '../components/facilitator/FacilitatorView';
 import { Connecting, SessionNotice } from '../components/SessionStatus';
@@ -47,7 +48,7 @@ function SessionView() {
   const { code = '' } = useParams<{ code: string }>();
   const [uid, setUid] = useState<string | null>(null);
   const [session, setSession] = useState<ClientSessionState | null>(null);
-  const [name, setName] = useState('');
+  const [name, setName] = useState(loadStoredName);
   const [checking, setChecking] = useState(true);
   const [isJoining, setIsJoining] = useState(false);
   /** Kept raw and described at render time, so it follows language switches */
@@ -126,6 +127,7 @@ function SessionView() {
     setError(null);
     try {
       await store.joinSession(code, uid, trimmed);
+      saveStoredName(trimmed);
       setJoined(true);
     } catch (err) {
       setError(err);

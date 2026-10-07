@@ -45,7 +45,7 @@ Automated checks do not prove compliance on their own: a pass with a screen read
 
 ### Forms
 
-- Every field has a visible label through ODS `FormField`; mandatory ones say so and carry `required`.
+- Every field has a visible label through ODS `FormField`; mandatory ones say so and carry `required`. Exception: the home page's session code label is visually hidden (`.visually-hidden`), the card heading "Join a session" and the placeholder "Session code" naming the field on screen; an example code ("e.g. PIRATE") is the field helper.
 - Every invalid state has error text, linked to its field. ODS `Quantity` misses the `FormField` error, so the minutes field passes `aria-describedby` itself.
 - Input purpose: the join name field uses `autocomplete="nickname"`.
 

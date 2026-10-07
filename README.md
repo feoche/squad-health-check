@@ -5,6 +5,7 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 ## Features
 
 - **Three views** — a **presenter** window to screen-share (progress, category, colours, vote count, results), a phone-first **voting** view for participants, and a **facilitator** dashboard view only the session creator can open
+- **Word codes** — Each session gets a six-letter word (*PIRATE*, *GARDEN*…) that is easy to read out and type; a word belongs to one session only, until that session is deleted a semester (183 days) after creation (enforced by database rules)
 - **Introduction step** — a built-in presentation of the workshop between the lobby and the first category
 - **Facilitator controls** — The facilitator drives the flow (start, reveal, next, end) from their own window and chooses at creation whether they take part in the vote
 - **Live results for the facilitator** — The facilitator's view fills the vote matrix as votes arrive, once they have voted (or from the start when they don't vote); the shared screen still waits for the reveal
@@ -49,7 +50,7 @@ npm test        # unit tests
 
 1. **Facilitator** clicks "Create Session" → customises categories and settings (whether they vote, time per category, vote anonymization, previous session to compare with) → starts session → enters their name → lands on the facilitator view
 2. Facilitator clicks **Presenter window** and shares that window (not the facilitator one)
-3. **Team members** scan the QR code or open the shared link (or enter the 6-character code) → enter their name
+3. **Team members** scan the QR code or open the shared link (or enter the six-letter session word) → enter their name
 4. Facilitator clicks **Start workshop** → the introduction is on the shared screen, read out from the facilitator view → **Start first category**
 5. For each category:
    - Everyone votes a **color** (🟢 happy / 🟠 issues / 🔴 needs fixing) and a **trend** (↗ / → / ↘) on their phone
