@@ -1,4 +1,4 @@
-import { Button, BUTTON_VARIANT, Card, Icon, ICON_NAME } from '@ovhcloud/ods-react';
+import { Button, BUTTON_VARIANT, Card, CARD_COLOR, Icon, ICON_NAME } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../../types';
 import { downloadJSON, downloadMarkdown } from '../../lib/exportReport';
 import { downloadPDF } from '../../lib/pdfReport';
@@ -19,7 +19,7 @@ interface Props {
 /** Downloads of the finished session's report, and the import of the previous one to compare with. */
 function ReportExports({ session, previous, onImport, onRemove }: Props) {
   return (
-    <Card className="card-body report-exports">
+    <Card className="card-body report-exports" color={CARD_COLOR.neutral}>
       <Button onClick={() => downloadMarkdown(session)}>
         <Icon name={ICON_NAME.download} />
         {t.notes.downloadMarkdown}

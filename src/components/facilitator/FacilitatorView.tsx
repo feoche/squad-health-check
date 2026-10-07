@@ -1,5 +1,6 @@
 import {
   Card,
+  CARD_COLOR,
   ICON_NAME,
   Message,
   MESSAGE_COLOR,
@@ -136,7 +137,7 @@ function FacilitatorView({ session, actions }: Props) {
   );
 
   const notes = (
-    <Card className="card-body facilitator-view__notes">
+    <Card className="card-body facilitator-view__notes" color={CARD_COLOR.neutral}>
       {session.facilitatorNotesLoaded ? (
         <NoteFields
           key={current}
@@ -152,13 +153,13 @@ function FacilitatorView({ session, actions }: Props) {
   const main = (
     <>
       {phase === 'lobby' && (
-        <Card className="card-body facilitator-view__share">
+        <Card className="card-body facilitator-view__share" color={CARD_COLOR.neutral}>
           <SharePanel code={session.code} />
         </Card>
       )}
 
       {phase === 'intro' && (
-        <Card className="card-body facilitator-view__intro-script">
+        <Card className="card-body facilitator-view__intro-script" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading3} as="h2">{t.facilitator.introScriptTitle}</Text>
           {[
             ...t.facilitator.introScript,

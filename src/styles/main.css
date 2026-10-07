@@ -86,22 +86,26 @@ body {
 .lang-switch {
   flex: none;
   margin-left: auto;
-  /* The flag is the whole button, padded just enough for a 24px target */
-  padding: 4px 2px 4px 0;
-  min-width: 24px;
-  min-height: 24px;
+  /* 44px target (WCAG 2.5.5 enhanced) around the flag, easy to hit on touch screens */
+  justify-content: center;
+  padding: 0;
+  min-width: 44px;
+  min-height: 44px;
   height: auto;
+  /* The extra target spills over the navbar padding instead of making the navbar taller or the flag move */
+  margin-block: -10px;
+  margin-right: -7px;
 }
 
 /* Flag close to the slot's last button: the navbar padding instead of its gap */
 .app__header-slot:not(:empty) + .lang-switch {
-  margin-left: calc(var(--app-header-padding-inline) - var(--app-header-gap));
+  margin-left: calc(var(--app-header-padding-inline) - var(--app-header-gap) - 7px);
 }
 
 .lang-switch__flag {
   display: block;
-  width: 24px;
-  height: 16px;
+  width: 30px;
+  height: 20px;
   border-radius: 2px;
   box-shadow: 0 0 0 1px rgb(0 0 0 / 15%);
 }
@@ -332,13 +336,32 @@ body {
   padding-top: calc(var(--ods-theme-row-gap) * 2);
 }
 
-.previous-session-picker__chosen {
-  justify-content: space-between;
+/* Set apart from the downloads above it on the recap */
+.report-exports .previous-session-picker {
+  border-top: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
+  padding-top: calc(var(--ods-theme-row-gap) * 2);
+}
+
+/* Helper right under its label, like a form field's */
+.previous-session-picker__heading {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--ods-theme-row-gap) / 4);
 }
 
 /* Grow so each card's button sits at the bottom, level with its neighbour's */
 .home__join-form {
   flex: 1;
+}
+
+/* Helper (example code) right under the input; the label is visually hidden */
+.home__code-field[data-ods='form-field'] {
+  row-gap: calc(var(--ods-theme-row-gap) / 4);
+}
+
+/* Flex drops the line box the inherited body line-height adds around the caption */
+.home__code-field [data-ods='form-field-helper'] {
+  display: flex;
 }
 
 .home__card-action {
@@ -648,6 +671,16 @@ body {
     display: inline;
   }
 
+  /* The word alone in the navbar, so the brand keeps room on one or two lines */
+  .session-code-button__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
   /* Voting fits on one phone screen: tighter spacing, trends side by side,
      and the submit button pinned to the bottom in case it still overflows */
   .app__main {
@@ -728,6 +761,18 @@ body {
   gap: var(--ods-theme-row-gap);
 }
 
+/* Most phones once the browser bars are counted: regular-size descriptions and
+   smaller arrows, so the trends and the submit button fit under the colours */
+@media (max-width: 640px) and (max-height: 740px) {
+  .participant-view--round .voting-panel__description {
+    font-size: 1rem;
+  }
+
+  .voting-panel__options--trend [data-ods='radio-label'] > [data-ods='icon'] {
+    font-size: 1.75rem;
+  }
+}
+
 /* Short phone screens: the badges and arrows speak for themselves,
    so the field labels are kept for screen readers only */
 @media (max-width: 640px) and (max-height: 600px) {
@@ -770,8 +815,7 @@ body {
   gap: calc(var(--ods-theme-row-gap) / 2);
 }
 
-.create-session__time-line,
-.create-session__time-example {
+.create-session__time-line {
   display: block;
 }
 

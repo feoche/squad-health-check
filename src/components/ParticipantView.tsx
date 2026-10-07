@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Card,
+  CARD_COLOR,
   Spinner,
   Text,
   TEXT_PRESET,
@@ -40,7 +41,7 @@ function ParticipantView({ session, onSubmitVote }: Props) {
   if (phase === 'lobby') {
     return (
       <div className="page page-narrow participant-view participant-view--lobby">
-        <Card className="card-body participant-view__lobby">
+        <Card className="card-body participant-view__lobby" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading4} as="h2">
             {t.lobby.participants(session.participants.length)}
           </Text>

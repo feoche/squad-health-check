@@ -354,7 +354,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                 }${dragIndex === i ? ' category-editor__item--dragging' : ''}${
                   editingIndex === i ? ' category-editor__item--editing' : ''
                 }`}
-                color={editingIndex === i ? CARD_COLOR.primary : CARD_COLOR.neutral}
+                color={CARD_COLOR.neutral}
                 draggable={canDrag}
                 onDragStart={(e) => {
                   e.dataTransfer.effectAllowed = 'move';
@@ -490,7 +490,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
       )}
 
       {isAdding ? (
-        <Card className="card-body category-editor__new">
+        <Card className="card-body category-editor__new" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading4} as="h3">{t.editor.addTitle}</Text>
           {renderForm(saveAdd, cancelAdd)}
         </Card>

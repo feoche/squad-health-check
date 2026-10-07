@@ -5,6 +5,7 @@ import {
   BUTTON_COLOR,
   BUTTON_VARIANT,
   Card,
+  CARD_COLOR,
   FormField,
   FormFieldError,
   FormFieldHelper,
@@ -46,13 +47,13 @@ function Home() {
       </div>
 
       <div className="grid-2 home__actions">
-        <Card className="card-body home__join">
+        <Card className="card-body home__join" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
             <Icon name={ICON_NAME.chainLink} />
             {t.home.joinTitle}
           </Text>
           <form className="stack home__join-form" onSubmit={handleJoin} noValidate>
-            <FormField invalid={codeMissing}>
+            <FormField className="home__code-field" invalid={codeMissing}>
               <FormFieldLabel className="visually-hidden">
                 {t.home.sessionCode}
                 <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
@@ -61,6 +62,14 @@ function Home() {
                 ref={codeInput}
                 required
                 autoComplete="off"
+                // Password managers ignore autocomplete="off": opt out of each one
+                data-1p-ignore
+                data-lpignore="true"
+                data-bwignore
+                data-form-type="other"
+                // KeePassXC has no opt-out and reads "code" + 6 chars as a TOTP field;
+                // it skips any input with an attribute value containing "search"
+                data-kpxc-ignore="search"
                 autoCapitalize="characters"
                 placeholder={t.home.codePlaceholder}
                 value={sessionCode}
@@ -86,7 +95,7 @@ function Home() {
           </form>
         </Card>
 
-        <Card className="card-body home__create">
+        <Card className="card-body home__create" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
             <Icon name={ICON_NAME.plus} />
             {t.home.createTitle}
@@ -96,7 +105,7 @@ function Home() {
         </Card>
       </div>
 
-      <Card className="card-body home__how-it-works">
+      <Card className="card-body home__how-it-works" color={CARD_COLOR.neutral}>
         <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
           <Icon name={ICON_NAME.list} />
           {t.home.howItWorks}
