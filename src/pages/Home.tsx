@@ -7,6 +7,7 @@ import {
   Card,
   FormField,
   FormFieldError,
+  FormFieldHelper,
   FormFieldLabel,
   FormFieldLabelSubLabel,
   Icon,
@@ -45,15 +46,6 @@ function Home() {
       </div>
 
       <div className="grid-2 home__actions">
-        <Card className="card-body home__create">
-          <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
-            <Icon name={ICON_NAME.plus} />
-            {t.home.createTitle}
-          </Text>
-          <Text preset={TEXT_PRESET.paragraph}>{t.home.createText}</Text>
-          <Button className="home__card-action" onClick={() => navigate('/create')}>{t.home.createButton}</Button>
-        </Card>
-
         <Card className="card-body home__join">
           <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
             <Icon name={ICON_NAME.chainLink} />
@@ -61,7 +53,7 @@ function Home() {
           </Text>
           <form className="stack home__join-form" onSubmit={handleJoin} noValidate>
             <FormField invalid={codeMissing}>
-              <FormFieldLabel>
+              <FormFieldLabel className="visually-hidden">
                 {t.home.sessionCode}
                 <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
               </FormFieldLabel>
@@ -78,6 +70,9 @@ function Home() {
                 }}
                 maxLength={6}
               />
+              <FormFieldHelper>
+                <Text preset={TEXT_PRESET.caption}>{t.home.codeHelper}</Text>
+              </FormFieldHelper>
               <FormFieldError>{t.home.codeMissing}</FormFieldError>
             </FormField>
             <Button
@@ -89,6 +84,15 @@ function Home() {
               {t.home.joinButton}
             </Button>
           </form>
+        </Card>
+
+        <Card className="card-body home__create">
+          <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
+            <Icon name={ICON_NAME.plus} />
+            {t.home.createTitle}
+          </Text>
+          <Text preset={TEXT_PRESET.paragraph}>{t.home.createText}</Text>
+          <Button className="home__card-action" onClick={() => navigate('/create')}>{t.home.createButton}</Button>
         </Card>
       </div>
 

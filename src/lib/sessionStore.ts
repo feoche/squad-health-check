@@ -4,6 +4,7 @@ import {
   increment,
   onValue,
   ref,
+  remove,
   serverTimestamp,
   set,
   update,
@@ -18,7 +19,7 @@ import {
   Vote,
 } from '../types';
 import { ensureSignedIn, getDb } from './firebase';
-import { generateSessionCode, randomKey } from './sessionCode';
+import { generateSessionCode, isExpired, randomKey } from './sessionCode';
 import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
 import { t } from './i18n';
 import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
@@ -57,7 +58,7 @@ export function describeError(err: unknown): string {
 
 /* ─── Create / join ─── */
 
-const MAX_CODE_ATTEMPTS = 3;
+const MAX_CODE_ATTEMPTS = 10;
 
 export const DEFAULT_SESSION_SETTINGS: SessionSettings = {
   facilitatorVotes: true,
@@ -65,33 +66,56 @@ export const DEFAULT_SESSION_SETTINGS: SessionSettings = {
   categoryMinutes: DEFAULT_CATEGORY_MINUTES,
 };
 
+/** Rules only allow deleting a whole session once it has expired */
+async function removeExpiredSession(code: string): Promise<boolean> {
+  try {
+    await remove(sessionRef(code));
+    return true;
+  } catch (err) {
+    if (isPermissionDenied(err)) return false;
+    throw err;
+  }
+}
+
 /** Settings are written once here: the rules refuse any later change */
 export async function createSession(categories: Category[], settings: SessionSettings): Promise<string> {
   const uid = await ensureSignedIn();
+  const write = (code: string) =>
+    update(sessionRef(code), {
+      meta: {
+        facilitatorId: uid,
+        categories: toFirebaseCategories(categories),
+        createdAt: serverTimestamp(),
+      },
+      state: { phase: 'lobby', currentCategoryIndex: 0, ...settings },
+    });
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
     const code = generateSessionCode();
     try {
-      await update(sessionRef(code), {
-        meta: {
-          facilitatorId: uid,
-          categories: toFirebaseCategories(categories),
-          createdAt: serverTimestamp(),
-        },
-        state: { phase: 'lobby', currentCategoryIndex: 0, ...settings },
-      });
+      await write(code);
       return code;
     } catch (err) {
-      /* Rules deny writing meta of an existing session → code collision, retry */
+      /* Rules deny writing meta of an existing session → code taken */
       if (!isPermissionDenied(err)) throw err;
+    }
+    /* The session holding this code may have expired: delete it and take its code */
+    if (await removeExpiredSession(code)) {
+      try {
+        await write(code);
+        return code;
+      } catch (err) {
+        if (!isPermissionDenied(err)) throw err;
+      }
     }
   }
   throw new AppError(() => t.errors.createFailed);
 }
 
+/** An expired session not yet replaced is treated as deleted */
 export async function sessionExists(code: string): Promise<boolean> {
   await ensureSignedIn();
-  const snap = await get(sessionRef(code, 'meta/facilitatorId'));
-  return snap.exists();
+  const snap = await get(sessionRef(code, 'meta/createdAt'));
+  return snap.exists() && !isExpired(snap.val() as number);
 }
 
 export async function getParticipantName(code: string, uid: string): Promise<string | null> {

@@ -2,9 +2,10 @@
   "rules": {
     "sessions": {
       "$code": {
+        ".write": "auth != null && !newData.exists() && data.child('meta/createdAt').val() < now - 15811200000",
         "meta": {
           ".read": "auth != null",
-          ".write": "auth != null && !data.exists() && $code.matches(/^[A-HJ-NP-Z2-9]{6}$/) && newData.child('facilitatorId').val() === auth.uid",
+          ".write": "auth != null && !data.exists() && $code.matches(/^[A-Z2-9]{6}$/) && newData.child('facilitatorId').val() === auth.uid",
           ".validate": "newData.hasChildren(['facilitatorId', 'categories', 'createdAt'])",
           "facilitatorId": { ".validate": "newData.isString()" },
           "categories": { ".validate": "newData.hasChildren()" },

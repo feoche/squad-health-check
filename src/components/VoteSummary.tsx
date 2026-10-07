@@ -4,7 +4,7 @@ import { medianScore } from '../lib/voteScore';
 import { t } from '../lib/i18n';
 import MedianBadge from './MedianBadge';
 
-/** Result of a category: its median health, as one badge in the colour, reading the trend, after a "Median:" prefix unless `prefix` is off. `large` for the shared screen. */
+/** Result of a category: its median health, as one badge in the colour, reading the colour beside the trend arrow, after a "Median:" prefix unless `prefix` is off. `large` for the shared screen. */
 function VoteSummary({ votes, large = false, prefix = true }: { votes: Vote[]; large?: boolean; prefix?: boolean }) {
   const score = medianScore(votes);
   if (score === null) return <Text preset={TEXT_PRESET.caption}>{t.results.noVotes}</Text>;
