@@ -47,6 +47,8 @@ export interface RawSession {
   roundBallots: Record<string, Record<string, Ballot> | null>;
   /** Votes the facilitator added per category index, readable wherever the votes are */
   offlineVotes: Record<string, OfflineVoteCounts | null>;
+  /** One mark per connected tab, by participant id; facilitator only, undefined until loaded */
+  presence?: Record<string, Record<string, true>> | null;
 }
 
 export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
@@ -102,6 +104,11 @@ export function deriveClientState(
     ? participants
     : participants.filter((p) => p.id !== facilitatorId);
   const voterIds = eligibleVoters.filter((p) => roundVoters[p.id]).map((p) => p.id);
+  /* Unknown until loaded: nobody is shown as disconnected meanwhile. My own tab is connected by definition. */
+  const disconnectedIds =
+    isFacilitator && raw.presence !== undefined
+      ? eligibleVoters.filter((p) => p.id !== myId && !raw.presence?.[p.id]).map((p) => p.id)
+      : [];
 
   const anonymity: Anonymity = raw.state.anonymity ?? 'full';
   const names = new Map(participants.map((p) => [p.id, p.name]));
@@ -160,6 +167,7 @@ export function deriveClientState(
     roundStartedAt: raw.state.roundStartedAt ?? null,
     eligibleVoters,
     voterIds,
+    disconnectedIds,
     hasVoted: Boolean(roundVoters[myId]),
     myVote: myVote(raw.ballots[String(currentCategoryIndex)]),
     isFacilitator,

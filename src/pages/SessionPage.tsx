@@ -171,7 +171,7 @@ function SessionView() {
         <Card className="card-body join-session__card" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading2}>{t.join.title}</Text>
           <Text preset={TEXT_PRESET.paragraph}>
-            {t.join.session} <Text preset={TEXT_PRESET.code}>{code}</Text>
+            {t.join.session} <Text preset={TEXT_PRESET.code}><strong>{code}</strong></Text>
           </Text>
           <form className="stack join-session__form" onSubmit={handleJoin} noValidate>
             <FormField invalid={nameMissing}>

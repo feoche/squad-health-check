@@ -9,7 +9,7 @@ A real-time collaborative tool for running **Spotify Squad Health Check** sessio
 - **Introduction step** — a built-in presentation of the workshop between the lobby and the first category
 - **Facilitator controls** — The facilitator drives the flow (start, reveal, next, end) from their own window and chooses at creation whether they take part in the vote
 - **Live results for the facilitator** — The facilitator's view fills the vote matrix as votes arrive, once they have voted (or from the start when they don't vote); the shared screen still waits for the reveal
-- **Auto-reveal** — Votes are revealed when every voter has voted (from the facilitator's open window)
+- **Auto-reveal** — Votes are revealed when every voter has voted (from the facilitator's open window); voters whose app is disconnected are marked in the facilitator view, which suggests revealing by hand once the others have voted
 - **Participant cap** — At most 15 people (facilitator included) can join a session (enforced by database rules)
 - **Private facilitator notes** — A note per category in the facilitator view, never on the shared screen; only the facilitator can read them (enforced by database rules)
 - **Vote anonymization** — Chosen at creation: *off* (everyone sees who voted what once a round is revealed), *facilitator only* (only the facilitator sees names; the shared screen shows totals) or *full* (totals only). Names are never visible while a round is being voted (enforced by database rules)
@@ -38,7 +38,10 @@ The web config is public by design; access is controlled by the rules. Optionall
 npm install
 npm run dev     # http://localhost:3000
 npm test        # unit tests
+npm run workshop  # simulated workshop against the dev server (see below)
 ```
+
+`npm run workshop` plays a whole session in headless Chromium (`npx playwright install chromium` once): a facilitator, the presenter window and six participants with different behaviours (phone, French browser, keyboard only, late joiner, vote edit and reload, one who leaves). It checks every screen, runs axe on each view and phase, downloads the three reports and exits with an error on any issue. Screenshots, reports and `summary.json` land in `workshop-report/`; `BASE` and `OUT` override the app URL and that folder. It creates a real session in the Firebase project of `src/lib/firebaseConfig.ts`.
 
 ## Deployment (GitHub Pages)
 
@@ -77,7 +80,7 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 6. During voting, Firebase console → Realtime Database → Rules → **Rules Playground**: type *read*, location `/sessions/<CODE>/votes/<current index>`, Authenticated → **Run** → *Denied*. Also try *write* `true` at `/sessions/<CODE>/closed/<current index>` as A's UID → *Denied*.
 7. A: vote → round auto-reveals on every screen with 2 votes.
 8. A: write a note → nothing appears on B's screen or in the presenter window. Rules Playground: *read* `/sessions/<CODE>/facilitator`, Authenticated with B's UID → *Denied*.
-9. B: reload → B lands back in the session without re-entering a name; same for A (still facilitator).
+9. B: reload → B lands back in the session without re-entering a name; same for A (still facilitator). B: close the tab during a round → A's view marks B as disconnected and suggests revealing by hand; B reopens the link → the mark goes away.
 10. A: Next Category … Finish Session → presenter and B show the vote recap without notes; A edits a past note and downloads Markdown, PDF and JSON (with notes).
 11. New session created with "I take part in the vote" off: "X / N" excludes A, A has no vote form, auto-reveal fires once B has voted. Rules Playground: *write* `true` at `/sessions/<CODE>/voters/<index>/<A's UID>` as A → *Denied*; *write* `true` at `/sessions/<CODE>/state/facilitatorVotes` as A → *Denied*.
 12. Anonymization, one session per level, Rules Playground *read* `/sessions/<CODE>/ballots/<current index>`:

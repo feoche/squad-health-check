@@ -587,6 +587,11 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
+/* Median badge pushed to the right end of each recap card heading */
+.session-finished__heading .vote-summary {
+  margin-left: auto;
+}
+
 /* Facilitator dashboard: round on the left, controls and participants on the right */
 .facilitator-view__dashboard {
   display: grid;

@@ -26,6 +26,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     roundStartedAt: null,
     eligibleVoters: participants,
     voterIds: [],
+    disconnectedIds: [],
     hasVoted: false,
     myVote: null,
     isFacilitator: true,
