@@ -2,7 +2,9 @@ import {
   DataSnapshot,
   get,
   increment,
+  onDisconnect,
   onValue,
+  push,
   ref,
   remove,
   serverTimestamp,
@@ -162,6 +164,7 @@ export function subscribeSession(
     ballots: {},
     roundBallots: {},
     offlineVotes: {},
+    presence: undefined,
   };
   const unsubs: Unsubscribe[] = [];
   const voteUnsubs = new Map<number, Unsubscribe>();
@@ -280,7 +283,7 @@ export function subscribeSession(
     };
   };
 
-  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'facilitator' | 'closed') => {
+  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'facilitator' | 'closed' | 'presence') => {
     unsubs.push(
       onValue(
         sessionRef(code, key),
@@ -288,7 +291,8 @@ export function subscribeSession(
           (raw as unknown as Record<string, unknown>)[key] = snap.val();
           if (key === 'meta') syncFacilitatorListeners();
           if (key === 'state') syncBallotListener();
-          if (key !== 'participants' && key !== 'facilitator') {
+          if (key === 'participants') syncPresence();
+          if (key !== 'participants' && key !== 'facilitator' && key !== 'presence') {
             syncVoteListeners();
             syncRoundBallotListeners();
           }
@@ -299,12 +303,20 @@ export function subscribeSession(
     );
   };
 
+  /* Tells the facilitator this tab is connected, once the rules know this user as a participant */
+  let stopPresence: Unsubscribe | null = null;
+  const syncPresence = () => {
+    if (stopPresence || !raw.participants?.[uid]) return;
+    stopPresence = trackPresence(code, uid);
+  };
+
   /* Facilitator-only nodes: a participant's listener would be cancelled with PERMISSION_DENIED */
   const syncFacilitatorListeners = () => {
     if (facilitatorListening || !isFacilitator()) return;
     facilitatorListening = true;
     listen('facilitator');
     listen('closed');
+    listen('presence');
   };
 
   listen('meta');
@@ -318,6 +330,31 @@ export function subscribeSession(
     offlineVoteUnsubs.forEach((u) => u());
     roundBallotUnsubs.forEach((u) => u());
     ballotListener?.unsubscribe();
+    stopPresence?.();
+  };
+}
+
+/**
+ * Marks this tab as connected to the session for as long as it is: the server removes
+ * the mark when the connection drops, and a new one is written on reconnection.
+ * One mark per tab, so closing one of two tabs keeps the participant connected.
+ */
+export function trackPresence(code: string, uid: string): Unsubscribe {
+  let mark: ReturnType<typeof push> | null = null;
+  const unsubscribe = onValue(ref(getDb(), '.info/connected'), (snap) => {
+    if (snap.val() !== true) return;
+    const next = push(sessionRef(code, `presence/${uid}`));
+    mark = next;
+    onDisconnect(next)
+      .remove()
+      .then(() => set(next, true))
+      .catch((err) => console.warn('[session] presence', err));
+  });
+  return () => {
+    unsubscribe();
+    if (!mark) return;
+    onDisconnect(mark).cancel().catch(() => {});
+    remove(mark).catch(() => {});
   };
 }
 

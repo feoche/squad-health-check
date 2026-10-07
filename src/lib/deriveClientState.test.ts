@@ -56,6 +56,28 @@ describe('deriveClientState', () => {
     expect(s.voteCount).toBe(0);
   });
 
+  it('lists for the facilitator the voters with no tab connected, once presence has loaded', () => {
+    const participants = { fac: { name: 'Alice' }, bob: { name: 'Bob' }, cy: { name: 'Cy' } };
+    const state = { phase: 'voting' as const, currentCategoryIndex: 0 };
+    expect(deriveClientState('ABC234', raw({ participants, state }), 'fac')!.disconnectedIds).toEqual([]);
+    const presence = { cy: { ['c'.repeat(20)]: true as const } };
+    expect(deriveClientState('ABC234', raw({ participants, state, presence }), 'fac')!.disconnectedIds).toEqual(['bob']);
+    expect(deriveClientState('ABC234', raw({ participants, state, presence: null }), 'fac')!.disconnectedIds).toEqual([
+      'bob',
+      'cy',
+    ]);
+    expect(deriveClientState('ABC234', raw({ participants, state, presence }), 'bob')!.disconnectedIds).toEqual([]);
+  });
+
+  it('leaves the facilitator out of disconnected voters when they do not vote', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({ state: { phase: 'voting', currentCategoryIndex: 0, facilitatorVotes: false }, presence: null }),
+      'fac',
+    )!;
+    expect(s.disconnectedIds).toEqual(['bob']);
+  });
+
   it('returns null until meta and state are loaded', () => {
     expect(deriveClientState('ABC234', raw({ meta: null }), 'fac')).toBeNull();
     expect(deriveClientState('ABC234', raw({ state: null }), 'fac')).toBeNull();

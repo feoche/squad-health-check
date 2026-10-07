@@ -88,6 +88,8 @@ export interface ClientSessionState {
   eligibleVoters: Participant[];
   /** Ids of the eligible voters who voted in the current round, in participant order */
   voterIds: string[];
+  /** Facilitator only: ids of the eligible voters with no app connected to the session, in participant order */
+  disconnectedIds: string[];
   hasVoted: boolean;
   /** The current user's vote in the current round, once their ballot has loaded */
   myVote: Vote | null;

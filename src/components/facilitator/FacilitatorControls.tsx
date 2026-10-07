@@ -26,6 +26,14 @@ function FacilitatorControls({ session, actions }: Props) {
   const { phase, voteCount, totalVoters } = session;
   const isLastCategory = session.currentCategoryIndex === session.categories.length - 1;
   const canStart = canStartWorkshop(session);
+  /* Auto-reveal waits for them too: tell the facilitator to reveal by hand */
+  const waitingDisconnected = session.eligibleVoters
+    .filter((p) => session.disconnectedIds.includes(p.id) && !session.voterIds.includes(p.id))
+    .map((p) => p.name);
+  const disconnectedHint =
+    phase === 'voting' && waitingDisconnected.length > 0
+      ? t.facilitator.disconnectedHint(waitingDisconnected.join(', '))
+      : '';
   /* Votes added for people without the app are enough to reveal */
   const anyVote = voteCount > 0 || Boolean(session.offlineVotes[session.currentCategoryIndex]?.length);
   /* The dashboard is rebuilt when a round starts, which drops the focus: bring it back here */
@@ -55,6 +63,7 @@ function FacilitatorControls({ session, actions }: Props) {
     <Card className="card-body facilitator-controls" color={CARD_COLOR.neutral}>
       {(phase === 'voting' || phase === 'revealed') && <LiveRound session={session} />}
       {phase === 'intro' && <Text preset={TEXT_PRESET.paragraph}>{t.facilitator.introHint}</Text>}
+      {disconnectedHint && <Text preset={TEXT_PRESET.caption}>{disconnectedHint}</Text>}
       {action && (
         <Button ref={button} variant={action.variant} onClick={action.onClick} disabled={action.disabled}>
           {action.label}
@@ -62,9 +71,9 @@ function FacilitatorControls({ session, actions }: Props) {
         </Button>
       )}
       {phase === 'lobby' && !canStart && <Text preset={TEXT_PRESET.caption}>{t.facilitator.needVoter}</Text>}
-      {/* Votes arrive while the facilitator looks elsewhere: read the count out as it changes */}
+      {/* Votes arrive and voters drop out while the facilitator looks elsewhere: read them out as they change */}
       <span role="status" className="visually-hidden">
-        {phase === 'voting' ? t.votesReceived(voteCount, totalVoters) : ''}
+        {phase === 'voting' ? `${t.votesReceived(voteCount, totalVoters)} ${disconnectedHint}`.trim() : ''}
       </span>
     </Card>
   );
