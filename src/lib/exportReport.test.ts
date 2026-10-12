@@ -23,6 +23,7 @@ function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['
     roundStartedAt: null,
     eligibleVoters: participants,
     voterIds: [],
+    quickVoterIds: [],
     disconnectedIds: [],
     hasVoted: false,
     myVote: null,

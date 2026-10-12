@@ -46,7 +46,7 @@
           "$idx": {
             "$uid": {
               ".write": "auth != null && $uid === auth.uid && !data.exists() && root.child('sessions/' + $code + '/participants/' + auth.uid).exists() && root.child('sessions/' + $code + '/state/phase').val() === 'voting' && root.child('sessions/' + $code + '/state/currentCategoryIndex').val() + '' === $idx && !(root.child('sessions/' + $code + '/meta/facilitatorId').val() === auth.uid && root.child('sessions/' + $code + '/state/facilitatorVotes').val() === false)",
-              ".validate": "newData.val() === true"
+              ".validate": "newData.val() === true || newData.val() === now"
             }
           }
         },

@@ -463,7 +463,7 @@ export async function submitVote(s: ClientSessionState, vote: Vote): Promise<voi
   }
   const key = randomKey();
   await update(sessionRef(s.code), {
-    [`voters/${idx}/${s.myId}`]: true,
+    [`voters/${idx}/${s.myId}`]: serverTimestamp(),
     [`votes/${idx}/${key}`]: { color, trend },
     [`ballots/${idx}/${s.myId}`]: { key, color, trend },
   });

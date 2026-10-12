@@ -5,6 +5,7 @@ import { t } from '../../lib/i18n';
 /** Who has voted in the current round, and who has no app connected — names only, never how they voted. */
 function LiveRound({ session }: { session: ClientSessionState }) {
   const voted = new Set(session.voterIds);
+  const quick = new Set(session.quickVoterIds);
   const disconnected = new Set(session.disconnectedIds);
 
   return (
@@ -25,11 +26,13 @@ function LiveRound({ session }: { session: ClientSessionState }) {
               {hasVoted && <Icon name={ICON_NAME.check} />}
               {isDisconnected && <Icon name={ICON_NAME.cloudXmark} />}
               {p.id === session.facilitatorId && <Icon name={ICON_NAME.crown} />}
+              {quick.has(p.id) && <span aria-hidden="true">⚡ </span>}
               {p.name}
               <span className="visually-hidden">
                 {p.id === session.facilitatorId && t.lobby.facilitator}
                 {' — '}
                 {hasVoted ? t.facilitator.voted : t.facilitator.waiting}
+                {quick.has(p.id) && `, ${t.facilitator.quickVote}`}
                 {isDisconnected && `, ${t.facilitator.disconnected}`}
               </span>
             </Badge>

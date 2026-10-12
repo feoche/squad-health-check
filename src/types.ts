@@ -88,6 +88,8 @@ export interface ClientSessionState {
   eligibleVoters: Participant[];
   /** Ids of the eligible voters who voted in the current round, in participant order */
   voterIds: string[];
+  /** Ids of the eligible voters who voted within 2 seconds of the round opening, in participant order */
+  quickVoterIds: string[];
   /** Facilitator only: ids of the eligible voters with no app connected to the session, in participant order */
   disconnectedIds: string[];
   hasVoted: boolean;

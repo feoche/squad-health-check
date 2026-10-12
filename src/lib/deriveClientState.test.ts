@@ -125,6 +125,19 @@ describe('deriveClientState', () => {
     expect(empty.totalVoters).toBe(0);
   });
 
+  it('lists voters who voted within 2 seconds of the round opening', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { phase: 'voting', currentCategoryIndex: 0, roundStartedAt: 10_000 },
+        voters: { '0': { fac: 11_999, bob: 12_000, cat: true } },
+        participants: { fac: { name: 'Fac' }, bob: { name: 'Bob' }, cat: { name: 'Cat' } },
+      }),
+      'fac',
+    )!;
+    expect(s.quickVoterIds).toEqual(['fac']);
+  });
+
   it('counts voters of the current category only and sets hasVoted', () => {
     const s = deriveClientState(
       'ABC234',

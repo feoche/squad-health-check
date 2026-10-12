@@ -12,6 +12,9 @@ import {
 } from '../types';
 import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 
+/** A vote cast within this delay of the round opening gets a spark */
+export const QUICK_VOTE_MS = 2000;
+
 /**
  * RTDB returns objects whose keys are integers (0..n) as arrays,
  * possibly with null holes — so per-category children may be either shape.
@@ -36,7 +39,8 @@ export interface RawSession {
   meta: { facilitatorId: string; categories: Category[]; createdAt?: number } | null;
   state: SessionStateNode | null;
   participants: Record<string, { name: string }> | null;
-  voters: Indexed<Record<string, true>> | null;
+  /** Server time of the vote; `true` in votes cast before it was recorded */
+  voters: Indexed<Record<string, true | number>> | null;
   votes: Indexed<Record<string, Vote>> | null;
   /** Only listened to by the facilitator — the rules deny everyone else */
   facilitator: Indexed<Partial<FacilitatorNote>> | null | undefined;
@@ -104,6 +108,11 @@ export function deriveClientState(
     ? participants
     : participants.filter((p) => p.id !== facilitatorId);
   const voterIds = eligibleVoters.filter((p) => roundVoters[p.id]).map((p) => p.id);
+  const { roundStartedAt = null } = raw.state;
+  const quickVoterIds = voterIds.filter((id) => {
+    const votedAt = roundVoters[id];
+    return roundStartedAt !== null && typeof votedAt === 'number' && votedAt - roundStartedAt < QUICK_VOTE_MS;
+  });
   /* Unknown until loaded: nobody is shown as disconnected meanwhile. My own tab is connected by definition. */
   const disconnectedIds =
     isFacilitator && raw.presence !== undefined
@@ -167,6 +176,7 @@ export function deriveClientState(
     roundStartedAt: raw.state.roundStartedAt ?? null,
     eligibleVoters,
     voterIds,
+    quickVoterIds,
     disconnectedIds,
     hasVoted: Boolean(roundVoters[myId]),
     myVote: myVote(raw.ballots[String(currentCategoryIndex)]),
