@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { parseStoredCategories } from './categoryStorage';
 
 describe('parseStoredCategories', () => {
-  const custom = { name: 'Autonomy', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' };
+  const custom = { name: 'Autonomy', positiveDescription: 'p', negativeDescription: 'n' };
 
   it('reads stored categories back', () => {
     expect(parseStoredCategories(JSON.stringify([custom]))).toEqual([custom]);

@@ -6,10 +6,8 @@ describe('defaultCategories', () => {
     for (const c of builtInCategories) {
       for (const text of [
         c.positiveDescription,
-        c.mixedDescription,
         c.negativeDescription,
         c.positiveDescriptionFr ?? '',
-        c.mixedDescriptionFr ?? '',
         c.negativeDescriptionFr ?? '',
       ]) {
         expect(text.length, `${c.name}: ${text}`).toBeLessThan(100);
@@ -21,7 +19,6 @@ describe('defaultCategories', () => {
     for (const c of builtInCategories) {
       expect(c.nameFr, c.name).toBeTruthy();
       expect(c.positiveDescriptionFr, c.name).toBeTruthy();
-      expect(c.mixedDescriptionFr, c.name).toBeTruthy();
       expect(c.negativeDescriptionFr, c.name).toBeTruthy();
     }
   });

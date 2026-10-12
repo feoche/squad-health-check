@@ -17,14 +17,14 @@ export const COLOR_OPTIONS = withLabels<
   VoteColor,
   {
     value: VoteColor;
-    /** Category field describing this color */
-    field: 'positiveDescription' | 'mixedDescription' | 'negativeDescription';
+    /** Category field describing this color; orange has none: the generic text keeps the discussion on the extremes */
+    field?: 'positiveDescription' | 'negativeDescription';
     badge: BadgeColor;
   }
 >(
   [
     { value: 'green', field: 'positiveDescription', badge: BADGE_COLOR.success },
-    { value: 'orange', field: 'mixedDescription', badge: BADGE_COLOR.warning },
+    { value: 'orange', badge: BADGE_COLOR.warning },
     { value: 'red', field: 'negativeDescription', badge: BADGE_COLOR.critical },
   ],
   () => t.colors,
@@ -35,7 +35,7 @@ export function colorDescription(
   category: Category,
   option: (typeof COLOR_OPTIONS)[number],
 ): string {
-  return localizeCategory(category)[option.field]?.trim() || t.colorFallbacks[option.value];
+  return (option.field && localizeCategory(category)[option.field]?.trim()) || t.colorFallbacks[option.value];
 }
 
 export const TREND_OPTIONS = withLabels<VoteTrend, { value: VoteTrend; icon: IconName }>(

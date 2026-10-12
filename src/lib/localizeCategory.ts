@@ -8,7 +8,6 @@ export interface LocalizedCategory {
   /** Name in the other language, when there is one */
   subtitle?: string;
   positiveDescription: string;
-  mixedDescription: string;
   negativeDescription: string;
 }
 
@@ -16,7 +15,6 @@ export interface LocalizedCategory {
 export function localizeCategory(category: Category, lang: Lang = LANG): LocalizedCategory {
   const english = {
     positiveDescription: category.positiveDescription,
-    mixedDescription: category.mixedDescription,
     negativeDescription: category.negativeDescription,
   };
   if (lang !== 'fr') return { title: category.name, subtitle: category.nameFr, ...english };
@@ -27,8 +25,6 @@ export function localizeCategory(category: Category, lang: Lang = LANG): Localiz
     subtitle: category.nameFr ? category.name : undefined,
     positiveDescription:
       category.positiveDescriptionFr || builtIn?.positiveDescriptionFr || english.positiveDescription,
-    mixedDescription:
-      category.mixedDescriptionFr || builtIn?.mixedDescriptionFr || english.mixedDescription,
     negativeDescription:
       category.negativeDescriptionFr || builtIn?.negativeDescriptionFr || english.negativeDescription,
   };

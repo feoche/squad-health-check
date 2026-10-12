@@ -13,9 +13,9 @@ import {
 import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 
 const categories: Category[] = [
-  { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
-  { name: 'Learning', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
-  { name: 'Teamwork', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
+  { name: 'Fun', positiveDescription: 'p', negativeDescription: 'n' },
+  { name: 'Learning', positiveDescription: 'p', negativeDescription: 'n' },
+  { name: 'Teamwork', positiveDescription: 'p', negativeDescription: 'n' },
 ];
 
 function raw(overrides: Partial<RawSession> = {}): RawSession {

@@ -3,8 +3,8 @@ import { CategoryResult, ClientSessionState } from '../types';
 import { generateMarkdown } from './exportReport';
 
 const categories = [
-  { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
-  { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
+  { name: 'Fun', positiveDescription: 'p', negativeDescription: 'n' },
+  { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', negativeDescription: 'n' },
 ];
 
 function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['namedVotes'] = {}): ClientSessionState {

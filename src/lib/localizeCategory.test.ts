@@ -6,7 +6,7 @@ const learning = {
   name: 'Ownership',
   nameFr: 'Responsabilité',
   positiveDescription: 'p',
-  mixedDescription: 'm',
+ 
   negativeDescription: 'n',
   positiveDescriptionFr: 'p-fr',
   negativeDescriptionFr: 'n-fr',
@@ -18,7 +18,7 @@ describe('localizeCategory', () => {
       title: 'Responsabilité',
       subtitle: 'Ownership',
       positiveDescription: 'p-fr',
-      mixedDescription: 'm', // no French text: falls back to English
+      // no French text: falls back to English
       negativeDescription: 'n-fr',
     });
   });
@@ -28,13 +28,13 @@ describe('localizeCategory', () => {
       title: 'Ownership',
       subtitle: 'Responsabilité',
       positiveDescription: 'p',
-      mixedDescription: 'm',
+     
       negativeDescription: 'n',
     });
   });
 
   it('falls back to the English name without subtitle when there is no French name', () => {
-    const fun = { name: 'Autonomy', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' };
+    const fun = { name: 'Autonomy', positiveDescription: 'p', negativeDescription: 'n' };
     expect(localizeCategory(fun, 'fr')).toMatchObject({ title: 'Autonomy', subtitle: undefined });
   });
 
@@ -44,12 +44,11 @@ describe('localizeCategory', () => {
       name: builtIn.name,
       nameFr: builtIn.nameFr,
       positiveDescription: 'old p',
-      mixedDescription: 'old m',
+     
       negativeDescription: 'old n',
     };
     expect(localizeCategory(stored, 'fr')).toMatchObject({
       positiveDescription: builtIn.positiveDescriptionFr,
-      mixedDescription: builtIn.mixedDescriptionFr,
       negativeDescription: builtIn.negativeDescriptionFr,
     });
     expect(localizeCategory(stored, 'en').positiveDescription).toBe('old p');

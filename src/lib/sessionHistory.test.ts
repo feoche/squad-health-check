@@ -16,8 +16,8 @@ import {
 } from './sessionHistory';
 
 const categories = [
-  { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
-  { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
+  { name: 'Fun', positiveDescription: 'p', negativeDescription: 'n' },
+  { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', negativeDescription: 'n' },
 ];
 
 const allResults: CategoryResult[] = [

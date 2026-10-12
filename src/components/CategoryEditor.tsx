@@ -43,14 +43,12 @@ const emptyCategory: Category = {
   name: '',
   nameFr: '',
   positiveDescription: '',
-  mixedDescription: '',
   negativeDescription: '',
   positiveDescriptionFr: '',
-  mixedDescriptionFr: '',
   negativeDescriptionFr: '',
 };
 
-type RequiredField = 'name' | 'positiveDescription' | 'mixedDescription' | 'negativeDescription';
+type RequiredField = 'name' | 'positiveDescription' | 'negativeDescription';
 type FormErrors = Partial<Record<RequiredField, string>>;
 
 function validate(form: Category): FormErrors {
@@ -58,8 +56,6 @@ function validate(form: Category): FormErrors {
   if (!form.name.trim()) errors.name = t.editor.nameMissing;
   if (!form.positiveDescription.trim())
     errors.positiveDescription = t.editor.positiveMissing;
-  if (!form.mixedDescription?.trim())
-    errors.mixedDescription = t.editor.mixedMissing;
   if (!form.negativeDescription.trim())
     errors.negativeDescription = t.editor.negativeMissing;
   return errors;
@@ -112,7 +108,6 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
       ...editForm,
       nameFr: editForm.nameFr || undefined,
       positiveDescriptionFr: editForm.positiveDescriptionFr || undefined,
-      mixedDescriptionFr: editForm.mixedDescriptionFr || undefined,
       negativeDescriptionFr: editForm.negativeDescriptionFr || undefined,
     };
   };
@@ -274,27 +269,6 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
         <Textarea
           value={editForm.positiveDescriptionFr ?? ''}
           onChange={(e) => setField('positiveDescriptionFr', e.target.value)}
-          rows={2}
-        />
-      </FormField>
-      <FormField invalid={!!errors.mixedDescription}>
-        <FormFieldLabel>
-          {t.editor.mixed}
-          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
-        </FormFieldLabel>
-        <Textarea
-          required
-          value={editForm.mixedDescription ?? ''}
-          onChange={(e) => setField('mixedDescription', e.target.value)}
-          rows={2}
-        />
-        <FormFieldError>{errors.mixedDescription}</FormFieldError>
-      </FormField>
-      <FormField>
-        <FormFieldLabel>{t.editor.mixedFr}</FormFieldLabel>
-        <Textarea
-          value={editForm.mixedDescriptionFr ?? ''}
-          onChange={(e) => setField('mixedDescriptionFr', e.target.value)}
           rows={2}
         />
       </FormField>

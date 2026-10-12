@@ -22,7 +22,7 @@ describe('suggestedCategories', () => {
   });
 
   it('suggests a removed custom category after the built-in ones', () => {
-    const custom = { name: 'Autonomy', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' };
+    const custom = { name: 'Autonomy', positiveDescription: 'p', negativeDescription: 'n' };
     expect(suggestedCategories(defaultCategories, [custom])).toEqual([...extraCategories, custom]);
   });
 
@@ -33,7 +33,7 @@ describe('suggestedCategories', () => {
   });
 
   it('does not suggest a removed category once it is selected again', () => {
-    const custom = { name: 'Autonomy', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' };
+    const custom = { name: 'Autonomy', positiveDescription: 'p', negativeDescription: 'n' };
     expect(suggestedCategories([...defaultCategories, custom], [custom])).toEqual(extraCategories);
   });
 });

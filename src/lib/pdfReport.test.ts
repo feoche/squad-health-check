@@ -6,8 +6,8 @@ import { CategoryResult, ClientSessionState } from '../types';
 import { buildPDF, PdfFonts } from './pdfReport';
 
 const categories = [
-  { name: 'Fun', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
-  { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', mixedDescription: 'm', negativeDescription: 'n' },
+  { name: 'Fun', positiveDescription: 'p', negativeDescription: 'n' },
+  { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', negativeDescription: 'n' },
 ];
 
 function finished(allResults: CategoryResult[]): ClientSessionState {
