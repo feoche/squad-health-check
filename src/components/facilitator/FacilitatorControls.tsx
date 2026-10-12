@@ -63,6 +63,11 @@ function FacilitatorControls({ session, actions }: Props) {
     <Card className="card-body facilitator-controls" color={CARD_COLOR.neutral}>
       {(phase === 'voting' || phase === 'revealed') && <LiveRound session={session} />}
       {phase === 'intro' && <Text preset={TEXT_PRESET.paragraph}>{t.facilitator.introHint}</Text>}
+      {phase === 'revealed' && (
+        <Text preset={TEXT_PRESET.caption} role="status">
+          {t.facilitator.readyCount(session.readyIds.length, session.participants.length - 1)}
+        </Text>
+      )}
       {disconnectedHint && <Text preset={TEXT_PRESET.caption}>{disconnectedHint}</Text>}
       {action && (
         <Button ref={button} variant={action.variant} onClick={action.onClick} disabled={action.disabled}>

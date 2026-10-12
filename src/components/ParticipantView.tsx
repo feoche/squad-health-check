@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import {
+  Button,
+  BUTTON_VARIANT,
   Card,
   CARD_COLOR,
+  Icon,
+  ICON_NAME,
   Spinner,
   Text,
   TEXT_PRESET,
@@ -19,10 +23,11 @@ import { localizeCategory } from '../lib/localizeCategory';
 interface Props {
   session: ClientSessionState;
   onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
+  onSetReady: (ready: boolean) => void;
 }
 
 /** A participant's phone: the vote form must fit one screen, so no counter here. */
-function ParticipantView({ session, onSubmitVote }: Props) {
+function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
   const { phase, categories, currentCategoryIndex } = session;
   /* Tied to the round, so moving on to the next category ends the edit */
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
@@ -108,9 +113,24 @@ function ParticipantView({ session, onSubmitVote }: Props) {
       )}
 
       {phase === 'revealed' && (
-        <Text preset={TEXT_PRESET.paragraph} className="stack-center participant-view__results-hint">
-          {t.participant.resultsOnScreen}
-        </Text>
+        <div className="stack stack-center participant-view__ready">
+          <Text preset={TEXT_PRESET.paragraph} className="participant-view__results-hint">
+            {t.participant.resultsOnScreen}
+          </Text>
+          {session.isReady ? (
+            <>
+              <Text preset={TEXT_PRESET.paragraph} role="status">{t.participant.readyDone}</Text>
+              <Button variant={BUTTON_VARIANT.ghost} onClick={() => onSetReady(false)}>
+                {t.participant.notReady}
+              </Button>
+            </>
+          ) : (
+            <Button onClick={() => onSetReady(true)}>
+              <Icon name={ICON_NAME.check} />
+              {t.participant.ready}
+            </Button>
+          )}
+        </div>
       )}
     </div>
   );

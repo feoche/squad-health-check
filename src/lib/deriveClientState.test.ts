@@ -138,6 +138,17 @@ describe('deriveClientState', () => {
     expect(s.quickVoterIds).toEqual(['fac']);
   });
 
+  it('lists who is ready to move on in the revealed round, leaving the facilitator out', () => {
+    const state = { phase: 'revealed' as const, currentCategoryIndex: 1 };
+    const ready = { '0': { bob: true as const }, '1': { fac: true as const, bob: true as const } };
+    const s = deriveClientState('ABC234', raw({ state, ready }), 'bob')!;
+    expect(s.readyIds).toEqual(['bob']);
+    expect(s.isReady).toBe(true);
+    const voting = deriveClientState('ABC234', raw({ state: { ...state, phase: 'voting' }, ready }), 'bob')!;
+    expect(voting.readyIds).toEqual([]);
+    expect(voting.isReady).toBe(false);
+  });
+
   it('counts voters of the current category only and sets hasVoted', () => {
     const s = deriveClientState(
       'ABC234',

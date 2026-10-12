@@ -51,6 +51,8 @@ export interface RawSession {
   roundBallots: Record<string, Record<string, Ballot> | null>;
   /** Votes the facilitator added per category index, readable wherever the votes are */
   offlineVotes: Record<string, OfflineVoteCounts | null>;
+  /** Who said they are ready to move on, by category index; the rules only accept it in the revealed round */
+  ready?: Indexed<Record<string, true>> | null;
   /** One mark per connected tab, by participant id; facilitator only, undefined until loaded */
   presence?: Record<string, Record<string, true>> | null;
 }
@@ -108,6 +110,8 @@ export function deriveClientState(
     ? participants
     : participants.filter((p) => p.id !== facilitatorId);
   const voterIds = eligibleVoters.filter((p) => roundVoters[p.id]).map((p) => p.id);
+  const roundReady = phase === 'revealed' ? (at(raw.ready, currentCategoryIndex) ?? {}) : {};
+  const readyIds = participants.filter((p) => p.id !== facilitatorId && roundReady[p.id]).map((p) => p.id);
   const { roundStartedAt = null } = raw.state;
   const quickVoterIds = voterIds.filter((id) => {
     const votedAt = roundVoters[id];
@@ -178,6 +182,8 @@ export function deriveClientState(
     voterIds,
     quickVoterIds,
     disconnectedIds,
+    readyIds,
+    isReady: Boolean(roundReady[myId]),
     hasVoted: Boolean(roundVoters[myId]),
     myVote: myVote(raw.ballots[String(currentCategoryIndex)]),
     isFacilitator,

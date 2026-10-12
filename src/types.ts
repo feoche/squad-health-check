@@ -90,6 +90,10 @@ export interface ClientSessionState {
   quickVoterIds: string[];
   /** Facilitator only: ids of the eligible voters with no app connected to the session, in participant order */
   disconnectedIds: string[];
+  /** Participants other than the facilitator who said they are ready to move on, in participant order; empty outside the revealed phase */
+  readyIds: string[];
+  /** Whether the current user said they are ready to move on in the revealed round */
+  isReady: boolean;
   hasVoted: boolean;
   /** The current user's vote in the current round, once their ballot has loaded */
   myVote: Vote | null;

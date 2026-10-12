@@ -6,12 +6,16 @@ import { t } from '../../lib/i18n';
 function LiveRound({ session }: { session: ClientSessionState }) {
   const voted = new Set(session.voterIds);
   const quick = new Set(session.quickVoterIds);
+  const ready = new Set(session.readyIds);
+  const revealed = session.phase === 'revealed';
   const disconnected = new Set(session.disconnectedIds);
 
   return (
     <ul className="inline wrap live-round">
       {session.eligibleVoters.map((p) => {
-        const hasVoted = voted.has(p.id);
+        const isFacilitator = p.id === session.facilitatorId;
+        /* Once revealed, everyone has voted that will: the badge shows who is ready for the next category instead */
+        const hasVoted = revealed ? isFacilitator || ready.has(p.id) : voted.has(p.id);
         const isDisconnected = disconnected.has(p.id);
         const className = [
           'live-round__voter',
@@ -31,7 +35,9 @@ function LiveRound({ session }: { session: ClientSessionState }) {
               <span className="visually-hidden">
                 {p.id === session.facilitatorId && t.lobby.facilitator}
                 {' — '}
-                {hasVoted ? t.facilitator.voted : t.facilitator.waiting}
+                {revealed
+                  ? hasVoted ? t.facilitator.ready : t.facilitator.notReady
+                  : hasVoted ? t.facilitator.voted : t.facilitator.waiting}
                 {quick.has(p.id) && `, ${t.facilitator.quickVote}`}
                 {isDisconnected && `, ${t.facilitator.disconnected}`}
               </span>

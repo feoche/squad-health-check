@@ -158,6 +158,7 @@ export function subscribeSession(
     state: null,
     participants: null,
     voters: null,
+    ready: null,
     votes: {},
     facilitator: undefined,
     closed: null,
@@ -283,7 +284,7 @@ export function subscribeSession(
     };
   };
 
-  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'facilitator' | 'closed' | 'presence') => {
+  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'ready' | 'facilitator' | 'closed' | 'presence') => {
     unsubs.push(
       onValue(
         sessionRef(code, key),
@@ -323,6 +324,7 @@ export function subscribeSession(
   listen('state');
   listen('participants');
   listen('voters');
+  listen('ready');
 
   return () => {
     unsubs.forEach((u) => u());
@@ -427,6 +429,13 @@ export async function adjustOfflineVote(s: ClientSessionState, vote: Vote, delta
 export async function resetOfflineVotes(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator || (s.phase !== 'voting' && s.phase !== 'revealed')) return;
   await set(sessionRef(s.code, `offlineVotes/${s.currentCategoryIndex}`), null);
+}
+
+/** Tells the facilitator whether this participant is ready for the next category; they still decide when to move on */
+export async function setReady(s: ClientSessionState, ready: boolean): Promise<void> {
+  if (s.phase !== 'revealed' || s.isFacilitator) return;
+  const target = sessionRef(s.code, `ready/${s.currentCategoryIndex}/${s.myId}`);
+  await (ready ? set(target, true) : remove(target));
 }
 
 export type NoteField = keyof FacilitatorNote;

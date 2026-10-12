@@ -144,6 +144,12 @@ function SessionView() {
     },
     [session],
   );
+  const handleSetReady = useCallback(
+    (ready: boolean) => {
+      if (session) store.setReady(session, ready).catch(warn);
+    },
+    [session],
+  );
   const facilitatorActions = useMemo<FacilitatorActions | null>(() => {
     if (!session) return null;
     return {
@@ -222,7 +228,7 @@ function SessionView() {
     session.isFacilitator && facilitatorActions ? (
       <FacilitatorView session={session} actions={facilitatorActions} />
     ) : (
-      <ParticipantView session={session} onSubmitVote={handleSubmitVote} />
+      <ParticipantView session={session} onSubmitVote={handleSubmitVote} onSetReady={handleSetReady} />
     );
 
   return (

@@ -24,6 +24,8 @@ function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['
     eligibleVoters: participants,
     voterIds: [],
     quickVoterIds: [],
+    readyIds: [],
+    isReady: false,
     disconnectedIds: [],
     hasVoted: false,
     myVote: null,

@@ -262,6 +262,9 @@ const en = {
   participant: {
     waitingOthers: 'Waiting for the others…',
     resultsOnScreen: 'The results are on the shared screen.',
+    ready: "I'm ready for the next category",
+    readyDone: "You're ready. The facilitator moves on when everyone is.",
+    notReady: 'Not ready yet',
   },
   facilitator: {
     startWorkshop: (n: number) => `Start workshop (${plural(n, 'voter')})`,
@@ -279,6 +282,9 @@ const en = {
     waiting: 'waiting',
     disconnected: 'disconnected',
     quickVote: 'voted in under 2 seconds',
+    ready: 'ready to move on',
+    notReady: 'not ready yet',
+    readyCount: (n: number, total: number) => `Ready to move on: ${n} of ${total}`,
     disconnectedHint: (names: string) => `Disconnected: ${names}. Reveal the votes once the others have voted.`,
     allNotes: 'Notes per category',
     loadingNotes: 'Loading notes…',
@@ -529,6 +535,9 @@ const fr: Messages = {
   participant: {
     waitingOthers: 'En attente des autres…',
     resultsOnScreen: "Les résultats sont sur l'écran partagé.",
+    ready: 'Je suis prêt(e) pour la catégorie suivante',
+    readyDone: "Vous êtes prêt(e). L'animateur passe à la suite quand tout le monde l'est.",
+    notReady: 'Pas encore prêt(e)',
   },
   facilitator: {
     startWorkshop: (n) => `Lancer l'atelier (${n} votant${n !== 1 ? 's' : ''})`,
@@ -546,6 +555,9 @@ const fr: Messages = {
     waiting: 'en attente',
     disconnected: 'hors ligne',
     quickVote: 'a voté en moins de 2 secondes',
+    ready: 'prêt(e) à passer à la suite',
+    notReady: 'pas encore prêt(e)',
+    readyCount: (n, total) => `Prêts à passer à la suite : ${n} sur ${total}`,
     disconnectedHint: (names) => `Hors ligne : ${names}. Révélez les votes une fois que les autres ont voté.`,
     allNotes: 'Notes par catégorie',
     loadingNotes: 'Chargement des notes…',
