@@ -62,6 +62,8 @@ export interface NamedVote {
   /** Null when the voter is no longer in the participant list */
   name: string | null;
   vote: Vote;
+  /** Voted within 2 seconds of the round opening; only known for the current round, whose start time is the only one kept */
+  quick?: boolean;
 }
 
 /** State sent from server to each client (sanitised per-user) */

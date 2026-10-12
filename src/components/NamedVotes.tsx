@@ -10,17 +10,19 @@ function NamedVotes({ votes }: { votes: NamedVote[] }) {
     <div className="stack named-votes">
       <Text preset={TEXT_PRESET.heading5} as="h3">{t.results.byPerson}</Text>
       <ul className="named-votes__list">
-        {votes.map(({ id, name, vote }) => {
+        {votes.map(({ id, name, vote, quick }) => {
           const color = COLOR_OPTIONS.find((o) => o.value === vote.color)!;
           const trend = TREND_OPTIONS.find((o) => o.value === vote.trend)!;
           return (
             <li key={id} className="named-votes__item">
               <Badge className="named-votes__badge" color={color.badge} size={BADGE_SIZE.lg}>
+                {quick && <span aria-hidden="true">⚡ </span>}
                 <span className="named-votes__name">{name ?? t.results.unknownVoter}</span>
                 <Icon name={trend.icon} aria-hidden="true" />
                 <span className="visually-hidden">
                   {' — '}
                   {color.label}, {trend.label}
+                  {quick && `, ${t.facilitator.quickVote}`}
                 </span>
               </Badge>
             </li>

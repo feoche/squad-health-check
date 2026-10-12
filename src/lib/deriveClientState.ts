@@ -131,7 +131,12 @@ export function deriveClientState(
       const ballots = raw.roundBallots[String(i)];
       if (ballots === undefined) return;
       namedVotes[i] = Object.entries(ballots ?? {})
-        .map(([id, b]) => ({ id, name: names.get(id) ?? null, vote: { color: b.color, trend: b.trend } }))
+        .map(([id, b]) => ({
+          id,
+          name: names.get(id) ?? null,
+          vote: { color: b.color, trend: b.trend },
+          ...(i === currentCategoryIndex && quickVoterIds.includes(id) && { quick: true }),
+        }))
         .sort(byName);
     });
   }

@@ -138,6 +138,21 @@ describe('deriveClientState', () => {
     expect(s.quickVoterIds).toEqual(['fac']);
   });
 
+  it('marks quick voters in the current round\'s named votes only', () => {
+    const b = (color: 'green') => ({ key: 'k'.repeat(20), color, trend: 'up' as const });
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { phase: 'revealed', currentCategoryIndex: 1, anonymity: 'off', roundStartedAt: 10_000 },
+        voters: { '1': { fac: 10_500, bob: 15_000 } },
+        roundBallots: { '0': { fac: b('green') }, '1': { fac: b('green'), bob: b('green') } },
+      }),
+      'bob',
+    )!;
+    expect(s.namedVotes[1].map((v) => [v.id, v.quick])).toEqual([['fac', true], ['bob', undefined]]);
+    expect(s.namedVotes[0][0].quick).toBeUndefined();
+  });
+
   it('lists who is ready to move on in the revealed round, leaving the facilitator out', () => {
     const state = { phase: 'revealed' as const, currentCategoryIndex: 1 };
     const ready = { '0': { bob: true as const }, '1': { fac: true as const, bob: true as const } };
