@@ -8,7 +8,6 @@ import {
   BUTTON_VARIANT,
   Card,
   CARD_COLOR,
-  Divider,
   FormField,
   FormFieldError,
   FormFieldLabel,
@@ -20,6 +19,10 @@ import {
   MESSAGE_COLOR,
   MessageBody,
   MessageIcon,
+  Tab,
+  TabContent,
+  TabList,
+  Tabs,
   Text,
   Textarea,
   TEXT_PRESET,
@@ -65,6 +68,8 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<Category>({ ...emptyCategory });
   const [errors, setErrors] = useState<FormErrors>({});
+  /* English is the mandatory language: forms open on it, and errors bring it back */
+  const [formLang, setFormLang] = useState<'en' | 'fr'>('en');
   const [isAdding, setIsAdding] = useState(false);
   /** Current position of the card being dragged; it follows the card as the list reorders */
   const [dragIndex, setDragIndex] = useState<number | null>(null);
@@ -90,6 +95,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
   }, [focusTarget]);
 
   const startEdit = (i: number) => {
+    setFormLang('en');
     setEditingIndex(i);
     setEditForm({ ...categories[i] });
     setErrors({});
@@ -101,6 +107,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
     const found = validate(editForm);
     setErrors(found);
     if (Object.keys(found).length > 0) {
+      setFormLang('en');
       setFocusTarget('.category-editor__form [aria-invalid="true"]');
       return null;
     }
@@ -130,6 +137,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
 
   const startAdd = () => {
     setIsAdding(true);
+    setFormLang('en');
     setEditForm({ ...emptyCategory });
     setErrors({});
     setEditingIndex(null);
@@ -222,27 +230,6 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
         onSave();
       }}
     >
-      <FormField invalid={!!errors.name}>
-        <FormFieldLabel>
-          {t.editor.name}
-          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
-        </FormFieldLabel>
-        <Input
-          required
-          value={editForm.name}
-          onChange={(e) => setField('name', e.target.value)}
-          autoFocus
-        />
-        <FormFieldError>{errors.name}</FormFieldError>
-      </FormField>
-      <FormField>
-        <FormFieldLabel>{t.editor.nameFr}</FormFieldLabel>
-        <Input
-          value={editForm.nameFr || ''}
-          onChange={(e) => setField('nameFr', e.target.value)}
-        />
-      </FormField>
-      <Divider />
       <Message
         className="category-editor__hint"
         color={MESSAGE_COLOR.information}
@@ -251,48 +238,84 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
         <MessageIcon name={ICON_NAME.circleInfo} />
         <MessageBody>{t.editor.lengthHint}</MessageBody>
       </Message>
-      <FormField invalid={!!errors.positiveDescription}>
-        <FormFieldLabel>
-          {t.editor.positive}
-          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
-        </FormFieldLabel>
-        <Textarea
-          required
-          value={editForm.positiveDescription}
-          onChange={(e) => setField('positiveDescription', e.target.value)}
-          rows={2}
-        />
-        <FormFieldError>{errors.positiveDescription}</FormFieldError>
-      </FormField>
-      <FormField>
-        <FormFieldLabel>{t.editor.positiveFr}</FormFieldLabel>
-        <Textarea
-          value={editForm.positiveDescriptionFr ?? ''}
-          onChange={(e) => setField('positiveDescriptionFr', e.target.value)}
-          rows={2}
-        />
-      </FormField>
-      <FormField invalid={!!errors.negativeDescription}>
-        <FormFieldLabel>
-          {t.editor.negative}
-          <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
-        </FormFieldLabel>
-        <Textarea
-          required
-          value={editForm.negativeDescription}
-          onChange={(e) => setField('negativeDescription', e.target.value)}
-          rows={2}
-        />
-        <FormFieldError>{errors.negativeDescription}</FormFieldError>
-      </FormField>
-      <FormField>
-        <FormFieldLabel>{t.editor.negativeFr}</FormFieldLabel>
-        <Textarea
-          value={editForm.negativeDescriptionFr ?? ''}
-          onChange={(e) => setField('negativeDescriptionFr', e.target.value)}
-          rows={2}
-        />
-      </FormField>
+      <Tabs value={formLang} onValueChange={(e) => setFormLang(e.value as 'en' | 'fr')}>
+        <TabList aria-label={t.editor.languages}>
+          <Tab value="en">English</Tab>
+          <Tab value="fr">Français</Tab>
+        </TabList>
+        <TabContent value="en" className="stack">
+          <FormField invalid={!!errors.name}>
+            <FormFieldLabel>
+              {t.editor.name}
+              <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
+            </FormFieldLabel>
+            <Input
+              required
+              value={editForm.name}
+              onChange={(e) => setField('name', e.target.value)}
+              autoFocus
+            />
+            <FormFieldError>{errors.name}</FormFieldError>
+          </FormField>
+          <FormField invalid={!!errors.positiveDescription}>
+            <FormFieldLabel>
+              {t.editor.positive}
+              <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
+            </FormFieldLabel>
+            <Textarea
+              required
+              value={editForm.positiveDescription}
+              onChange={(e) => setField('positiveDescription', e.target.value)}
+              rows={2}
+            />
+            <FormFieldError>{errors.positiveDescription}</FormFieldError>
+          </FormField>
+          <FormField invalid={!!errors.negativeDescription}>
+            <FormFieldLabel>
+              {t.editor.negative}
+              <FormFieldLabelSubLabel>{t.mandatory}</FormFieldLabelSubLabel>
+            </FormFieldLabel>
+            <Textarea
+              required
+              value={editForm.negativeDescription}
+              onChange={(e) => setField('negativeDescription', e.target.value)}
+              rows={2}
+            />
+            <FormFieldError>{errors.negativeDescription}</FormFieldError>
+          </FormField>
+        </TabContent>
+        <TabContent value="fr" className="stack">
+          <FormField>
+            <FormFieldLabel>
+              {t.editor.name}
+            </FormFieldLabel>
+            <Input
+              value={editForm.nameFr || ''}
+              onChange={(e) => setField('nameFr', e.target.value)}
+            />
+          </FormField>
+          <FormField>
+            <FormFieldLabel>
+              {t.editor.positive}
+            </FormFieldLabel>
+            <Textarea
+              value={editForm.positiveDescriptionFr ?? ''}
+              onChange={(e) => setField('positiveDescriptionFr', e.target.value)}
+              rows={2}
+            />
+          </FormField>
+          <FormField>
+            <FormFieldLabel>
+              {t.editor.negative}
+            </FormFieldLabel>
+            <Textarea
+              value={editForm.negativeDescriptionFr ?? ''}
+              onChange={(e) => setField('negativeDescriptionFr', e.target.value)}
+              rows={2}
+            />
+          </FormField>
+        </TabContent>
+      </Tabs>
       <div className="inline category-editor__form-actions">
         <Button type="submit" size={BUTTON_SIZE.sm}>
           {t.save}

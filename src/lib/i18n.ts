@@ -151,13 +151,11 @@ const en = {
 
   editor: {
     name: 'Category name',
-    nameFr: 'French name',
+    languages: 'Language',
     nameMissing: 'Enter a category name.',
     lengthHint: 'Keep each description under 100 characters so it reads at a glance.',
     positive: '🟢 Positive description (green)',
     negative: '🔴 Negative description (red)',
-    positiveFr: '🟢 Positive description in French',
-    negativeFr: '🔴 Negative description in French',
     positiveMissing: 'Describe what a healthy (green) state looks like.',
     negativeMissing: 'Describe what an unhealthy (red) state looks like.',
     addTitle: 'Add New Category',
@@ -421,14 +419,12 @@ const fr: Messages = {
   },
 
   editor: {
-    name: 'Nom de la catégorie (anglais)',
-    nameFr: 'Nom de la catégorie (français)',
+    name: 'Nom de la catégorie',
+    languages: 'Langue',
     nameMissing: 'Saisissez un nom de catégorie.',
     lengthHint: 'Gardez chaque description sous 100 caractères pour une lecture rapide.',
-    positive: '🟢 Description positive (vert) — anglais',
-    negative: '🔴 Description négative (rouge) — anglais',
-    positiveFr: '🟢 Description positive (vert) — français',
-    negativeFr: '🔴 Description négative (rouge) — français',
+    positive: '🟢 Description positive (vert)',
+    negative: '🔴 Description négative (rouge)',
     positiveMissing: 'Décrivez à quoi ressemble un état sain (vert).',
     negativeMissing: 'Décrivez à quoi ressemble un état problématique (rouge).',
     addTitle: 'Nouvelle catégorie',

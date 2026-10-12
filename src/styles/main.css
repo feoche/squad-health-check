@@ -171,6 +171,11 @@ body {
   flex-direction: column;
 }
 
+/* .stack's display would win over the hidden attribute of the inactive language panel */
+.stack[hidden] {
+  display: none;
+}
+
 .page {
   gap: calc(var(--ods-theme-row-gap) * 3);
 }
