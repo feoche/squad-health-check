@@ -1,7 +1,9 @@
 import { Card, CARD_COLOR, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
+import FunStatsBanner from './FunStatsBanner';
 import VoteMatrix from './VoteMatrix';
 import VoteSummary from './VoteSummary';
+import { computeFunStats, funStatsInput, pickFunStats } from '../lib/funStats';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
@@ -11,12 +13,19 @@ interface Props {
 
 /** Shared recap: votes only — notes and exports live in the facilitator view. */
 function SessionFinished({ session }: Props) {
+  /* Picked from the session code, so the same facts show whenever the screen reloads */
+  const stats = pickFunStats(computeFunStats(funStatsInput(session)), session.code);
   return (
     <div className="page session-finished">
-      <div className="stack stack-center session-finished__intro">
-        <Text preset={TEXT_PRESET.heading2}>{t.finished.title}</Text>
-        <Text preset={TEXT_PRESET.paragraph}>{t.finished.intro}</Text>
-      </div>
+      {/* The banner takes the title's place; without enough votes for any fact, the title stays */}
+      {stats.length ? (
+        <FunStatsBanner stats={stats} />
+      ) : (
+        <div className="stack stack-center session-finished__intro">
+          <Text preset={TEXT_PRESET.heading2}>{t.finished.title}</Text>
+          <Text preset={TEXT_PRESET.paragraph}>{t.finished.intro}</Text>
+        </div>
+      )}
 
       <div className="session-finished__cards">
         {session.allResults.map((result) => {

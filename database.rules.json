@@ -101,6 +101,13 @@
             ".validate": "newData.val() === true"
           }
         },
+        "roundStarts": {
+          ".read": "auth != null",
+          "$idx": {
+            ".write": "auth != null && root.child('sessions/' + $code + '/meta/facilitatorId').val() === auth.uid",
+            ".validate": "$idx.matches(/^([0-9]|[1-9][0-9])$/) && newData.val() === now"
+          }
+        },
         "ready": {
           ".read": "auth != null",
           "$idx": {

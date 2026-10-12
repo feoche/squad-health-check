@@ -941,3 +941,25 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Fun facts replacing the finished screen's title */
+.fun-stats__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: calc(var(--ods-theme-column-gap) * 2);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fun-stats__card {
+  height: 100%;
+  align-items: center;
+  text-align: center;
+}
+
+.fun-stats__emoji {
+  font-size: 2.5rem;
+  line-height: 1;
+}

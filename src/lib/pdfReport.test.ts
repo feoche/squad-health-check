@@ -27,6 +27,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     eligibleVoters: participants,
     voterIds: [],
     quickVoterIds: [],
+    voteDelays: {},
     readyIds: [],
     isReady: false,
     disconnectedIds: [],

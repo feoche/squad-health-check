@@ -54,6 +54,15 @@ if (typeof window !== 'undefined') {
   });
 }
 
+/** What a fun stat's text is built from (see lib/funStats) */
+interface FunStatValues {
+  name?: string;
+  category?: string;
+  value?: string;
+  color?: string;
+}
+const stat = (title: string, text: (v: FunStatValues) => string) => ({ title, text });
+
 const plural = (n: number, word: string) => `${n} ${word}${n !== 1 ? 's' : ''}`;
 /** French keeps 0 and 1 singular */
 const pluralFr = (n: number, word: string) => `${n} ${word}${n > 1 ? 's' : ''}`;
@@ -223,6 +232,43 @@ const en = {
     matrixCaption: 'Votes by health colour and trend',
     descriptions: 'Health descriptions',
     unknownVoter: 'Former participant',
+  },
+
+  funStats: {
+    title: 'Fun facts of this health check',
+    sunnySide: stat('Sunny Side', ({ category }) => `${category} had the healthiest median of the check.`),
+    stormCloud: stat('Storm Cloud', ({ category }) => `${category} had the lowest median of the check.`),
+    hotDebate: stat('Hot Debate', ({ category }) => `${category} split the room the most.`),
+    choir: stat('Singing in Harmony', ({ category }) => `${category} is where the team came closest to agreeing.`),
+    greenParty: stat('Green Party', ({ category, value }) => `${value} of the votes on ${category} were green.`),
+    redAlert: stat('Red Alert', ({ category, value }) => `${value} of the votes on ${category} were red.`),
+    teamMood: stat('Team Mood', ({ value }) => `${value} of all votes were green.`),
+    lookingUp: stat('Looking Up', ({ value }) => `${value} of all votes said things are improving.`),
+    slidingDown: stat('Slippery Slope', ({ category, value }) => `${category} got ${value} "getting worse" votes, more than any other category.`),
+    risingStar: stat('Rising Star', ({ category, value }) => `${category} got ${value} "improving" votes, more than any other category.`),
+    flawless: stat('Flawless', ({ category }) => `Everyone voted green on ${category}.`),
+    splitRoom: stat('Two Worlds', ({ value }) => `${value} categories got both green and red votes.`),
+    redFree: stat('Red-Free Zone', () => 'Not a single red vote in the whole health check.'),
+    steady: stat('Steady as She Goes', ({ value }) => `${value} of all votes said things are stable.`),
+    voiceCount: stat('Many Voices', ({ value, category }) => `${value} votes cast across ${category} categories.`),
+    pessimisticPal: stat('Pessimistic Pal', ({ name, value }) => `${name} saw the clouds most often: ${value} votes were orange or red.`),
+    optimisticOtter: stat('Optimistic Otter', ({ name, value }) => `${name} saw the bright side: ${value} votes were green.`),
+    devilsAdvocate: stat("Devil's Advocate", ({ name }) => `${name} voted furthest from the rest of the team, on average.`),
+    teamMirror: stat('Team Mirror', ({ name }) => `${name} voted closest to the team's median.`),
+    blackOrWhite: stat('Black or White', ({ name, value }) => `${name} went for green or red in ${value} of their votes, rarely anything in between.`),
+    fenceSitter: stat('Fence Sitter', ({ name, value }) => `${name} picked orange in ${value} votes.`),
+    stormChaser: stat('Storm Chaser', ({ name, value }) => `${name} raised ${value} red flags.`),
+    greenThumb: stat('Green Thumb', ({ name, value }) => `${name} gave ${value} green votes.`),
+    worrier: stat('Cassandra', ({ name, value }) => `${name} saw things getting worse ${value} times.`),
+    believer: stat('True Believer', ({ name, value }) => `${name} saw things improving ${value} times.`),
+    creatureOfHabit: stat('Creature of Habit', ({ name, color, value }) => `${name} voted ${color?.toLowerCase()} in ${value} votes.`),
+    quickestDraw: stat('Quickest Draw', ({ name, value }) => `${name} voted the fastest: ${value} on average.`),
+    deepThinker: stat('Deep Thinker', ({ name, value }) => `${name} took the most time to decide: ${value} on average.`),
+    lightning: stat('Lightning Strike', ({ name, category, value }) => `${name} voted on ${category} after only ${value}.`),
+    firstResponder: stat('First Responder', ({ name, value }) => `${name} was the first to vote ${value} times.`),
+    fashionablyLate: stat('Fashionably Late', ({ name, value }) => `${name} was the last to vote ${value} times.`),
+    inSync: stat('In Sync', ({ category, value }) => `On ${category}, all the votes came within ${value} of each other.`),
+    slowBurner: stat('Slow Burner', ({ category, value }) => `On ${category}, ${value} passed between the first and the last vote.`),
   },
 
   finished: {
@@ -497,6 +543,43 @@ const fr: Messages = {
     matrixCaption: 'Votes par couleur de santé et tendance',
     descriptions: 'Description des couleurs',
     unknownVoter: 'Ancien participant',
+  },
+
+  funStats: {
+    title: 'Les anecdotes de ce bilan',
+    sunnySide: stat('Côté soleil', ({ category }) => `${category} a obtenu la meilleure médiane du bilan.`),
+    stormCloud: stat('Nuage noir', ({ category }) => `${category} a obtenu la médiane la plus basse du bilan.`),
+    hotDebate: stat('Débat animé', ({ category }) => `${category} est la catégorie qui a le plus divisé la salle.`),
+    choir: stat("Tous d'accord", ({ category }) => `${category} est la catégorie où l'équipe était le plus proche d'être unanime.`),
+    greenParty: stat('Fête en vert', ({ category, value }) => `${value} des votes sur ${category} étaient verts.`),
+    redAlert: stat('Alerte rouge', ({ category, value }) => `${value} des votes sur ${category} étaient rouges.`),
+    teamMood: stat("Moral de l'équipe", ({ value }) => `${value} de tous les votes étaient verts.`),
+    lookingUp: stat('Ça va mieux', ({ value }) => `${value} de tous les votes disaient que ça s'améliore.`),
+    slidingDown: stat('Pente glissante', ({ category, value }) => `${category} a reçu ${value} votes « en dégradation », plus que toute autre catégorie.`),
+    risingStar: stat('Étoile montante', ({ category, value }) => `${category} a reçu ${value} votes « en amélioration », plus que toute autre catégorie.`),
+    flawless: stat('Sans faute', ({ category }) => `Tout le monde a voté vert sur ${category}.`),
+    splitRoom: stat('Deux mondes', ({ value }) => `${value} catégories ont reçu à la fois des votes verts et rouges.`),
+    redFree: stat('Zone sans rouge', () => 'Pas un seul vote rouge dans tout le bilan.'),
+    steady: stat('Cap maintenu', ({ value }) => `${value} de tous les votes disaient que la situation est stable.`),
+    voiceCount: stat('Beaucoup de voix', ({ value, category }) => `${value} votes exprimés sur ${category} catégories.`),
+    pessimisticPal: stat('Pessimiste du jour', ({ name, value }) => `${name} a vu les nuages le plus souvent : ${value} votes orange ou rouges.`),
+    optimisticOtter: stat('Optimiste du jour', ({ name, value }) => `${name} a vu le bon côté des choses : ${value} votes verts.`),
+    devilsAdvocate: stat('Avocat du diable', ({ name }) => `${name} a voté le plus loin du reste de l'équipe, en moyenne.`),
+    teamMirror: stat("Miroir de l'équipe", ({ name }) => `${name} a voté au plus près de la médiane de l'équipe.`),
+    blackOrWhite: stat('Noir ou blanc', ({ name, value }) => `${name} a choisi vert ou rouge dans ${value} de ses votes, rarement entre les deux.`),
+    fenceSitter: stat('Entre deux chaises', ({ name, value }) => `${name} a choisi orange dans ${value} votes.`),
+    stormChaser: stat('Chasseur de tempêtes', ({ name, value }) => `${name} a levé ${value} drapeaux rouges.`),
+    greenThumb: stat('Main verte', ({ name, value }) => `${name} a donné ${value} votes verts.`),
+    worrier: stat('Cassandre', ({ name, value }) => `${name} a vu les choses se dégrader ${value} fois.`),
+    believer: stat('Éternel optimiste', ({ name, value }) => `${name} a vu les choses s'améliorer ${value} fois.`),
+    creatureOfHabit: stat("Homme d'habitudes", ({ name, color, value }) => `${name} a voté ${color?.toLowerCase()} dans ${value} votes.`),
+    quickestDraw: stat('Plus rapide que son ombre', ({ name, value }) => `${name} a voté le plus vite : ${value} en moyenne.`),
+    deepThinker: stat('Grand penseur', ({ name, value }) => `${name} a pris le plus de temps pour se décider : ${value} en moyenne.`),
+    lightning: stat('Coup de foudre', ({ name, category, value }) => `${name} a voté sur ${category} en seulement ${value}.`),
+    firstResponder: stat('Premier arrivé', ({ name, value }) => `${name} a voté en premier ${value} fois.`),
+    fashionablyLate: stat('Toujours le dernier', ({ name, value }) => `${name} a voté en dernier ${value} fois.`),
+    inSync: stat('À l’unisson', ({ category, value }) => `Sur ${category}, tous les votes sont arrivés à ${value} d'écart.`),
+    slowBurner: stat('Longue réflexion', ({ category, value }) => `Sur ${category}, ${value} se sont écoulées entre le premier et le dernier vote.`),
   },
 
   finished: {

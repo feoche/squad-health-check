@@ -9,6 +9,7 @@ import {
   OfflineVoteCounts,
   SessionPhase,
   Vote,
+  VoteDelay,
 } from '../types';
 import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 
@@ -51,6 +52,8 @@ export interface RawSession {
   roundBallots: Record<string, Record<string, Ballot> | null>;
   /** Votes the facilitator added per category index, readable wherever the votes are */
   offlineVotes: Record<string, OfflineVoteCounts | null>;
+  /** Server time each round's voting opened, by category index; absent for rounds before it was recorded */
+  roundStarts?: Indexed<number> | null;
   /** Who said they are ready to move on, by category index; the rules only accept it in the revealed round */
   ready?: Indexed<Record<string, true>> | null;
   /** One mark per connected tab, by participant id; facilitator only, undefined until loaded */
@@ -141,6 +144,18 @@ export function deriveClientState(
     });
   }
 
+  const voteDelays: Record<number, VoteDelay[]> = {};
+  categories.forEach((_, i) => {
+    const start = at(raw.roundStarts, i);
+    const voted = at(raw.voters, i);
+    if (typeof start !== 'number' || !voted) return;
+    voteDelays[i] = Object.entries(voted).flatMap(([id, votedAt]) =>
+      typeof votedAt === 'number' && names.has(id)
+        ? [{ id, name: names.get(id)!, ms: Math.max(0, votedAt - start) }]
+        : [],
+    );
+  });
+
   const facilitatorNotes: Record<number, FacilitatorNote> = {};
   if (isFacilitator) {
     categories.forEach((_, i) => {
@@ -187,6 +202,7 @@ export function deriveClientState(
     voterIds,
     quickVoterIds,
     disconnectedIds,
+    voteDelays,
     readyIds,
     isReady: Boolean(roundReady[myId]),
     hasVoted: Boolean(roundVoters[myId]),

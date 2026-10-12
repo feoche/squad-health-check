@@ -153,6 +153,23 @@ describe('deriveClientState', () => {
     expect(s.namedVotes[0][0].quick).toBeUndefined();
   });
 
+  it('derives how long each participant took to vote, in the rounds whose start was recorded', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { phase: 'finished', currentCategoryIndex: 1 },
+        roundStarts: { '0': 1000, '1': 5000 },
+        voters: { '0': { fac: 1800, bob: 4000, gone: 2000 }, '1': { bob: true } },
+      }),
+      'bob',
+    )!;
+    expect(s.voteDelays[0]).toEqual([
+      { id: 'fac', name: 'Alice', ms: 800 },
+      { id: 'bob', name: 'Bob', ms: 3000 },
+    ]);
+    expect(s.voteDelays[1]).toEqual([]);
+  });
+
   it('lists who is ready to move on in the revealed round, leaving the facilitator out', () => {
     const state = { phase: 'revealed' as const, currentCategoryIndex: 1 };
     const ready = { '0': { bob: true as const }, '1': { fac: true as const, bob: true as const } };

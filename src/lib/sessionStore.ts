@@ -159,6 +159,7 @@ export function subscribeSession(
     participants: null,
     voters: null,
     ready: null,
+    roundStarts: null,
     votes: {},
     facilitator: undefined,
     closed: null,
@@ -284,7 +285,7 @@ export function subscribeSession(
     };
   };
 
-  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'ready' | 'facilitator' | 'closed' | 'presence') => {
+  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'ready' | 'roundStarts' | 'facilitator' | 'closed' | 'presence') => {
     unsubs.push(
       onValue(
         sessionRef(code, key),
@@ -325,6 +326,7 @@ export function subscribeSession(
   listen('participants');
   listen('voters');
   listen('ready');
+  listen('roundStarts');
 
   return () => {
     unsubs.forEach((u) => u());
@@ -387,7 +389,11 @@ export async function startWorkshop(s: ClientSessionState): Promise<void> {
 
 export async function startVoting(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator || s.phase !== 'intro') return;
-  await writeState(s, { phase: 'voting', roundStartedAt: serverTimestamp() });
+  await update(sessionRef(s.code), {
+    'state/phase': 'voting',
+    'state/roundStartedAt': serverTimestamp(),
+    'roundStarts/0': serverTimestamp(),
+  });
 }
 
 export async function revealVotes(s: ClientSessionState): Promise<void> {
@@ -404,6 +410,7 @@ export async function nextCategory(s: ClientSessionState): Promise<void> {
     'state/phase': 'voting',
     'state/currentCategoryIndex': idx + 1,
     'state/roundStartedAt': serverTimestamp(),
+    [`roundStarts/${idx + 1}`]: serverTimestamp(),
     [`closed/${idx}`]: true,
   });
 }

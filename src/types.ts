@@ -56,6 +56,13 @@ export interface Participant {
   name: string;
 }
 
+/** How long after its round opened a participant voted, once the round's start time is known */
+export interface VoteDelay {
+  id: string;
+  name: string;
+  ms: number;
+}
+
 /** A revealed vote with its voter, in sessions that are not fully anonymous */
 export interface NamedVote {
   id: string;
@@ -96,6 +103,8 @@ export interface ClientSessionState {
   readyIds: string[];
   /** Whether the current user said they are ready to move on in the revealed round */
   isReady: boolean;
+  /** Time each participant took to vote, by category index, for the rounds whose start time was recorded */
+  voteDelays: Record<number, VoteDelay[]>;
   hasVoted: boolean;
   /** The current user's vote in the current round, once their ballot has loaded */
   myVote: Vote | null;
