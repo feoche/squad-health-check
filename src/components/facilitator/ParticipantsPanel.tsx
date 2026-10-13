@@ -19,6 +19,8 @@ function ParticipantsPanel({ session }: { session: ClientSessionState }) {
         {session.facilitatorVotes ? t.settings.youVote : t.settings.youDontVote}
         {' · '}
         {t.settings.anonymity}: {t.settings.levels[session.anonymity]}
+        {' · '}
+        {t.settings.voteMode}: {t.settings.voteModes[session.voteMode]}
       </Text>
     </Card>
   );

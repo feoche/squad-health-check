@@ -9,7 +9,7 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
-import { Vote, VoteColor, VoteTrend } from '../types';
+import { ColorVote, VoteColor, VoteTrend } from '../types';
 import { t as messages } from '../lib/i18n';
 import { COLOR_OPTIONS, TREND_OPTIONS_WORST_FIRST } from './voteOptions';
 
@@ -17,15 +17,15 @@ import { COLOR_OPTIONS, TREND_OPTIONS_WORST_FIRST } from './voteOptions';
 const MATRIX_TRENDS = TREND_OPTIONS_WORST_FIRST;
 
 interface Props {
-  votes: Vote[];
+  votes: ColorVote[];
   compact?: boolean;
   /** The facilitator's votes for people without the app, already in `votes`: only these can be removed */
-  offlineVotes?: Vote[];
+  offlineVotes?: ColorVote[];
   /** Shows + and − in each cell to add or remove an offline vote */
-  onAdjust?: (vote: Vote, delta: 1 | -1) => void;
+  onAdjust?: (vote: ColorVote, delta: 1 | -1) => void;
 }
 
-const countOf = (votes: Vote[], color: VoteColor, trend: VoteTrend) =>
+const countOf = (votes: ColorVote[], color: VoteColor, trend: VoteTrend) =>
   votes.filter((v) => v.color === color && v.trend === trend).length;
 
 /** Votes cross-tabulated by health color (rows) and trend (columns). */

@@ -2,6 +2,7 @@ import { Badge, BADGE_SIZE, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react'
 import { NamedVote } from '../types';
 import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
 import { t } from '../lib/i18n';
+import { colorOf } from '../lib/voteScore';
 
 /** Each voter as a badge in their colour with their trend, stacked in columns. */
 function NamedVotes({ votes }: { votes: NamedVote[] }) {
@@ -11,7 +12,7 @@ function NamedVotes({ votes }: { votes: NamedVote[] }) {
       <Text preset={TEXT_PRESET.heading5} as="h3">{t.results.byPerson}</Text>
       <ul className="named-votes__list">
         {votes.map(({ id, name, vote, quick }) => {
-          const color = COLOR_OPTIONS.find((o) => o.value === vote.color)!;
+          const color = COLOR_OPTIONS.find((o) => o.value === colorOf(vote))!;
           const trend = TREND_OPTIONS.find((o) => o.value === vote.trend)!;
           return (
             <li key={id} className="named-votes__item">

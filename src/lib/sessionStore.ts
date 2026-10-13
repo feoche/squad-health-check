@@ -26,6 +26,7 @@ import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
 import { t } from './i18n';
 import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 import { toFirebaseCategories } from './serialize';
+import { isRangeVote, sameCell } from './voteScore';
 import {
   RawSession,
   at,
@@ -65,6 +66,7 @@ const MAX_CODE_ATTEMPTS = 10;
 export const DEFAULT_SESSION_SETTINGS: SessionSettings = {
   facilitatorVotes: true,
   anonymity: 'off',
+  voteMode: 'colors',
   categoryMinutes: DEFAULT_CATEGORY_MINUTES,
 };
 
@@ -427,9 +429,9 @@ export async function endSession(s: ClientSessionState): Promise<void> {
 export async function adjustOfflineVote(s: ClientSessionState, vote: Vote, delta: 1 | -1): Promise<void> {
   if (!s.isFacilitator || (s.phase !== 'voting' && s.phase !== 'revealed')) return;
   const idx = s.currentCategoryIndex;
-  const { color, trend } = vote;
-  if (delta < 0 && !s.offlineVotes[idx]?.some((v) => v.color === color && v.trend === trend)) return;
-  await set(sessionRef(s.code, `offlineVotes/${idx}/${color}/${trend}`), increment(delta));
+  if (delta < 0 && !s.offlineVotes[idx]?.some((v) => sameCell(v, vote))) return;
+  const bucket = isRangeVote(vote) ? vote.score : vote.color;
+  await set(sessionRef(s.code, `offlineVotes/${idx}/${bucket}/${vote.trend}`), increment(delta));
 }
 
 /** Removes every vote the facilitator added in the current round, leaving participants' votes */
@@ -466,21 +468,20 @@ export async function updateFacilitatorNote(
 export async function submitVote(s: ClientSessionState, vote: Vote): Promise<void> {
   if (s.phase !== 'voting') return;
   const idx = s.currentCategoryIndex;
-  const { color, trend } = vote;
   if (s.hasVoted) {
     const ballot = await get(sessionRef(s.code, `ballots/${idx}/${s.myId}`));
     if (!ballot.exists()) return;
     const { key } = ballot.val() as Ballot;
     await update(sessionRef(s.code), {
-      [`votes/${idx}/${key}`]: { color, trend },
-      [`ballots/${idx}/${s.myId}`]: { key, color, trend },
+      [`votes/${idx}/${key}`]: vote,
+      [`ballots/${idx}/${s.myId}`]: { key, ...vote },
     });
     return;
   }
   const key = randomKey();
   await update(sessionRef(s.code), {
     [`voters/${idx}/${s.myId}`]: serverTimestamp(),
-    [`votes/${idx}/${key}`]: { color, trend },
-    [`ballots/${idx}/${s.myId}`]: { key, color, trend },
+    [`votes/${idx}/${key}`]: vote,
+    [`ballots/${idx}/${s.myId}`]: { key, ...vote },
   });
 }

@@ -2,7 +2,7 @@ import { ClientSessionState, NamedVote, Vote, VoteColor, VoteDelay } from '../ty
 import { sharedNamedVotes } from './deriveClientState';
 import { t } from './i18n';
 import { localizeCategory } from './localizeCategory';
-import { medianScore, voteWeight } from './voteScore';
+import { colorOf, medianScore, voteWeight } from './voteScore';
 
 /* ─── Fun stats shown once the session is finished: who was the quickest, the most pessimistic, which category split the room… ─── */
 
@@ -151,7 +151,8 @@ function peopleOf(input: FunStatsInput): Person[] {
     }));
   for (const p of people) {
     for (const v of p.votes) {
-      p.colors[v.color]++;
+      const color = colorOf(v);
+      if (color) p.colors[color]++;
       p.trends[v.trend]++;
     }
   }
@@ -221,20 +222,20 @@ const DEFINITIONS: Definition[] = [
     return top && top.spread < 1 ? { category: top.title } : null;
   } },
   { id: 'greenParty', group: 'team', emoji: '🥳', compute: ({ cats }) => {
-    const top = unique(sized(cats), (c) => share(c.votes, (v) => v.color === 'green') / c.votes.length);
-    const greens = top && share(top.votes, (v) => v.color === 'green');
+    const top = unique(sized(cats), (c) => share(c.votes, (v) => colorOf(v) === 'green') / c.votes.length);
+    const greens = top && share(top.votes, (v) => colorOf(v) === 'green');
     return top && greens && greens / top.votes.length >= 0.5
       ? { category: top.title, value: pct(greens, top.votes.length) }
       : null;
   } },
   { id: 'redAlert', group: 'team', emoji: '🚨', compute: ({ cats }) => {
-    const top = unique(sized(cats), (c) => share(c.votes, (v) => v.color === 'red') / c.votes.length);
-    const reds = top && share(top.votes, (v) => v.color === 'red');
+    const top = unique(sized(cats), (c) => share(c.votes, (v) => colorOf(v) === 'red') / c.votes.length);
+    const reds = top && share(top.votes, (v) => colorOf(v) === 'red');
     return top && reds ? { category: top.title, value: pct(reds, top.votes.length) } : null;
   } },
   { id: 'teamMood', group: 'team', emoji: '🌤️', compute: ({ allVotes }) => {
     if (allVotes.length < MIN_VOTES) return null;
-    return { value: pct(share(allVotes, (v) => v.color === 'green'), allVotes.length) };
+    return { value: pct(share(allVotes, (v) => colorOf(v) === 'green'), allVotes.length) };
   } },
   { id: 'lookingUp', group: 'team', emoji: '📈', compute: ({ allVotes }) => {
     if (allVotes.length < MIN_VOTES) return null;
@@ -252,15 +253,15 @@ const DEFINITIONS: Definition[] = [
     return top && ups && ups >= 2 ? { category: top.title, value: count(ups) } : null;
   } },
   { id: 'flawless', group: 'team', emoji: '💎', compute: ({ cats }) => {
-    const top = sized(cats).find((c) => c.votes.every((v) => v.color === 'green'));
+    const top = sized(cats).find((c) => c.votes.every((v) => colorOf(v) === 'green'));
     return top ? { category: top.title } : null;
   } },
   { id: 'splitRoom', group: 'team', emoji: '⚖️', compute: ({ cats }) => {
-    const split = cats.filter((c) => c.votes.some((v) => v.color === 'green') && c.votes.some((v) => v.color === 'red'));
+    const split = cats.filter((c) => c.votes.some((v) => colorOf(v) === 'green') && c.votes.some((v) => colorOf(v) === 'red'));
     return split.length ? { value: count(split.length) } : null;
   } },
   { id: 'redFree', group: 'team', emoji: '🍀', compute: ({ allVotes, cats }) =>
-    cats.length > 1 && allVotes.length >= MIN_VOTES && !allVotes.some((v) => v.color === 'red') ? {} : null },
+    cats.length > 1 && allVotes.length >= MIN_VOTES && !allVotes.some((v) => colorOf(v) === 'red') ? {} : null },
   { id: 'steady', group: 'team', emoji: '🧘', compute: ({ allVotes }) => {
     if (allVotes.length < MIN_VOTES) return null;
     const stable = share(allVotes, (v) => v.trend === 'stable');

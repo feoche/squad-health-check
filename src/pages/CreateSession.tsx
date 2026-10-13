@@ -25,7 +25,7 @@ import {
   ToggleControl,
   ToggleLabel,
 } from '@ovhcloud/ods-react';
-import { ANONYMITY_LEVELS, Anonymity, Category, SessionSettings } from '../types';
+import { ANONYMITY_LEVELS, Anonymity, Category, SessionSettings, VOTE_MODES, VoteMode } from '../types';
 import { defaultCategories } from '../data/defaultCategories';
 import CategoryEditor from '../components/CategoryEditor';
 import PreviousSessionPicker from '../components/PreviousSessionPicker';
@@ -143,6 +143,26 @@ function CreateSession() {
               </MessageBody>
             </Message>
           )}
+          <FormField>
+            <FormFieldLabel>{t.settings.voteMode}</FormFieldLabel>
+            <RadioGroup
+              className="create-session__levels"
+              value={settings.voteMode}
+              onValueChange={({ value }) => setSettings((s) => ({ ...s, voteMode: value as VoteMode }))}
+            >
+              {VOTE_MODES.map((mode) => (
+                <Radio key={mode} className="create-session__level" value={mode}>
+                  <div className="create-session__level-body">
+                    <RadioControl />
+                    <RadioLabel>{t.settings.voteModes[mode]}</RadioLabel>
+                    <Text preset={TEXT_PRESET.caption} className="create-session__level-hint">
+                      {t.settings.voteModeHints[mode]}
+                    </Text>
+                  </div>
+                </Radio>
+              ))}
+            </RadioGroup>
+          </FormField>
           <FormField>
             <FormFieldLabel>{t.settings.anonymity}</FormFieldLabel>
             <RadioGroup

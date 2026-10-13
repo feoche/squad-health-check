@@ -1,6 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { Card, CARD_COLOR, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
-import { ClientSessionState, VoteColor, VoteTrend } from '../../types';
+import { ClientSessionState, Vote } from '../../types';
 import { t } from '../../lib/i18n';
 import { localizeCategory } from '../../lib/localizeCategory';
 import VoteSubmitted from '../VoteSubmitted';
@@ -8,7 +8,7 @@ import VotingPanel from '../VotingPanel';
 
 interface Props {
   session: ClientSessionState;
-  onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
+  onSubmitVote: (vote: Vote) => void;
   /** Number of votes shown in the results, added to the title once they have loaded */
   voteCount?: number;
   /** The round's results, shown in the same card */
@@ -39,11 +39,12 @@ function CurrentCategory({ session, onSubmitVote, voteCount, children }: Props) 
           <VotingPanel
             key={`${index}-${isEditing}`}
             category={categories[index]}
+            voteMode={session.voteMode}
             initialVote={isEditing ? session.myVote : null}
             onCancel={isEditing ? () => setEditingIndex(null) : undefined}
-            onSubmitVote={(color, trend) => {
+            onSubmitVote={(vote) => {
               setEditingIndex(null);
-              onSubmitVote(color, trend);
+              onSubmitVote(vote);
             }}
           />
         ))}

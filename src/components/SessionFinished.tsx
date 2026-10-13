@@ -5,6 +5,7 @@ import VoteMatrix from './VoteMatrix';
 import VoteSummary from './VoteSummary';
 import { computeFunStats, funStatsInput, pickFunStats } from '../lib/funStats';
 import { t } from '../lib/i18n';
+import { colorVotes } from '../lib/voteScore';
 import { localizeCategory } from '../lib/localizeCategory';
 
 interface Props {
@@ -38,7 +39,7 @@ function SessionFinished({ session }: Props) {
                 </Text>
                 <VoteSummary votes={result.votes} prefix={false} />
               </div>
-              <VoteMatrix votes={result.votes} compact />
+              <VoteMatrix votes={colorVotes(result.votes)} compact />
             </Card>
           );
         })}

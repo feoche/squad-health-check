@@ -10,11 +10,11 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
-import { ClientSessionState, VoteColor, VoteTrend } from '../types';
-import ColorCards from './ColorCards';
+import { ClientSessionState, Vote } from '../types';
 import IntroContent from './IntroContent';
 import ParticipantBadges from './ParticipantBadges';
 import SessionProgress from './SessionProgress';
+import VoteLegend from './VoteLegend';
 import VoteSubmitted from './VoteSubmitted';
 import VotingPanel from './VotingPanel';
 import { LANG, t } from '../lib/i18n';
@@ -22,7 +22,7 @@ import { localizeCategory } from '../lib/localizeCategory';
 
 interface Props {
   session: ClientSessionState;
-  onSubmitVote: (color: VoteColor, trend: VoteTrend) => void;
+  onSubmitVote: (vote: Vote) => void;
   onSetReady: (ready: boolean) => void;
 }
 
@@ -68,7 +68,7 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
   if (phase === 'intro') {
     return (
       <div className="page participant-view participant-view--intro">
-        <IntroContent categories={categories} anonymity={session.anonymity} compact />
+        <IntroContent categories={categories} anonymity={session.anonymity} voteMode={session.voteMode} compact />
       </div>
     );
   }
@@ -90,18 +90,19 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
           </Text>
         )}
         {/* While picking, the descriptions live in the vote tiles instead */}
-        {!isPicking && <ColorCards category={category} />}
+        {!isPicking && <VoteLegend mode={session.voteMode} category={category} />}
       </div>
 
       {isPicking && (
         <VotingPanel
           key={`${currentCategoryIndex}-${isEditing}`}
           category={category}
+          voteMode={session.voteMode}
           initialVote={isEditing ? session.myVote : null}
           onCancel={isEditing ? () => setEditingIndex(null) : undefined}
-          onSubmitVote={(color, trend) => {
+          onSubmitVote={(vote) => {
             setEditingIndex(null);
-            onSubmitVote(color, trend);
+            onSubmitVote(vote);
           }}
         />
       )}

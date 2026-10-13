@@ -9,8 +9,8 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
-import ColorCards from './ColorCards';
 import IntroContent from './IntroContent';
+import VoteLegend from './VoteLegend';
 import ParticipantBadges from './ParticipantBadges';
 import ResultsGrid from './ResultsGrid';
 import SessionFinished from './SessionFinished';
@@ -51,7 +51,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
   if (phase === 'intro') {
     return (
       <div className="page presenter-view presenter-view--intro">
-        <IntroContent categories={categories} anonymity={session.anonymity} />
+        <IntroContent categories={categories} anonymity={session.anonymity} voteMode={session.voteMode} />
       </div>
     );
   }
@@ -81,7 +81,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
           </Text>
         )}
         {/* Once revealed, the results come first and the descriptions fold away below them */}
-        {phase !== 'revealed' && <ColorCards category={category} large />}
+        {phase !== 'revealed' && <VoteLegend mode={session.voteMode} category={category} large />}
       </div>
 
       {phase === 'voting' && (
@@ -103,7 +103,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
               <Text preset={TEXT_PRESET.heading4} as="span">{t.results.descriptions}</Text>
             </AccordionTrigger>
             <AccordionContent>
-              <ColorCards category={category} large />
+              <VoteLegend mode={session.voteMode} category={category} large />
             </AccordionContent>
           </AccordionItem>
         </Accordion>

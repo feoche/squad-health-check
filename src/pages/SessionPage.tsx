@@ -18,7 +18,7 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
-import { ClientSessionState, VoteColor, VoteTrend } from '../types';
+import { ClientSessionState, Vote } from '../types';
 import { ensureSignedIn } from '../lib/firebase';
 import { CODE_PATTERN } from '../lib/sessionCode';
 import { shouldAutoReveal } from '../lib/deriveClientState';
@@ -139,8 +139,8 @@ function SessionView() {
 
   /* ─── Actions (memoised) ─── */
   const handleSubmitVote = useCallback(
-    (color: VoteColor, trend: VoteTrend) => {
-      if (session) store.submitVote(session, { color, trend }).catch(warn);
+    (vote: Vote) => {
+      if (session) store.submitVote(session, vote).catch(warn);
     },
     [session],
   );

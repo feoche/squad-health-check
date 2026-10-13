@@ -1,6 +1,7 @@
 import { Button, BUTTON_SIZE, BUTTON_VARIANT, Card, CARD_COLOR, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { t } from '../lib/i18n';
 import { NamedVote, Vote } from '../types';
+import { colorVotes } from '../lib/voteScore';
 import NamedVotes from './NamedVotes';
 import VoteMatrix from './VoteMatrix';
 
@@ -25,7 +26,7 @@ function ResultsGrid({ votes, namedVotes, inline = false, offlineVotes, onAdjust
     <>
       <div className={namedVotes?.length ? 'results-grid__body results-grid__body--split' : 'results-grid__body'}>
         <div className="table-scroll results-grid__matrix">
-          <VoteMatrix votes={votes} offlineVotes={offlineVotes} onAdjust={onAdjust} />
+          <VoteMatrix votes={colorVotes(votes)} offlineVotes={colorVotes(offlineVotes ?? [])} onAdjust={onAdjust} />
         </div>
         {namedVotes && <NamedVotes votes={namedVotes} />}
       </div>

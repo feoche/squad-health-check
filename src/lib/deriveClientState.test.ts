@@ -4,6 +4,7 @@ import {
   RawSession,
   canStartWorkshop,
   deriveClientState,
+  expandOfflineVotes,
   readableBallotIndexes,
   readableVoteIndexes,
   sharedNamedVotes,
@@ -624,6 +625,78 @@ describe('sharedNamedVotes', () => {
 
   it('is undefined for a category without loaded ballots', () => {
     expect(sharedNamedVotes({ anonymity: 'off', namedVotes: named }, 1)).toBeUndefined();
+  });
+});
+
+describe('range sessions', () => {
+  const k1 = 'a'.repeat(20);
+  const k2 = 'b'.repeat(20);
+  const rangeState = (extra: Partial<RawSession['state'] & object> = {}) => ({
+    phase: 'revealed' as const,
+    currentCategoryIndex: 0,
+    voteMode: 'range' as const,
+    ...extra,
+  });
+
+  it('counts a session without voteMode as colors', () => {
+    expect(deriveClientState('ABC234', raw(), 'fac')!.voteMode).toBe('colors');
+  });
+
+  it('reads score votes and the facilitator\'s offline scores, in score order', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: rangeState(),
+        votes: { 0: { [k1]: { score: 8, trend: 'up' }, [k2]: { score: 2, trend: 'down' } } },
+        offlineVotes: { 0: { '7': { up: 2 }, '3': { down: 1 } } },
+      }),
+      'fac',
+    )!;
+    expect(s.voteMode).toBe('range');
+    expect(s.currentResults).toEqual([
+      { score: 8, trend: 'up' },
+      { score: 2, trend: 'down' },
+      { score: 3, trend: 'down' },
+      { score: 7, trend: 'up' },
+      { score: 7, trend: 'up' },
+    ]);
+    expect(s.offlineVotes[0]).toEqual([
+      { score: 3, trend: 'down' },
+      { score: 7, trend: 'up' },
+      { score: 7, trend: 'up' },
+    ]);
+  });
+
+  it('returns the voter\'s own score without the ballot key', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { phase: 'voting', currentCategoryIndex: 0, voteMode: 'range' },
+        ballots: { '0': { key: k1, score: 6, trend: 'down' } },
+      }),
+      'bob',
+    )!;
+    expect(s.myVote).toEqual({ score: 6, trend: 'down' });
+  });
+
+  it('names score votes when votes are not anonymous', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: rangeState({ anonymity: 'off' }),
+        roundBallots: { '0': { bob: { key: k1, score: 4, trend: 'stable' } } },
+      }),
+      'fac',
+    )!;
+    expect(s.namedVotes[0]).toEqual([{ id: 'bob', name: 'Bob', vote: { score: 4, trend: 'stable' } }]);
+  });
+});
+
+describe('expandOfflineVotes', () => {
+  it('reads color keys by default and score keys in range mode', () => {
+    expect(expandOfflineVotes({ red: { down: 1 } })).toEqual([{ color: 'red', trend: 'down' }]);
+    expect(expandOfflineVotes({ '9': { up: 1 } }, 'range')).toEqual([{ score: 9, trend: 'up' }]);
+    expect(expandOfflineVotes(null, 'range')).toEqual([]);
   });
 });
 

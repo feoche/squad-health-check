@@ -69,9 +69,10 @@ A static site on GitHub Pages, synced in real time through Firebase (free plan).
 | 📊 **Live results for the facilitator** | The facilitator's view fills the vote matrix as votes arrive, once they have voted (or from the start when they don't vote); the shared screen still waits for the reveal |
 | 🎉 **Auto-reveal** | Votes are revealed when every voter has voted (from the facilitator's open window); voters whose app is disconnected are marked in the facilitator view, which suggests revealing by hand once the others have voted |
 | 🕶️ **Vote anonymization** | Chosen at creation: *off* (everyone sees who voted what once a round is revealed), *facilitator only* (only the facilitator sees names; the shared screen shows totals) or *full* (totals only). Names are never visible while a round is being voted 🔒 |
+| 🔢 **Vote mode** | Chosen at creation: *Colors* (a health color and a trend) or *Range* (a score from 1 to 9 picked with a slider, and a trend). Range sessions show a score histogram with the median, their own fun facts, and exports with the scores 🔒 |
 | ➕ **Votes for people without the app** | During a round, the facilitator adds or removes votes in the matrix for people in the room who are not connected; they are marked and can be reset |
 | ⚡ **Quick voters** | A ⚡ before the name of whoever voted within 2 seconds of the round opening, in the facilitator's live list and in the named votes of the current round |
-| 🎊 **Fun facts** | The finished screen opens with a banner of four fun facts picked from 33 (*Pessimistic Pal*, *Quickest Draw*, *Hot Debate*, *Team Mood*…), mixing the team, people and speed; facts about what a person voted only appear when votes are not anonymous, and speed facts name people but never their votes. The same facts show whenever the screen reloads |
+| 🎊 **Fun facts** | The finished screen opens with a banner of four fun facts picked from 33 in either mode, with facts about scores in Range sessions (*Pessimistic Pal*, *Quickest Draw*, *Hot Debate*, *Team Mood*…), mixing the team, people and speed; facts about what a person voted only appear when votes are not anonymous, and speed facts name people but never their votes. The same facts show whenever the screen reloads |
 | 📝 **Private facilitator notes** | A note per category in the facilitator view, never on the shared screen; only the facilitator can read them 🔒 |
 
 ### 🧩 Preparing and following up
@@ -179,7 +180,7 @@ It checks every screen, runs axe on each view and phase, downloads the three rep
 ## ✅ Manual test checklist
 
 <details>
-<summary>20 steps with two browsers — click to expand</summary>
+<summary>21 steps with two browsers — click to expand</summary>
 
 <br>
 
@@ -210,6 +211,7 @@ Use two browsers (or one normal + one private window): **A** = facilitator, **B*
 18. Ready to move on: after a reveal, B taps "I'm ready for the next category" → B sees "You're ready", A's view shows "Ready to move on: 1 of 1" and B's badge turns green; B taps "Not ready yet" → back to 0. A's Next Category works either way, and the next round starts with nobody ready. Rules Playground: *write* `true` at `/sessions/<CODE>/ready/<current index>/<A's UID>` as B → *Denied*; as B at `/ready/<current index>/<B's UID>` during voting → *Denied*.
 19. Quick voters: B votes within 2 seconds of the round opening → ⚡ before B's name in A's live list and, with anonymization Off, in the named votes after the reveal; B voting later shows no ⚡. Rules Playground: *write* `5` at `/sessions/<CODE>/voters/<current index>/<B's UID>` as B → *Denied*.
 20. Fun facts: finish a session with at least three voters over several categories → the presenter opens on a banner of four fun facts instead of "Session Complete!", the same ones after a reload; with anonymization Off a fact can name a person for what they voted, with *Facilitator only* or *Full* only team and speed facts appear. Rules Playground: *write* any value at `/sessions/<CODE>/roundStarts/0` as B → *Denied*.
+21. Range session: create with **Vote mode: Range**; B's form shows the slider with the category's 1 and 9 wording and no color; submit without touching the slider → "Pick a score from 1 to 9." and focus on the slider; vote 7 + a trend; A's live results show the histogram; add an offline vote with + (trend selector) and reset; reveal → median marked, presenter shows the histogram and a neutral `N / 9` badge; finish → fun facts about scores; the Markdown, PDF and JSON exports carry the scores. Rules Playground: *write* `{ "color": "red", "trend": "up" }` at `/sessions/<CODE>/votes/<idx>/<20-char key>` in a Range session → *Denied*; *write* `'colors'` at `/sessions/<CODE>/state/voteMode` as A → *Denied*.
 
 </details>
 
@@ -275,7 +277,7 @@ flowchart LR
 ├── scripts/
 │   └── workshop.mjs        # Simulated workshop (npm run workshop)
 ├── src/
-│   ├── components/         # React components
+│   ├── components/         # React components (range mode: ScoreInput, ScaleCards, VoteLegend, ScoreHistogram, VoteBreakdown)
 │   │   └── facilitator/        # Facilitator dashboard
 │   ├── data/               # Default categories
 │   ├── lib/
@@ -298,7 +300,7 @@ flowchart LR
 │   │   ├── sessionHistory.ts   # Previous session: JSON format, storage, comparison
 │   │   ├── roundTimer.ts       # Time slots and timer thresholds
 │   │   ├── voteScore.ts        # Vote weights and median
-│   │   ├── funStats.ts         # The 33 fun facts of the finished screen and their picking
+│   │   ├── funStats.ts         # The fun facts of the finished screen (33 per mode) and their picking
 │   │   ├── useLang.ts          # Re-render on language switch
 │   │   ├── usePageTitle.ts     # Tab title per page
 │   │   └── useFocusIfLost.ts   # Focus recovery when a view replaces the focused control

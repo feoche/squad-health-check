@@ -49,3 +49,12 @@ export const TREND_OPTIONS = withLabels<VoteTrend, { value: VoteTrend; icon: Ico
 
 /** Worsening first, improving last, for scales read left to right. */
 export const TREND_OPTIONS_WORST_FIRST = [...TREND_OPTIONS].reverse();
+
+/** What 1 and 9 mean in a category: its negative and positive descriptions, or generic ones without a category */
+export function scoreEnds(category?: Category): { low: string; high: string } {
+  const localized = category && localizeCategory(category);
+  return {
+    low: localized?.negativeDescription?.trim() || t.colorFallbacks.red,
+    high: localized?.positiveDescription?.trim() || t.colorFallbacks.green,
+  };
+}

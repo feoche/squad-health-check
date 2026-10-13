@@ -19,6 +19,7 @@ function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['
     totalVoters: 1,
     facilitatorVotes: true,
     anonymity: 'full',
+    voteMode: 'colors',
     categoryMinutes: 10,
     roundStartedAt: null,
     eligibleVoters: participants,

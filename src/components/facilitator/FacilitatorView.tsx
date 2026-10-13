@@ -10,7 +10,7 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { useEffect, useState } from 'react';
-import { ClientSessionState, Vote, VoteColor, VoteTrend } from '../../types';
+import { ClientSessionState, Vote } from '../../types';
 import { t } from '../../lib/i18n';
 import {
   clearPreviousSession,
@@ -37,7 +37,7 @@ import ReportExports from './ReportExports';
 export interface FacilitatorActions {
   startWorkshop: () => void;
   startVoting: () => void;
-  submitVote: (color: VoteColor, trend: VoteTrend) => void;
+  submitVote: (vote: Vote) => void;
   reveal: () => void;
   next: () => void;
   end: () => void;

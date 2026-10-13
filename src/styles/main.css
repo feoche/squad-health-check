@@ -963,3 +963,34 @@ body {
   font-size: 2.5rem;
   line-height: 1;
 }
+
+/* Range vote: the 1 and 9 wording above the slider, the picked value below it */
+.score-input {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.score-input__ends {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.score-input__end--high {
+  text-align: right;
+}
+
+.score-input__value {
+  text-align: center;
+}
+
+.scale-cards__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ods-theme-row-gap);
+}
+
+.scale-cards--large .scale-cards__score {
+  font-size: 3rem;
+}

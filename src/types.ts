@@ -12,6 +12,10 @@ export interface Category {
 export type VoteColor = 'green' | 'orange' | 'red';
 export type VoteTrend = 'up' | 'stable' | 'down';
 
+/** How people vote, chosen when creating the session: a health color, or a score from 1 to 9 */
+export const VOTE_MODES = ['colors', 'range'] as const;
+export type VoteMode = (typeof VOTE_MODES)[number];
+
 /** Who sees who voted what, once a round is revealed */
 export const ANONYMITY_LEVELS = ['off', 'facilitator', 'full'] as const;
 export type Anonymity = (typeof ANONYMITY_LEVELS)[number];
@@ -20,23 +24,33 @@ export type Anonymity = (typeof ANONYMITY_LEVELS)[number];
 export interface SessionSettings {
   facilitatorVotes: boolean;
   anonymity: Anonymity;
+  voteMode: VoteMode;
   /** Time slot per category, in minutes: the round timer changes colour past it */
   categoryMinutes: number;
 }
 
-export interface Vote {
+export interface ColorVote {
   color: VoteColor;
   trend: VoteTrend;
 }
 
-/** A voter's private copy of their vote, which lets them edit it while the round is open */
-export interface Ballot extends Vote {
-  /** Key of the anonymous vote under votes/{index} */
-  key: string;
+/** A score from 1 (lowest) to 9 (highest); never carries a color */
+export interface RangeVote {
+  score: number;
+  trend: VoteTrend;
 }
 
-/** Votes the facilitator added for people present but not connected, counted per cell */
-export type OfflineVoteCounts = Partial<Record<VoteColor, Partial<Record<VoteTrend, number>>>>;
+/** The shape follows the session's `voteMode`: ColorVote in 'colors', RangeVote in 'range' */
+export type Vote = ColorVote | RangeVote;
+
+/** A voter's private copy of their vote, which lets them edit it while the round is open */
+export type Ballot = Vote & {
+  /** Key of the anonymous vote under votes/{index} */
+  key: string;
+};
+
+/** Votes the facilitator added for people present but not connected, counted per cell: by color in 'colors' sessions, by score ("1"…"9") in 'range' ones */
+export type OfflineVoteCounts = Partial<Record<string, Partial<Record<VoteTrend, number>>>>;
 
 export interface CategoryResult {
   categoryIndex: number;
@@ -88,6 +102,8 @@ export interface ClientSessionState {
   facilitatorVotes: boolean;
   /** Absent in the database means 'full' (sessions created before the setting existed) */
   anonymity: Anonymity;
+  /** Absent in the database means 'colors' (sessions created before the setting existed) */
+  voteMode: VoteMode;
   /** Absent in the database means DEFAULT_CATEGORY_MINUTES (sessions created before the setting existed) */
   categoryMinutes: number;
   /** Server time the current round's voting opened; null in sessions created before the timer */

@@ -22,6 +22,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     totalVoters: 2,
     facilitatorVotes: true,
     anonymity: 'full',
+    voteMode: 'colors',
     categoryMinutes: 10,
     roundStartedAt: null,
     eligibleVoters: participants,

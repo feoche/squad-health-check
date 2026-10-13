@@ -10,8 +10,10 @@ import {
   SessionPhase,
   Vote,
   VoteDelay,
+  VoteMode,
 } from '../types';
 import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
+import { isRangeVote } from './voteScore';
 
 /** A vote cast within this delay of the round opening gets a spark */
 export const QUICK_VOTE_MS = 2000;
@@ -29,6 +31,8 @@ export interface SessionStateNode {
   facilitatorVotes?: boolean;
   /** Absent in sessions created before the setting existed: counts as 'full' */
   anonymity?: Anonymity;
+  /** Absent in sessions created before the setting existed: counts as 'colors' */
+  voteMode?: VoteMode;
   /** Absent in sessions created before the setting existed: counts as DEFAULT_CATEGORY_MINUTES */
   categoryMinutes?: number;
   /** Server time the current round's voting opened, absent in sessions created before the timer */
@@ -65,25 +69,35 @@ export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | und
   return (coll as Record<string, T | null | undefined>)[String(idx)] ?? undefined;
 }
 
-/** One vote per unit of each cell's count */
-export function expandOfflineVotes(counts: OfflineVoteCounts | null | undefined): Vote[] {
-  return Object.entries(counts ?? {}).flatMap(([color, trends]) =>
+/** One vote per unit of each cell's count; the cell key is a color in 'colors' sessions, a score in 'range' ones */
+export function expandOfflineVotes(counts: OfflineVoteCounts | null | undefined, mode: VoteMode = 'colors'): Vote[] {
+  return Object.entries(counts ?? {}).flatMap(([key, trends]) =>
     Object.entries(trends ?? {}).flatMap(([trend, n]) =>
-      Array.from({ length: n ?? 0 }, () => ({ color, trend }) as Vote),
+      Array.from(
+        { length: n ?? 0 },
+        () => (mode === 'range' ? { score: Number(key), trend } : { color: key, trend }) as Vote,
+      ),
     ),
   );
 }
 
 /** Participants' votes, then the ones the facilitator added for people without the app */
-function votesAt(raw: RawSession, idx: number): Vote[] {
+function votesAt(raw: RawSession, idx: number, mode: VoteMode): Vote[] {
   return [
     ...Object.values(at(raw.votes, idx) ?? {}),
-    ...expandOfflineVotes(raw.offlineVotes[String(idx)]),
+    ...expandOfflineVotes(raw.offlineVotes[String(idx)], mode),
   ];
 }
 
+/** The vote of a ballot, without its key */
+function voteOf(ballot: Ballot): Vote {
+  return isRangeVote(ballot)
+    ? { score: ballot.score, trend: ballot.trend }
+    : { color: ballot.color, trend: ballot.trend };
+}
+
 function myVote(ballot: Ballot | null | undefined): Vote | null {
-  return ballot ? { color: ballot.color, trend: ballot.trend } : null;
+  return ballot ? voteOf(ballot) : null;
 }
 
 /** By name, voters who left (no name) last */
@@ -99,6 +113,7 @@ export function deriveClientState(
 
   const { categories, facilitatorId } = raw.meta;
   const { phase, currentCategoryIndex } = raw.state;
+  const voteMode: VoteMode = raw.state.voteMode ?? 'colors';
 
   const participants = Object.entries(raw.participants ?? {})
     .map(([id, p]) => ({ id, name: p.name }))
@@ -137,7 +152,7 @@ export function deriveClientState(
         .map(([id, b]) => ({
           id,
           name: names.get(id) ?? null,
-          vote: { color: b.color, trend: b.trend },
+          vote: voteOf(b),
           ...(i === currentCategoryIndex && quickVoterIds.includes(id) && { quick: true }),
         }))
         .sort(byName);
@@ -168,20 +183,20 @@ export function deriveClientState(
 
   const categoryResults: Record<number, Vote[]> = {};
   categories.forEach((_, i) => {
-    if (at(raw.votes, i) !== undefined) categoryResults[i] = votesAt(raw, i);
+    if (at(raw.votes, i) !== undefined) categoryResults[i] = votesAt(raw, i, voteMode);
   });
 
   const offlineVotes: Record<number, Vote[]> = {};
   categories.forEach((_, i) => {
     const counts = raw.offlineVotes[String(i)];
-    if (counts) offlineVotes[i] = expandOfflineVotes(counts);
+    if (counts) offlineVotes[i] = expandOfflineVotes(counts, voteMode);
   });
 
   const allResults: CategoryResult[] =
     phase === 'finished'
       ? categories.map((_, i) => ({
           categoryIndex: i,
-          votes: votesAt(raw, i),
+          votes: votesAt(raw, i, voteMode),
           notes: facilitatorNotes[i]?.notes ?? '',
         }))
       : [];
@@ -196,6 +211,7 @@ export function deriveClientState(
     totalVoters: eligibleVoters.length,
     facilitatorVotes,
     anonymity,
+    voteMode,
     categoryMinutes: raw.state.categoryMinutes ?? DEFAULT_CATEGORY_MINUTES,
     roundStartedAt: raw.state.roundStartedAt ?? null,
     eligibleVoters,
@@ -212,13 +228,13 @@ export function deriveClientState(
     facilitatorId,
     currentResults:
       phase === 'revealed' && at(raw.votes, currentCategoryIndex) !== undefined
-        ? votesAt(raw, currentCategoryIndex)
+        ? votesAt(raw, currentCategoryIndex, voteMode)
         : null,
     liveResults:
       isFacilitator &&
       phase === 'voting' &&
       at(raw.votes, currentCategoryIndex) !== undefined
-        ? votesAt(raw, currentCategoryIndex)
+        ? votesAt(raw, currentCategoryIndex, voteMode)
         : null,
     allResults,
     facilitatorNotes,
