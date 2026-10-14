@@ -1,4 +1,4 @@
-import { Category, ClientSessionState } from '../types';
+import { Category, ClientSessionState, VoteMode } from '../types';
 import { LANG, Lang } from './i18n';
 import { localizeCategory } from './localizeCategory';
 import { MAX_SCORE, medianScore } from './voteScore';
@@ -22,6 +22,8 @@ export interface SessionExport {
   date: string;
   /** People who could vote: the participants, minus the facilitator when they did not vote */
   voters: number;
+  /** Absent means 'colors'; medians of different modes are not comparable */
+  voteMode?: VoteMode;
   categories: CategoryExport[];
 }
 
@@ -35,7 +37,7 @@ export function exportDate(day: string): Date {
 }
 
 export function toSessionExport(
-  session: Pick<ClientSessionState, 'categories' | 'allResults' | 'totalVoters'>,
+  session: Pick<ClientSessionState, 'categories' | 'allResults' | 'totalVoters'> & { voteMode?: VoteMode },
   date = new Date(),
   lang: Lang = LANG,
 ): SessionExport {
@@ -43,6 +45,7 @@ export function toSessionExport(
     version: 1,
     date: isoDay(date),
     voters: session.totalVoters,
+    ...(session.voteMode === 'range' && { voteMode: 'range' as const }),
     categories: session.allResults.map((result) => {
       const category = session.categories[result.categoryIndex];
       return {
@@ -86,12 +89,14 @@ export function parseSessionExport(text: string): SessionExport | null {
   if (typeof value.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value.date)) return null;
   if (!Array.isArray(value.categories)) return null;
   if (!isCount(value.voters)) return null;
+  if (value.voteMode !== undefined && value.voteMode !== 'colors' && value.voteMode !== 'range') return null;
   const categories: unknown[] = value.categories;
   if (!categories.every(isCategoryExport)) return null;
   return {
     version: 1,
     date: value.date,
     voters: value.voters,
+    ...(value.voteMode === 'range' && { voteMode: 'range' as const }),
     categories: categories.map(({ name, title, votes, median, notes }) => ({ name, title, votes, median, notes })),
   };
 }
@@ -106,9 +111,9 @@ export function evolution(previous: number | null, current: number | null): Evol
   return current > previous ? 'better' : current < previous ? 'worse' : 'same';
 }
 
-/** The previous session's entry for a category, matched on its stable name */
-export const findPrevious = (previous: SessionExport | null, category: Category) =>
-  previous?.categories.find((c) => c.name === category.name);
+/** The previous session's entry for a category, matched on its stable name; none when its votes were of the other mode */
+export const findPrevious = (previous: SessionExport | null, category: Category, voteMode: VoteMode = 'colors') =>
+  (previous?.voteMode ?? 'colors') === voteMode ? previous?.categories.find((c) => c.name === category.name) : undefined;
 
 /* ─── Stored results (storage may be missing or blocked) ─── */
 

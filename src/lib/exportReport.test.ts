@@ -1,13 +1,17 @@
 import { describe, it, expect } from 'vitest';
 import { CategoryResult, ClientSessionState } from '../types';
-import { generateMarkdown } from './exportReport';
+import { generateMarkdown, scoreSummary, trendSummary } from './exportReport';
 
 const categories = [
   { name: 'Fun', positiveDescription: 'p', negativeDescription: 'n' },
   { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', negativeDescription: 'n' },
 ];
 
-function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['namedVotes'] = {}): ClientSessionState {
+function finished(
+  allResults: CategoryResult[],
+  namedVotes: ClientSessionState['namedVotes'] = {},
+  voteMode: ClientSessionState['voteMode'] = 'colors',
+): ClientSessionState {
   const participants = [{ id: 'fac', name: 'Alice' }];
   return {
     code: 'ABC234',
@@ -19,7 +23,7 @@ function finished(allResults: CategoryResult[], namedVotes: ClientSessionState['
     totalVoters: 1,
     facilitatorVotes: true,
     anonymity: 'full',
-    voteMode: 'colors',
+    voteMode,
     categoryMinutes: 10,
     roundStartedAt: null,
     eligibleVoters: participants,
@@ -104,5 +108,33 @@ describe('generateMarkdown', () => {
       }),
     );
     expect(md).not.toContain('Alice');
+  });
+});
+
+const rangeVotes: CategoryResult = {
+  categoryIndex: 0,
+  votes: [
+    { score: 7, trend: 'up' },
+    { score: 9, trend: 'up' },
+    { score: 7, trend: 'stable' },
+  ],
+  notes: 'good vibes',
+};
+
+describe('range sessions', () => {
+  it('summarises scores and trends without any color', () => {
+    expect(scoreSummary(rangeVotes.votes)).toBe('7 ×2 · 9 ×1');
+    expect(trendSummary(rangeVotes.votes, { up: 'Improving', stable: 'Stable', down: 'Getting worse' })).toBe(
+      'Improving 2 · Stable 1 · Getting worse 0',
+    );
+  });
+
+  it('writes the median out of 9, the scores and the trends', () => {
+    const md = generateMarkdown(finished([rangeVotes, empty(1)], {}, 'range'));
+    expect(section(md, '### 1. Fun', '### 2. Ownership')).toBe(
+      '### 1. Fun (3 votes)\nMedian: 7/9\nScores: 7 ×2 · 9 ×1\nTrends: ↗ 2 · → 1 · ↘ 0\n\ngood vibes\n\n',
+    );
+    expect(section(md, '### 2. Ownership')).toBe('### 2. Ownership (0 votes)\nMedian: —\n\n');
+    expect(md).not.toMatch(/🟢|🟠|🔴/);
   });
 });

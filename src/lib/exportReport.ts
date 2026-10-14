@@ -2,7 +2,7 @@ import { ClientSessionState, Vote, VoteColor, VoteTrend } from '../types';
 import { LANG, Lang, messagesFor } from './i18n';
 import { localizeCategory } from './localizeCategory';
 import { toSessionExport } from './sessionHistory';
-import { medianScore, scoreCell } from './voteScore';
+import { MAX_SCORE, MIN_SCORE, formatScore, medianScore, rangeVotes, scoreCell, scoreCounts, trendCounts } from './voteScore';
 
 /* The exports hold what the facilitator recap shows: per category, its votes, median and note. */
 
@@ -32,6 +32,25 @@ export const rows = (session: ClientSessionState, lang: Lang) =>
     result,
   }));
 
+/** "7 ×2 · 9 ×1": each score that got votes, lowest first */
+export function scoreSummary(votes: Vote[]): string {
+  return scoreCounts(rangeVotes(votes))
+    .flatMap((n, i) => (n ? [`${MIN_SCORE + i} ×${n}`] : []))
+    .join(' · ');
+}
+
+/** "Improving 2 · Stable 1 · Getting worse 0", improving first */
+export function trendSummary(votes: Vote[], labels: Record<VoteTrend, string>): string {
+  const counts = trendCounts(votes);
+  return (['up', 'stable', 'down'] as VoteTrend[]).map((trend) => `${labels[trend]} ${counts[trend]}`).join(' · ');
+}
+
+/** "7/9" for a Range median; a dash without votes */
+export const scoreOutOf = (votes: Vote[]): string => {
+  const score = medianScore(votes);
+  return score === null ? '—' : `${formatScore(score)}/${MAX_SCORE}`;
+};
+
 /* ─── Markdown generation ─── */
 
 export function generateMarkdown(
@@ -46,7 +65,18 @@ export function generateMarkdown(
 
   md += `## ${r.notes}\n\n`;
   for (const { n, title, result } of rows(session, lang)) {
-    md += `### ${n}. ${title} (${m.votes(result.votes.length)})\n${r.medianOf(medianCell(result.votes))}\n\n`;
+    md += `### ${n}. ${title} (${m.votes(result.votes.length)})\n`;
+    if (session.voteMode === 'range') {
+      md += `${r.medianOf(scoreOutOf(result.votes))}\n`;
+      if (result.votes.length) {
+        const arrows = trendCounts(result.votes);
+        md += `${r.scoresLine(scoreSummary(result.votes))}\n`;
+        md += `${r.trendsLine(`↗ ${arrows.up} · → ${arrows.stable} · ↘ ${arrows.down}`)}\n`;
+      }
+      md += '\n';
+    } else {
+      md += `${r.medianOf(medianCell(result.votes))}\n\n`;
+    }
     if (result.notes) md += `${result.notes}\n\n`;
   }
 

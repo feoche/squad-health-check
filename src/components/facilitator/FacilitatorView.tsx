@@ -99,7 +99,7 @@ function FacilitatorView({ session, actions }: Props) {
   const controls = <FacilitatorControls session={session} actions={actions} />;
 
   /* Shown from the reveal only, so the facilitator runs the round without last time's result in mind */
-  const previousOfRound = findPrevious(previous, session.categories[current]);
+  const previousOfRound = findPrevious(previous, session.categories[current], session.voteMode);
 
   const offline = {
     offlineVotes: session.offlineVotes[current],

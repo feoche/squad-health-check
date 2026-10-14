@@ -10,7 +10,7 @@ const categories = [
   { name: 'Ownership', nameFr: 'Responsabilité', positiveDescription: 'p', negativeDescription: 'n' },
 ];
 
-function finished(allResults: CategoryResult[]): ClientSessionState {
+function finished(allResults: CategoryResult[], voteMode: ClientSessionState['voteMode'] = 'colors'): ClientSessionState {
   const participants = [{ id: 'fac', name: 'Alice' }, { id: 'bob', name: 'Bob' }];
   return {
     code: 'ABC234',
@@ -22,7 +22,7 @@ function finished(allResults: CategoryResult[]): ClientSessionState {
     totalVoters: 2,
     facilitatorVotes: true,
     anonymity: 'full',
-    voteMode: 'colors',
+    voteMode,
     categoryMinutes: 10,
     roundStartedAt: null,
     eligibleVoters: participants,
@@ -73,8 +73,8 @@ interface StructNode {
  * The PDF as assistive technologies read it: each tagged element with its text, in reading order,
  * plus the text left out as artifacts, the metadata and the page count.
  */
-async function readPDF(results: CategoryResult[], lang: 'en' | 'fr') {
-  const bytes = await buildPDF(finished(results), fonts, new Date(2026, 9, 6), lang);
+async function readPDF(results: CategoryResult[], lang: 'en' | 'fr', voteMode: ClientSessionState['voteMode'] = 'colors') {
+  const bytes = await buildPDF(finished(results, voteMode), fonts, new Date(2026, 9, 6), lang);
   const pdf = await getDocument({ data: bytes, useSystemFonts: false }).promise;
   const tags: [string, string][] = [];
   const artifacts: string[] = [];
@@ -114,6 +114,29 @@ async function readPDF(results: CategoryResult[], lang: 'en' | 'fr') {
 const tagged = (tags: [string, string][], role: string) => tags.filter(([r]) => r === role).map(([, text]) => text);
 
 describe('buildPDF', () => {
+  it('holds the median out of 9, the scores and the trends for a range session, all tagged', async () => {
+    const votes: CategoryResult = {
+      categoryIndex: 0,
+      votes: [{ score: 7, trend: 'up' }, { score: 9, trend: 'up' }, { score: 7, trend: 'stable' }],
+      notes: '',
+    };
+    const { tags } = await readPDF([votes, ownership], 'en', 'range');
+    expect(tags).toEqual([
+      ['H1', 'Squad Health Check — 2026/10/06'],
+      ['P', 'Date: 6 October 2026'],
+      ['P', 'Voters: 2'],
+      ['H2', 'Notes'],
+      ['H3', '1. Fun'],
+      ['P', '3 votes'],
+      ['P', 'Median: 7/9'],
+      ['P', 'Scores: 7 ×2 · 9 ×1'],
+      ['P', 'Trends: Improving 2 · Stable 1 · Getting worse 0'],
+      ['H3', '2. Ownership'],
+      ['P', '0 votes'],
+      ['P', 'Median: —'],
+    ]);
+  });
+
   it('holds what the Markdown export holds: date, voters, and each category with its median and note', async () => {
     const { tags } = await readPDF([fun, ownership], 'en');
     expect(tags).toEqual([

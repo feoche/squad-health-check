@@ -21,7 +21,7 @@ function FinishedNotes({ session, previous, onChangeNote }: Props) {
     <Card className="card-body finished-notes" color={CARD_COLOR.neutral}>
       <Text preset={TEXT_PRESET.heading3} as="h2">{t.facilitator.allNotes}</Text>
       {summaryIndexes(session).map((i) => {
-        const before = findPrevious(previous, session.categories[i]);
+        const before = findPrevious(previous, session.categories[i], session.voteMode);
         const title = localizeCategory(session.categories[i]).title;
         return (
           <div key={i} className="stack finished-notes__item">

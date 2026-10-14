@@ -21,6 +21,10 @@
       "type": "integer",
       "minimum": 0
     },
+    "voteMode": {
+      "description": "How people voted: 'colors' (a health color and a trend) or 'range' (a score from 1 to 9 and a trend). Absent means 'colors'. Medians of different modes are not comparable.",
+      "enum": ["colors", "range"]
+    },
     "categories": {
       "description": "The categories, in the order they were discussed.",
       "type": "array",
@@ -47,7 +51,7 @@
           "minimum": 0
         },
         "median": {
-          "description": "Median vote weight, from 1 (red, getting worse) to 9 (green, improving), possibly a half; null without votes.",
+          "description": "Median vote weight from 1 to 9, possibly a half; null without votes. In 'colors' sessions 1 is red getting worse and 9 green improving; in 'range' sessions it is the median score.",
           "oneOf": [
             { "type": "number", "minimum": 1, "maximum": 9 },
             { "type": "null" }

@@ -399,6 +399,8 @@ const en = {
     notes: 'Notes',
     voters: (n: number) => `Voters: ${n}`,
     medianOf: (median: string) => `Median: ${median}`,
+    scoresLine: (parts: string) => `Scores: ${parts}`,
+    trendsLine: (parts: string) => `Trends: ${parts}`,
   },
 };
 
@@ -733,6 +735,8 @@ const fr: Messages = {
     notes: 'Notes',
     voters: (n: number) => `Nombre de votants : ${n}`,
     medianOf: (median: string) => `Médiane : ${median}`,
+    scoresLine: (parts: string) => `Notes : ${parts}`,
+    trendsLine: (parts: string) => `Tendances : ${parts}`,
   },
 };
 

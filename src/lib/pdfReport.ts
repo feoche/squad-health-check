@@ -2,7 +2,7 @@ import type PDFKit from 'pdfkit';
 import regularFontUrl from 'source-sans/OTF/SourceSans3-Regular.otf?url';
 import boldFontUrl from 'source-sans/OTF/SourceSans3-Bold.otf?url';
 import { ClientSessionState, Vote, VoteColor, VoteTrend } from '../types';
-import { formatDate, numericDate, rows } from './exportReport';
+import { formatDate, numericDate, rows, scoreOutOf, scoreSummary, trendSummary } from './exportReport';
 import { LANG, Lang, messagesFor } from './i18n';
 import { medianScore, scoreCell } from './voteScore';
 
@@ -129,6 +129,21 @@ function drawTrendArrow(doc: Doc, trend: VoteTrend, x: number, y: number, size: 
   }
 }
 
+/** Height of one of the extra summary lines of a Range card */
+const RANGE_LINE = 4.5;
+
+/** Range sessions: the median out of 9, then the scores and the trends, as three one-line paragraphs */
+function drawRangeSummary(doc: Doc, section: StructElement, votes: Vote[], x: number, y: number, lang: Lang) {
+  const m = messagesFor(lang);
+  style(doc, 'regular', 10, ODS.text);
+  tagged(doc, section, 'P', () => write(doc, m.report.medianOf(scoreOutOf(votes)), x, y));
+  if (!votes.length) return;
+  tagged(doc, section, 'P', () => write(doc, m.report.scoresLine(scoreSummary(votes)), x, y + RANGE_LINE));
+  tagged(doc, section, 'P', () =>
+    write(doc, m.report.trendsLine(trendSummary(votes, m.trends)), x, y + 2 * RANGE_LINE),
+  );
+}
+
 /** "Median:" then the median as an ODS badge, e.g. [Orange · Stable →], or a dash without votes, as one paragraph */
 function drawMedian(doc: Doc, section: StructElement, votes: Vote[], x: number, y: number, lang: Lang) {
   const m = messagesFor(lang);
@@ -248,10 +263,11 @@ export async function buildPDF(
     style(doc, 'regular', 10, ODS.text);
     const lines = result.notes.trim() ? wrapLines(doc, result.notes.trim(), noteWidth) : [];
     const notesHeight = lines.length ? 2 + lines.length * NOTE_LINE : 0;
-    const fullHeight = headerHeight + notesHeight + CARD_PADDING - 1;
+    const rangeLines = session.voteMode === 'range' && result.votes.length ? 2 * RANGE_LINE : 0;
+    const fullHeight = headerHeight + rangeLines + notesHeight + CARD_PADDING - 1;
 
     // Keep the card whole when it fits on a page, and its header with at least two note lines otherwise
-    const needed = Math.min(fullHeight, headerHeight + 2 + 2 * NOTE_LINE + CARD_PADDING);
+    const needed = Math.min(fullHeight, headerHeight + rangeLines + 2 + 2 * NOTE_LINE + CARD_PADDING);
     if (y + needed > bottom) {
       doc.addPage();
       y = PAGE.margin;
@@ -272,8 +288,13 @@ export async function buildPDF(
     );
 
     y += 8;
-    drawMedian(doc, section, result.votes, x, y, lang);
-    y += 2;
+    if (session.voteMode === 'range') {
+      drawRangeSummary(doc, section, result.votes, x, y, lang);
+      y += rangeLines + 2;
+    } else {
+      drawMedian(doc, section, result.votes, x, y, lang);
+      y += 2;
+    }
 
     if (lines.length) {
       y += 2;

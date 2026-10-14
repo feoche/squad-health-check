@@ -207,3 +207,32 @@ describe('previous session storage', () => {
     expect(loadLastSession()).toBeNull();
   });
 });
+
+describe('range sessions', () => {
+  const rangeResults: CategoryResult[] = [
+    { categoryIndex: 0, votes: [{ score: 4, trend: 'up' }, { score: 5, trend: 'down' }], notes: '' },
+    { categoryIndex: 1, votes: [], notes: '' },
+  ];
+  const rangeExport = toSessionExport({ categories, allResults: rangeResults, totalVoters: 3, voteMode: 'range' }, new Date(2026, 9, 6), 'en');
+
+  it('records the mode and the median score, and only for range sessions', () => {
+    expect(rangeExport.voteMode).toBe('range');
+    expect(rangeExport.categories[0].median).toBe(4.5);
+    expect('voteMode' in exported).toBe(false);
+  });
+
+  it('reads the mode back, and validates against the published schema', () => {
+    expect(parseSessionExport(JSON.stringify(rangeExport))).toEqual(rangeExport);
+    expect(parseSessionExport(JSON.stringify({ ...rangeExport, voteMode: 'stars' }))).toBeNull();
+    const validate = new Ajv2020().compile(schema);
+    expect(validate(rangeExport)).toBe(true);
+    expect(validate({ ...rangeExport, voteMode: 'stars' })).toBe(false);
+  });
+
+  it('does not compare a session with a previous one of the other mode', () => {
+    expect(findPrevious(rangeExport, categories[0], 'range')?.median).toBe(4.5);
+    expect(findPrevious(rangeExport, categories[0], 'colors')).toBeUndefined();
+    expect(findPrevious(exported, categories[0], 'range')).toBeUndefined();
+    expect(findPrevious(exported, categories[0])?.name).toBe('Fun');
+  });
+});
