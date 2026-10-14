@@ -9,7 +9,6 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
-import CollectingProgress from './facilitator/CollectingProgress';
 import IntroContent from './IntroContent';
 import VoteLegend from './VoteLegend';
 import ParticipantBadges from './ParticipantBadges';
@@ -19,7 +18,7 @@ import SessionProgress from './SessionProgress';
 import SharePanel from './SharePanel';
 import VoteProgress from './VoteProgress';
 import VoteSummary from './VoteSummary';
-import { sharedNamedVotes } from '../lib/deriveClientState';
+import { completedVoterCount, sharedNamedVotes } from '../lib/deriveClientState';
 import { LANG, t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
@@ -57,7 +56,10 @@ function PresenterView({ session }: { session: ClientSessionState }) {
             {t.collecting.presenterTitle}
           </Text>
           <SharePanel code={session.code} />
-          <CollectingProgress session={session} />
+          {/* Only the count: who has voted how far is for the facilitator */}
+          <Text preset={TEXT_PRESET.paragraph} role="status">
+            {t.collecting.participation(completedVoterCount(session), session.totalVoters)}
+          </Text>
         </Card>
       </div>
     );

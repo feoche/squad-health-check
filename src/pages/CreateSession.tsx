@@ -65,6 +65,8 @@ function CreateSession() {
   const minutesInvalid = !asyncVoting && !isValidMinutes(Number(minutesText));
   /* Quantity does not pick up the FormField error by itself */
   const minutesErrorId = useId();
+  /* The async switch is described by its hint, which says what the mode changes */
+  const asyncHintId = useId();
   /** The session the new one is compared with: the last one finished in this browser, unless imported or removed */
   const [previous, setPrevious] = useState<SessionExport | null>(loadLastSession);
   const [isCreating, setIsCreating] = useState(false);
@@ -117,10 +119,10 @@ function CreateSession() {
               setSettings((s) => ({ ...s, mode: checked ? 'async' : 'live' }))
             }
           >
-            <ToggleControl />
+            <ToggleControl aria-describedby={asyncHintId} />
             <ToggleLabel>{t.settings.asyncVoting}</ToggleLabel>
           </Toggle>
-          <Text preset={TEXT_PRESET.caption}>{t.settings.asyncVotingHint}</Text>
+          <Text id={asyncHintId} preset={TEXT_PRESET.caption}>{t.settings.asyncVotingHint}</Text>
           {!asyncVoting && (
             <>
               <FormField invalid={minutesInvalid}>

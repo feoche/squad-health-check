@@ -32,19 +32,26 @@ function CollectingView({ session, onSubmitVote }: Props) {
   /* The last step, one past the categories, is the review */
   const [step, setStep] = useState(0);
   const [saved, setSaved] = useState('');
-  const [failed, setFailed] = useState(false);
+  /* Why the last save failed: a write refused once the meeting started means voting is closed */
+  const [failed, setFailed] = useState<'generic' | 'closed' | null>(null);
   /* A second submit before the first write resolves would count as a new vote: ignore it */
   const saving = useRef(false);
+  /* The save resolves after the render that started it, so the phase is read from a ref */
+  const phase = useRef(session.phase);
   const heading = useRef<HTMLDivElement>(null);
   const lastStep = useRef(step);
   const total = categories.length;
   const isReview = step >= total;
 
+  useEffect(() => {
+    phase.current = session.phase;
+  }, [session.phase]);
+
   /* The step replaces the control that had the focus: bring it to the new step's title */
   useEffect(() => {
     if (lastStep.current === step) return;
     lastStep.current = step;
-    setFailed(false);
+    setFailed(null);
     heading.current?.focus();
   }, [step]);
 
@@ -123,15 +130,20 @@ function CollectingView({ session, onSubmitVote }: Props) {
           onSubmitVote={async (vote) => {
             if (saving.current) return;
             saving.current = true;
-            setFailed(false);
+            setFailed(null);
             try {
-              const saveSucceeded = await onSubmitVote(vote, step);
+              let saveSucceeded = false;
+              try {
+                saveSucceeded = Boolean(await onSubmitVote(vote, step));
+              } catch {
+                /* A throw counts as a failed save, shown like a refused one */
+              }
               if (saveSucceeded) {
                 setSaved(t.collecting.saved(title));
                 setStep(step + 1);
               } else {
                 /* Stay on this step: the answer was not saved */
-                setFailed(true);
+                setFailed(phase.current === 'collecting' ? 'generic' : 'closed');
               }
             } finally {
               saving.current = false;
@@ -142,7 +154,7 @@ function CollectingView({ session, onSubmitVote }: Props) {
       {failed && (
         <Message color={MESSAGE_COLOR.critical} dismissible={false} role="alert">
           <MessageIcon name={ICON_NAME.hexagonExclamation} />
-          <MessageBody>{t.errors.generic}</MessageBody>
+          <MessageBody>{failed === 'closed' ? t.collecting.closed : t.errors.generic}</MessageBody>
         </Message>
       )}
       <div className="actions collecting-view__nav">

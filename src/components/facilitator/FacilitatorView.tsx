@@ -170,6 +170,7 @@ function FacilitatorView({ session, actions }: Props) {
           </Card>
           {session.facilitatorVotes && (
             <Card className="card-body facilitator-view__collecting" color={CARD_COLOR.neutral}>
+              <Text preset={TEXT_PRESET.heading3} as="h2">{t.collecting.title}</Text>
               <CollectingView session={session} onSubmitVote={actions.submitVote} />
             </Card>
           )}

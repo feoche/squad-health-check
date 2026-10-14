@@ -69,13 +69,21 @@ async function axe(who, page, label) {
     axeResults.push({ label, violations: r });
     if (r.length) issue(who, `axe (${label}): ${r.map((v) => `${v.id}[${v.impact}] ${v.nodes.join(', ')}`).join(' | ')}`);
     else log(who, `axe ${label}: clean`);
-  } catch (e) { log(who, `axe failed on ${label}: ${e.message}`); }
+  } catch (e) { issue(who, `axe could not run on ${label}: ${e.message.split('\n')[0]}`); }
 }
 
 const shot = (page, name) => page.screenshot({ path: path.join(OUT, `${name}.png`), fullPage: true }).catch(() => {});
 
 async function expectEnabled(locator) {
   for (let i = 0; i < 50; i++) { if (await locator.isEnabled()) return; await sleep(200); }
+}
+
+/** Polls fn until it returns a truthy value or ms elapses; returns the last value */
+async function waitUntil(fn, ms = 10000) {
+  const end = Date.now() + ms;
+  let v = await fn();
+  while (!v && Date.now() < end) { await sleep(300); v = await fn(); }
+  return v;
 }
 
 /* ─── Shared helpers ─── */
@@ -111,19 +119,22 @@ async function pick(page, color, trend) {
   await form.locator('button[type="submit"]').click();
 }
 
-/** Saves the step on screen: the status announces it and focus moves to the next step's heading. Returns the category title. */
+/** Saves the step on screen: the status announces it and focus moves to the next step's heading. Returns false if the save did not go through. */
 async function save(agent, color, trend, savedPrefix) {
   const { page, name } = agent;
   const title = (await page.locator('.collecting-view__heading h3').first().innerText()).trim();
   await pick(page, color, trend);
   const announced = await page.locator('[role="status"]').filter({ hasText: `${savedPrefix}${title}` }).first()
     .waitFor({ state: 'attached', timeout: 10000 }).then(() => true, () => false);
-  if (!announced) issue(name, `no "${savedPrefix}${title}" announcement after saving`);
+  if (!announced) {
+    issue(name, `no "${savedPrefix}${title}" announcement after saving: the step did not advance`);
+    return false;
+  }
   const focused = await page.waitForFunction(() => !!document.activeElement?.closest('.collecting-view__heading'), null, { timeout: 3000 })
     .then(() => true, () => false);
   if (!focused) issue(name, `focus not on the step heading after saving "${title}"`);
   log(name, `saves ${title}: ${color}/${trend}`);
-  return title;
+  return true;
 }
 
 /** Saves every step in order, from the first category to the review; returns how many steps were saved */
@@ -133,7 +144,7 @@ async function voteAll(agent, savedPrefix, pickFor) {
   while (!(await page.locator('.collecting-view--review').count())) {
     if (i > 50) { issue(name, 'never reached the review step'); break; }
     const [color, trend] = pickFor(i);
-    await save(agent, color, trend, savedPrefix);
+    if (!(await save(agent, color, trend, savedPrefix))) break;
     i++;
   }
   return i;
@@ -148,19 +159,25 @@ const watchNoVotingPhase = (page) =>
     }).observe(document.body, { subtree: true, childList: true, attributes: true });
   });
 
+let sessionCode = null;
+let total = 0;
+const downloads = {};
+try {
 /* ─── Facilitator: create an async session ─── */
 const fac = await newAgent('Facilitator');
 const fp = fac.page;
 await fp.goto(BASE);
 await fp.getByRole('button', { name: 'Create Session' }).click();
 await fp.locator('.create-session').waitFor();
-const asyncSwitch = fp.getByRole('switch', { name: /Asynchronous voting/ });
-await asyncSwitch.click();
-if (!(await asyncSwitch.isChecked())) issue('Facilitator', 'the "Asynchronous voting" switch did not turn on');
+/* ODS Toggle: a checkbox named by its wrapping label; click the label text, the input may be visually hidden */
+const asyncSwitch = fp.getByRole('checkbox', { name: /Asynchronous voting/ });
+await fp.getByText('Asynchronous voting', { exact: true }).click();
+if (!(await asyncSwitch.isChecked())) issue('Facilitator', 'the "Asynchronous voting" toggle did not turn on');
 if (await fp.getByText('Time per category (minutes)').count()) issue('Facilitator', 'the time per category field is still shown in async mode');
 await fp.getByRole('button', { name: 'Start Session' }).click();
 await fp.waitForURL(/#\/session\/[A-Z]{6}$/, { timeout: 20000 });
 const code = fp.url().match(/session\/([A-Z]{6})/)[1];
+sessionCode = code;
 log('Facilitator', `async session created: ${code}`);
 await fp.locator('.join-session input').waitFor();
 await expectEnabled(fp.locator('.join-session input'));
@@ -216,25 +233,35 @@ if (colorBack !== BRUNO_PICKS[0][0] || trendBack !== BRUNO_PICKS[0][1]) {
 /* ─── Léa, the facilitator, votes every category in her own stepper ─── */
 const leaSteps = await voteAll(lea, SAVED.en, (i) => [COLORS[(i + 1) % 3], TRENDS[i % 3]]);
 if (aliceSteps !== leaSteps) issue('Facilitator', `Alice saved ${aliceSteps} steps, Léa ${leaSteps}`);
-const total = leaSteps;
+total = leaSteps;
 log('Facilitator', `${total} categories, all voted by Léa`);
 
 /* ─── Before the meeting: who is finished ─── */
 const controls = fp.locator('.facilitator-controls');
-const rows = await controls.locator('.live-round__voter').evaluateAll((els) =>
+const readRows = () => controls.locator('.live-round__voter').evaluateAll((els) =>
   els.map((e) => ({ text: e.textContent.replace(/\s+/g, ' ').trim(), voted: e.classList.contains('live-round__voter--voted') })));
-for (const [name, complete] of [['Léa', true], ['Alice', true], ['Bruno', false]]) {
-  const row = rows.find((r) => r.text.includes(name));
-  const m = row?.text.match(new RegExp(`${name} (\\d+)/(\\d+)`));
-  if (!m) { issue('Facilitator', `no progress badge for ${name}`); continue; }
-  const n = Number(m[1]);
-  const of = Number(m[2]);
-  const expected = name === 'Bruno' ? BRUNO_PICKS.length : total;
-  log('Facilitator', `${name}: ${n} of ${of}, ${row.voted ? 'complete' : 'incomplete'}`);
-  if (n !== expected || of !== total) issue('Facilitator', `${name} badge shows ${n}/${of}, expected ${expected}/${total}`);
-  if (row.voted !== complete) issue('Facilitator', `${name} is ${row.voted ? 'complete' : 'incomplete'} in the badges`);
-}
-if (!(await controls.getByText('Not finished: Bruno').isVisible().catch(() => false))) issue('Facilitator', 'no "Not finished: Bruno" warning before the meeting');
+const badgeProblems = (rows) => {
+  const problems = [];
+  for (const [name, complete] of [['Léa', true], ['Alice', true], ['Bruno', false]]) {
+    const row = rows.find((r) => r.text.includes(name));
+    const m = row?.text.match(new RegExp(`${name} (\\d+)/(\\d+)`));
+    if (!m) { problems.push(`no progress badge for ${name}`); continue; }
+    const n = Number(m[1]);
+    const of = Number(m[2]);
+    const expected = name === 'Bruno' ? BRUNO_PICKS.length : total;
+    if (n !== expected || of !== total) problems.push(`${name} badge shows ${n}/${of}, expected ${expected}/${total}`);
+    if (row.voted !== complete) problems.push(`${name} is ${row.voted ? 'complete' : 'incomplete'} in the badges`);
+  }
+  return problems;
+};
+/* The facilitator's listener may still be receiving the last votes: poll before judging */
+let rows = [];
+let problems = [];
+await waitUntil(async () => { rows = await readRows(); problems = badgeProblems(rows); return problems.length === 0; }, 10000);
+for (const r of rows) log('Facilitator', `badge: ${r.text}${r.voted ? ' (complete)' : ''}`);
+for (const p of problems) issue('Facilitator', p);
+const warningShown = await waitUntil(() => controls.getByText('Not finished: Bruno').isVisible().catch(() => false), 10000);
+if (!warningShown) issue('Facilitator', 'no "Not finished: Bruno" warning before the meeting');
 await shot(fp, 'facilitator-ready');
 
 /* ─── Alice's review step, then the meeting starts ─── */
@@ -275,6 +302,7 @@ async function checkRound(idx) {
 await checkRound(0);
 await alice.page.locator('.participant-view--revealed').waitFor({ timeout: 10000 })
   .catch(() => issue('Alice', 'not on the revealed view when the meeting started'));
+/* Regression guard: quick-vote marks are gated on mode === 'live', so an async session must show none */
 const bolts = await fp.getByText('⚡').count();
 if (bolts) issue('Facilitator', `⚡ shown ${bolts} time(s) in an async session`);
 await axe('Facilitator', fp, 'facilitator-revealed');
@@ -305,7 +333,6 @@ await axe('Facilitator', fp, 'facilitator-finished');
 await axe('Presenter', presenter, 'presenter-finished');
 await shot(presenter, 'presenter-finished');
 
-const downloads = {};
 for (const label of ['Download Markdown', 'Download PDF', 'Download JSON']) {
   const [d] = await Promise.all([fp.waitForEvent('download', { timeout: 20000 }), fp.getByRole('button', { name: label }).click()]);
   const file = path.join(OUT, d.suggestedFilename());
@@ -314,7 +341,11 @@ for (const label of ['Download Markdown', 'Download PDF', 'Download JSON']) {
   log('Facilitator', `⬇ ${label} → ${path.basename(file)} (${fs.statSync(file).size} B)`);
 }
 
-fs.writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify({ code, categories: total, downloads, issues, axe: axeResults }, null, 2));
-log('Harness', `done. ${issues.length} issue(s). Output in ${OUT}`);
-await browser.close();
-process.exitCode = issues.length ? 1 : 0;
+} catch (e) {
+  issue('Harness', `scenario stopped: ${e.message.split('\n')[0]}`);
+} finally {
+  fs.writeFileSync(path.join(OUT, 'summary.json'), JSON.stringify({ code: sessionCode, categories: total, downloads, issues, axe: axeResults }, null, 2));
+  log('Harness', `done. ${issues.length} issue(s). Output in ${OUT}`);
+  await browser.close();
+  process.exitCode = issues.length ? 1 : 0;
+}

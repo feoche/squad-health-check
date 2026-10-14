@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Button,
   BUTTON_VARIANT,
@@ -20,11 +20,50 @@ import VotingPanel from './VotingPanel';
 import CollectingView from './CollectingView';
 import { LANG, t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
+import { useFocusIfLost } from '../lib/useFocusIfLost';
 
 interface Props {
   session: ClientSessionState;
   onSubmitVote: (vote: Vote, index?: number) => void | Promise<boolean>;
   onSetReady: (ready: boolean) => void;
+}
+
+interface RevealedReadyProps {
+  session: ClientSessionState;
+  onSetReady: (ready: boolean) => void;
+  /** An async reveal replaces the voting window, which held the focus: the block takes it */
+  focusIfLost: boolean;
+}
+
+/** After the reveal: the ready toggle. Focus moves here only when the voting window it replaced had it. */
+function RevealedReady({ session, onSetReady, focusIfLost }: RevealedReadyProps) {
+  const block = useRef<HTMLDivElement>(null);
+  useFocusIfLost(block, focusIfLost);
+  return (
+    <div
+      ref={block}
+      tabIndex={-1}
+      className="stack stack-center participant-view__ready"
+    >
+      <Text preset={TEXT_PRESET.paragraph} className="participant-view__results-hint">
+        {t.participant.resultsOnScreen}
+      </Text>
+      {session.mode === 'async' && <Text preset={TEXT_PRESET.caption}>{t.collecting.closed}</Text>}
+      {session.isReady ? (
+        <>
+          <Text preset={TEXT_PRESET.paragraph} role="status">{t.participant.readyDone}</Text>
+          <Button variant={BUTTON_VARIANT.ghost} onClick={() => onSetReady(false)}>
+            {t.participant.notReady}
+          </Button>
+        </>
+      ) : (
+        <Button onClick={() => onSetReady(true)}>
+          <Icon name={ICON_NAME.check} />
+          {t.participant.ready}
+        </Button>
+      )}
+    </div>
+  );
 }
 
 /** A participant's phone: the vote form must fit one screen, so no counter here. */
@@ -125,27 +164,7 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
       )}
 
       {phase === 'revealed' && (
-        <div className="stack stack-center participant-view__ready">
-          <Text preset={TEXT_PRESET.paragraph} className="participant-view__results-hint">
-            {t.participant.resultsOnScreen}
-          </Text>
-          {session.mode === 'async' && session.myVotedIndexes.length < categories.length && (
-            <Text preset={TEXT_PRESET.caption}>{t.collecting.closed}</Text>
-          )}
-          {session.isReady ? (
-            <>
-              <Text preset={TEXT_PRESET.paragraph} role="status">{t.participant.readyDone}</Text>
-              <Button variant={BUTTON_VARIANT.ghost} onClick={() => onSetReady(false)}>
-                {t.participant.notReady}
-              </Button>
-            </>
-          ) : (
-            <Button onClick={() => onSetReady(true)}>
-              <Icon name={ICON_NAME.check} />
-              {t.participant.ready}
-            </Button>
-          )}
-        </div>
+        <RevealedReady session={session} onSetReady={onSetReady} focusIfLost={session.mode === 'async'} />
       )}
     </div>
   );
