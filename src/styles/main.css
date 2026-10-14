@@ -90,6 +90,10 @@ body {
   overflow-wrap: anywhere;
 }
 
+.app__brand-short {
+  display: none;
+}
+
 .app__header-slot {
   flex: 1;
   display: flex;
@@ -692,6 +696,20 @@ body {
 
   .app__brand > * {
     font-size: 1.125rem;
+  }
+
+  /* "SHC" on screen; the full name stays for screen readers */
+  .app__brand-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .app__brand-short {
+    display: inline;
   }
 
   /* Short "1/10" label, no bar; the brand shrinks instead */

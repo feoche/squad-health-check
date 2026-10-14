@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Routes, Route, Link as RouterLink, Navigate, useLocation, useParams } from 'react-router-dom';
-import { Link, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Icon, ICON_NAME, Link, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import Home from './pages/Home';
 import CreateSession from './pages/CreateSession';
 import SessionPage from './pages/SessionPage';
@@ -63,7 +63,9 @@ function App() {
       <header className="app__header" ref={headerRef}>
         <Link className="app__brand" as={RouterLink} to="/">
           <Text preset={TEXT_PRESET.heading4} as="h1">
-            Squad Health Check
+            <Icon name={ICON_NAME.diagnostic} aria-hidden />{' '}
+            <span className="app__brand-name">Squad Health Check</span>
+            <span className="app__brand-short" aria-hidden="true">SHC</span>
           </Text>
         </Link>
         <div className="app__header-slot" ref={setHeaderSlot} />
