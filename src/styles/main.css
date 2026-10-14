@@ -517,7 +517,8 @@ body {
    Their tiles are as tall as the trends' (arrow, caption and the card's padding), which they are shown with */
 .voting-panel__options--color .voting-panel__radio-body {
   align-items: center;
-  min-height: calc(var(--voting-panel-pad-y) * 2 + var(--voting-panel-arrow-size) + 1lh + var(--ods-theme-row-gap));
+  align-content: center;
+  min-height: calc(var(--voting-panel-pad-y) * 2 + var(--voting-panel-arrow-size) + 1lh);
   padding-block: var(--voting-panel-pad-y);
 }
 
@@ -1144,4 +1145,34 @@ body {
 
 .score-histogram__add-trend {
   justify-content: center;
+}
+
+/* On a narrow screen the buttons drop under the title instead of squeezing it into a column of broken words */
+.category-editor__row {
+  flex-wrap: wrap;
+}
+
+.category-editor__label {
+  flex: 1 1 10rem;
+  overflow-wrap: break-word;
+}
+
+.category-editor__label > * {
+  display: inline;
+}
+
+.category-editor__item-actions {
+  flex: none;
+  margin-left: auto;
+}
+
+/* Very narrow phones: three trend tiles side by side leave "Improvement" little room, so give the caption the card's width */
+@media (max-width: 400px) {
+  .voting-panel__options--trend .voting-panel__radio-body {
+    --voting-panel-pad-x: 4px;
+  }
+
+  .voting-panel__trend-caption {
+    font-size: 0.875rem;
+  }
 }
