@@ -37,6 +37,7 @@ const warn = (err: unknown) => console.warn('[session]', err);
 function phaseAnnouncement(session: ClientSessionState): string {
   const { phase, categories, currentCategoryIndex: index } = session;
   if (phase === 'intro') return t.intro.title;
+  if (phase === 'collecting') return t.collecting.title;
   if (phase === 'voting') {
     return `${t.categoryOf(index + 1, categories.length)}: ${localizeCategory(categories[index]).title}`;
   }
@@ -139,8 +140,14 @@ function SessionView() {
 
   /* ─── Actions (memoised) ─── */
   const handleSubmitVote = useCallback(
-    (vote: Vote) => {
-      if (session) store.submitVote(session, vote).catch(warn);
+    async (vote: Vote, index?: number): Promise<boolean> => {
+      if (!session) return false;
+      try {
+        return await store.submitVote(session, vote, index);
+      } catch (err) {
+        warn(err);
+        return false;
+      }
     },
     [session],
   );

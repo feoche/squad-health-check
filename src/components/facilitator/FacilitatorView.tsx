@@ -37,7 +37,7 @@ import ReportExports from './ReportExports';
 export interface FacilitatorActions {
   startWorkshop: () => void;
   startVoting: () => void;
-  submitVote: (vote: Vote) => void;
+  submitVote: (vote: Vote, index?: number) => void | Promise<boolean>;
   reveal: () => void;
   next: () => void;
   end: () => void;

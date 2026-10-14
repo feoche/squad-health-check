@@ -28,10 +28,12 @@ interface Props {
   /** The vote being edited: its picks are preselected */
   initialVote?: Vote | null;
   onCancel?: () => void;
+  /** Overrides the default submit label */
+  submitLabel?: string;
 }
 
 /** The vote form. Render it with a key per category so picks never carry over. */
-function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel }: Props) {
+function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, submitLabel }: Props) {
   const range = voteMode === 'range';
   const [selectedColor, setSelectedColor] = useState<VoteColor | null>((initialVote && colorOf(initialVote)) ?? null);
   const [selectedScore, setSelectedScore] = useState<number | null>(
@@ -138,7 +140,7 @@ function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel }
             {t.voting.cancelEdit}
           </Button>
         )}
-        <Button type="submit">{initialVote ? t.voting.update : t.voting.submit}</Button>
+        <Button type="submit">{submitLabel ?? (initialVote ? t.voting.update : t.voting.submit)}</Button>
       </div>
     </form>
   );

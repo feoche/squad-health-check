@@ -495,18 +495,18 @@ export async function submitVote(
   s: ClientSessionState,
   vote: Vote,
   index: number = s.currentCategoryIndex,
-): Promise<void> {
+): Promise<boolean> {
   const open = s.phase === 'collecting' || (s.phase === 'voting' && index === s.currentCategoryIndex);
-  if (!open || index < 0 || index >= s.categories.length) return;
+  if (!open || index < 0 || index >= s.categories.length) return false;
   if (s.myVotedIndexes.includes(index)) {
     const ballot = await get(sessionRef(s.code, `ballots/${index}/${s.myId}`));
-    if (!ballot.exists()) return;
+    if (!ballot.exists()) return false;
     const { key } = ballot.val() as Ballot;
     await update(sessionRef(s.code), {
       [`votes/${index}/${key}`]: vote,
       [`ballots/${index}/${s.myId}`]: { key, ...vote },
     });
-    return;
+    return true;
   }
   const key = randomKey();
   await update(sessionRef(s.code), {
@@ -514,4 +514,5 @@ export async function submitVote(
     [`votes/${index}/${key}`]: vote,
     [`ballots/${index}/${s.myId}`]: { key, ...vote },
   });
+  return true;
 }

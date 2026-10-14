@@ -17,12 +17,13 @@ import SessionProgress from './SessionProgress';
 import VoteLegend from './VoteLegend';
 import VoteSubmitted from './VoteSubmitted';
 import VotingPanel from './VotingPanel';
+import CollectingView from './CollectingView';
 import { LANG, t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 
 interface Props {
   session: ClientSessionState;
-  onSubmitVote: (vote: Vote) => void;
+  onSubmitVote: (vote: Vote, index?: number) => void | Promise<boolean>;
   onSetReady: (ready: boolean) => void;
 }
 
@@ -61,6 +62,16 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
             <Text preset={TEXT_PRESET.paragraph}>{t.lobby.waiting}</Text>
           </div>
         </Card>
+      </div>
+    );
+  }
+
+  if (phase === 'collecting') {
+    return (
+      <div className="page page-narrow participant-view participant-view--collecting">
+        <Text preset={TEXT_PRESET.heading2} as="h2">{t.collecting.title}</Text>
+        <Text preset={TEXT_PRESET.paragraph}>{t.collecting.intro}</Text>
+        <CollectingView session={session} onSubmitVote={onSubmitVote} />
       </div>
     );
   }
@@ -118,6 +129,9 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
           <Text preset={TEXT_PRESET.paragraph} className="participant-view__results-hint">
             {t.participant.resultsOnScreen}
           </Text>
+          {session.mode === 'async' && session.myVotedIndexes.length < categories.length && (
+            <Text preset={TEXT_PRESET.caption}>{t.collecting.closed}</Text>
+          )}
           {session.isReady ? (
             <>
               <Text preset={TEXT_PRESET.paragraph} role="status">{t.participant.readyDone}</Text>
