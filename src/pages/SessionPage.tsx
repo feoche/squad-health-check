@@ -162,6 +162,7 @@ function SessionView() {
     return {
       startWorkshop: () => void store.startWorkshop(session).catch(warn),
       startVoting: () => void store.startVoting(session).catch(warn),
+      startMeeting: () => void store.startMeeting(session).catch(warn),
       submitVote: handleSubmitVote,
       reveal: () => void store.revealVotes(session).catch(warn),
       next: () => void store.nextCategory(session).catch(warn),

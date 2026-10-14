@@ -21,6 +21,8 @@ function ParticipantsPanel({ session }: { session: ClientSessionState }) {
         {t.settings.anonymity}: {t.settings.levels[session.anonymity]}
         {' · '}
         {t.settings.voteMode}: {t.settings.voteModes[session.voteMode]}
+        {' · '}
+        {t.settings.votingTime}: {t.settings.modes[session.mode]}
       </Text>
     </Card>
   );

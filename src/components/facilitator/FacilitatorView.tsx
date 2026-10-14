@@ -28,6 +28,7 @@ import VoteSummary from '../VoteSummary';
 import PreviousResult from './PreviousResult';
 import SessionProgress from '../SessionProgress';
 import SharePanel from '../SharePanel';
+import CollectingView from '../CollectingView';
 import CurrentCategory from './CurrentCategory';
 import FacilitatorControls from './FacilitatorControls';
 import FinishedNotes from './FinishedNotes';
@@ -37,6 +38,8 @@ import ReportExports from './ReportExports';
 export interface FacilitatorActions {
   startWorkshop: () => void;
   startVoting: () => void;
+  /** Ends the async voting window and opens the meeting */
+  startMeeting: () => void;
   submitVote: (vote: Vote, index?: number) => void | Promise<boolean>;
   reveal: () => void;
   next: () => void;
@@ -159,6 +162,20 @@ function FacilitatorView({ session, actions }: Props) {
         </Card>
       )}
 
+      {phase === 'collecting' && (
+        <>
+          <Card className="card-body facilitator-view__share" color={CARD_COLOR.neutral}>
+            <Text preset={TEXT_PRESET.paragraph}>{t.collecting.shareHint}</Text>
+            <SharePanel code={session.code} />
+          </Card>
+          {session.facilitatorVotes && (
+            <Card className="card-body facilitator-view__collecting" color={CARD_COLOR.neutral}>
+              <CollectingView session={session} onSubmitVote={actions.submitVote} />
+            </Card>
+          )}
+        </>
+      )}
+
       {phase === 'intro' && (
         <Card className="card-body facilitator-view__intro-script" color={CARD_COLOR.neutral}>
           <Text preset={TEXT_PRESET.heading3} as="h2">{t.facilitator.introScriptTitle}</Text>
@@ -215,7 +232,7 @@ function FacilitatorView({ session, actions }: Props) {
         <OpenPresenterButton inHeader code={session.code} />
       </SessionProgress>
 
-      {phase === 'lobby' && showHint && (
+      {(phase === 'lobby' || phase === 'collecting') && showHint && (
         <Message
           className="message-full facilitator-view__presenter-hint"
           color={MESSAGE_COLOR.information}

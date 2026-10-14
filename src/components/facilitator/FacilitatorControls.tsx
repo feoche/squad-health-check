@@ -13,6 +13,7 @@ import { ClientSessionState } from '../../types';
 import { canStartWorkshop } from '../../lib/deriveClientState';
 import { t } from '../../lib/i18n';
 import { useFocusIfLost } from '../../lib/useFocusIfLost';
+import CollectingProgress from './CollectingProgress';
 import LiveRound from './LiveRound';
 import type { FacilitatorActions } from './FacilitatorView';
 
@@ -34,6 +35,14 @@ function FacilitatorControls({ session, actions }: Props) {
     phase === 'voting' && waitingDisconnected.length > 0
       ? t.facilitator.disconnectedHint(waitingDisconnected.join(', '))
       : '';
+  /* Async voters still voting: the facilitator sees who is not finished before starting the meeting */
+  const totalCategories = session.categories.length;
+  const unfinished =
+    phase === 'collecting'
+      ? session.eligibleVoters
+          .filter((p) => (session.answeredCounts[p.id] ?? 0) < totalCategories)
+          .map((p) => p.name)
+      : [];
   /* Votes added for people without the app are enough to reveal */
   const anyVote = voteCount > 0 || Boolean(session.offlineVotes[session.currentCategoryIndex]?.length);
   /* The dashboard is rebuilt when a round starts, which drops the focus: bring it back here */
@@ -42,7 +51,9 @@ function FacilitatorControls({ session, actions }: Props) {
 
   /* One button whose action follows the phase: the same element stays focused from one step to the next */
   const action =
-    phase === 'lobby'
+    phase === 'collecting'
+      ? { label: t.collecting.start, onClick: actions.startMeeting, icon: ICON_NAME.arrowRight }
+      : phase === 'lobby'
       ? { label: t.facilitator.startWorkshop(totalVoters), onClick: actions.startWorkshop, disabled: !canStart }
       : phase === 'intro'
         ? { label: t.facilitator.startFirst, onClick: actions.startVoting, icon: ICON_NAME.arrowRight }
@@ -62,6 +73,10 @@ function FacilitatorControls({ session, actions }: Props) {
   return (
     <Card className="card-body facilitator-controls" color={CARD_COLOR.neutral}>
       {(phase === 'voting' || phase === 'revealed') && <LiveRound session={session} />}
+      {phase === 'collecting' && <CollectingProgress session={session} />}
+      {unfinished.length > 0 && (
+        <Text preset={TEXT_PRESET.caption}>{t.collecting.startWarning(unfinished.join(', '))}</Text>
+      )}
       {phase === 'intro' && <Text preset={TEXT_PRESET.paragraph}>{t.facilitator.introHint}</Text>}
       {phase === 'revealed' && (
         <Text preset={TEXT_PRESET.caption} role="status">

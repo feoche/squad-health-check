@@ -9,6 +9,7 @@ import {
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
+import CollectingProgress from './facilitator/CollectingProgress';
 import IntroContent from './IntroContent';
 import VoteLegend from './VoteLegend';
 import ParticipantBadges from './ParticipantBadges';
@@ -43,6 +44,20 @@ function PresenterView({ session }: { session: ClientSessionState }) {
               facilitatorId={session.facilitatorId}
             />
           </div>
+        </Card>
+      </div>
+    );
+  }
+
+  if (phase === 'collecting') {
+    return (
+      <div className="page page-narrow presenter-view presenter-view--collecting">
+        <Card className="card-body presenter-view__lobby" color={CARD_COLOR.neutral}>
+          <Text preset={TEXT_PRESET.heading2} as="h2" className="presenter-view__join-title">
+            {t.collecting.presenterTitle}
+          </Text>
+          <SharePanel code={session.code} />
+          <CollectingProgress session={session} />
         </Card>
       </div>
     );
