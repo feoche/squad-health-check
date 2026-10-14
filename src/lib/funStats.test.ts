@@ -21,6 +21,7 @@ function input(overrides: Partial<FunStatsInput> = {}): FunStatsInput {
     [['ann', v('green')], ['bob', v('red', 'down')], ['cat', v('orange')]],
   ];
   return {
+    voteMode: 'colors',
     titles: ['Speed', 'Fun', 'Teamwork'],
     votes: rounds.map((r) => r.map(([, vote]) => vote)),
     named: rounds.map((r) => r.map(([id, vote]) => nv(id, vote))),
@@ -107,7 +108,99 @@ describe('computeFunStats', () => {
   });
 
   it('has nothing to say about a session without votes', () => {
-    expect(computeFunStats({ titles: ['A'], votes: [[]], named: [undefined], delays: [undefined] })).toEqual([]);
+    expect(computeFunStats({ voteMode: 'colors', titles: ['A'], votes: [[]], named: [undefined], delays: [undefined] })).toEqual([]);
+  });
+});
+
+const r = (score: number, trend: VoteTrend = 'stable'): Vote => ({ score, trend });
+
+/** Three people, three categories: ann always 9, bob always 1, cat in between */
+function rangeInput(overrides: Partial<FunStatsInput> = {}): FunStatsInput {
+  const rounds: [string, Vote][][] = [
+    [['ann', r(9, 'up')], ['bob', r(1, 'down')], ['cat', r(5)]],
+    [['ann', r(9, 'up')], ['bob', r(1, 'down')], ['cat', r(7)]],
+    [['ann', r(9)], ['bob', r(1, 'down')], ['cat', r(5)]],
+  ];
+  return {
+    voteMode: 'range',
+    titles: ['Speed', 'Fun', 'Teamwork'],
+    votes: rounds.map((x) => x.map(([, vote]) => vote)),
+    named: rounds.map((x) => x.map(([id, vote]) => nv(id, vote))),
+    delays: [undefined, undefined, undefined],
+    ...overrides,
+  };
+}
+
+describe('computeFunStats in range sessions', () => {
+  const stats = computeFunStats(rangeInput());
+  const ids = stats.map((s) => s.id);
+
+  it('never produces a color-based stat', () => {
+    for (const id of ['greenParty', 'redAlert', 'teamMood', 'flawless', 'splitRoom', 'redFree', 'pessimisticPal',
+      'optimisticOtter', 'blackOrWhite', 'fenceSitter', 'stormChaser', 'greenThumb', 'creatureOfHabit']) {
+      expect(ids, id).not.toContain(id);
+    }
+  });
+
+  it('keeps the stats that only need medians, spread and trends', () => {
+    expect(find(stats, 'sunnySide')?.params.category).toBe('Fun');
+    expect(find(stats, 'lookingUp')).toBeDefined();
+  });
+
+  it('averages the scores of the whole check', () => {
+    expect(find(stats, 'teamAverage')?.params.value).toBe('5.2/9');
+  });
+
+  it('finds who scored highest and lowest on average', () => {
+    expect(find(stats, 'sunnyAverage')?.params).toMatchObject({ name: 'ANN', value: '9.0/9' });
+    expect(find(stats, 'gloomyAverage')?.params).toMatchObject({ name: 'BOB', value: '1.0/9' });
+  });
+
+  it('counts the 9s per person, and skips a tie on the extremes', () => {
+    expect(find(stats, 'nineLives')?.params).toMatchObject({ name: 'ANN', value: '3' });
+    // ann has three 9s and bob three 1s: nobody has the most extremes
+    expect(find(stats, 'allOrNothing')).toBeUndefined();
+  });
+
+  it('finds the category whose scores stretch the most', () => {
+    // every round of the base input spans 1 → 9: tie, so nothing is said
+    expect(find(stats, 'rubberBand')).toBeUndefined();
+    const stretched = computeFunStats(
+      rangeInput({ votes: [[r(1), r(9), r(5)], [r(4), r(5), r(6)], [r(5), r(6), r(5)]], named: [undefined, undefined, undefined] }),
+    );
+    expect(find(stretched, 'rubberBand')?.params).toMatchObject({ category: 'Speed', value: '1 → 9' });
+  });
+
+  it('names someone who gave the same score nearly every time', () => {
+    const habit = computeFunStats(
+      rangeInput({
+        votes: [[r(6), r(6), r(2)], [r(6), r(3), r(9)], [r(6), r(4), r(8)], [r(6), r(2), r(7)]],
+        titles: ['A', 'B', 'C', 'D'],
+        named: [0, 1, 2, 3].map((i) => [nv('ann', r(6)), nv('bob', r([2, 3, 4, 2][i])), nv('cat', r([2, 9, 8, 7][i]))]),
+        delays: [undefined, undefined, undefined, undefined],
+      }),
+    );
+    expect(find(habit, 'oneTrickPony')?.params).toMatchObject({ name: 'ANN', score: '6', value: '4/4' });
+  });
+
+  it('finds a unanimous category and a high floor', () => {
+    const calm = computeFunStats(
+      rangeInput({ votes: [[r(7), r(7), r(7)], [r(8), r(9), r(7)], [r(6), r(5), r(9)]], named: [undefined, undefined, undefined] }),
+    );
+    expect(find(calm, 'bullseye')?.params).toMatchObject({ category: 'Speed', value: '7' });
+    expect(find(calm, 'highFloor')?.params.value).toBe('5');
+    expect(find(calm, 'rockBottom')).toBeUndefined();
+  });
+
+  it('skips a stat with no winner or below its threshold', () => {
+    // one 1 per round is not enough to name a category
+    expect(find(stats, 'rockBottom')).toBeUndefined();
+    expect(find(stats, 'topMarks')).toBeUndefined();
+    const flat = computeFunStats(
+      rangeInput({ votes: [[r(5), r(5), r(6)], [r(5), r(6), r(6)], [r(5), r(5), r(6)]], named: [undefined, undefined, undefined] }),
+    );
+    expect(find(flat, 'topMarks')).toBeUndefined();
+    expect(find(flat, 'rubberBand')).toBeUndefined();
   });
 });
 
@@ -142,7 +235,7 @@ describe('texts', () => {
       const m = messagesFor(lang);
       for (const id of FUN_STAT_IDS) {
         expect(m.funStats[id].title, `${lang} ${id}`).toBeTruthy();
-        expect(m.funStats[id].text({ name: 'X', category: 'C', value: '1', color: 'Red' }), `${lang} ${id}`).not.toContain('undefined');
+        expect(m.funStats[id].text({ name: 'X', category: 'C', value: '1', color: 'Red', score: '5' }), `${lang} ${id}`).not.toContain('undefined');
       }
     }
   });

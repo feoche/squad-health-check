@@ -60,6 +60,7 @@ interface FunStatValues {
   category?: string;
   value?: string;
   color?: string;
+  score?: string;
 }
 const stat = (title: string, text: (v: FunStatValues) => string) => ({ title, text });
 
@@ -286,6 +287,19 @@ const en = {
     fashionablyLate: stat('Fashionably Late', ({ name, value }) => `${name} was the last to vote ${value} times.`),
     inSync: stat('In Sync', ({ category, value }) => `On ${category}, all the votes came within ${value} of each other.`),
     slowBurner: stat('Slow Burner', ({ category, value }) => `On ${category}, ${value} passed between the first and the last vote.`),
+    teamAverage: stat('Team Average', ({ value }) => `The average score of the whole health check was ${value}.`),
+    topMarks: stat('Top Marks', ({ category, value }) => `${category} collected ${value} scores of 9, more than any other category.`),
+    rockBottom: stat('Rock Bottom', ({ category, value }) => `${category} collected ${value} scores of 1, more than any other category.`),
+    bullseye: stat('Bullseye', ({ category, value }) => `Everyone gave ${value} on ${category}.`),
+    rubberBand: stat('Rubber Band', ({ category, value }) => `Scores on ${category} stretched from ${value}.`),
+    highFloor: stat('High Floor', ({ value }) => `Nobody scored below ${value} in the whole health check.`),
+    sunnyAverage: stat('Sunny Average', ({ name, value }) => `${name} scored highest on average: ${value}.`),
+    gloomyAverage: stat('Gloomy Average', ({ name, value }) => `${name} scored lowest on average: ${value}.`),
+    allOrNothing: stat('All or Nothing', ({ name, value }) => `${name} went for a 1 or a 9 in ${value} votes.`),
+    middleGround: stat('Middle Ground', ({ name, value }) => `${name} picked a 5 in ${value} votes.`),
+    nineLives: stat('Nine Lives', ({ name, value }) => `${name} gave ${value} scores of 9.`),
+    oneTrickPony: stat('One-Trick Pony', ({ name, score, value }) => `${name} gave ${score} in ${value} of their votes.`),
+    rollercoaster: stat('Rollercoaster', ({ name, value }) => `${name}'s scores ranged from ${value}.`),
   },
 
   finished: {
@@ -623,6 +637,19 @@ const fr: Messages = {
     fashionablyLate: stat('Toujours le dernier', ({ name, value }) => `${name} a voté en dernier ${value} fois.`),
     inSync: stat('À l’unisson', ({ category, value }) => `Sur ${category}, tous les votes sont arrivés à ${value} d'écart.`),
     slowBurner: stat('Longue réflexion', ({ category, value }) => `Sur ${category}, ${value} se sont écoulées entre le premier et le dernier vote.`),
+    teamAverage: stat('Moyenne de la team', ({ value }) => `La note moyenne de tout le bilan est de ${value}.`),
+    topMarks: stat('Pleins feux', ({ category, value }) => `${category} a récolté ${value} notes de 9, plus que toute autre catégorie.`),
+    rockBottom: stat('Tout en bas', ({ category, value }) => `${category} a récolté ${value} notes de 1, plus que toute autre catégorie.`),
+    bullseye: stat('En plein dans le mille', ({ category, value }) => `Tout le monde a mis ${value} sur ${category}.`),
+    rubberBand: stat('Élastique', ({ category, value }) => `Les notes sur ${category} s'étalent de ${value}.`),
+    highFloor: stat('Plancher haut', ({ value }) => `Personne n'a mis moins de ${value} sur tout le bilan.`),
+    sunnyAverage: stat('Moyenne ensoleillée', ({ name, value }) => `${name} a mis les meilleures notes en moyenne : ${value}.`),
+    gloomyAverage: stat('Moyenne grisouille', ({ name, value }) => `${name} a mis les notes les plus basses en moyenne : ${value}.`),
+    allOrNothing: stat('Tout ou rien', ({ name, value }) => `${name} a choisi un 1 ou un 9 dans ${value} votes.`),
+    middleGround: stat('Juste milieu', ({ name, value }) => `${name} a mis un 5 dans ${value} votes.`),
+    nineLives: stat('Neuf vies', ({ name, value }) => `${name} a donné ${value} notes de 9.`),
+    oneTrickPony: stat('Une seule note', ({ name, score, value }) => `${name} a donné ${score} dans ${value} de ses votes.`),
+    rollercoaster: stat('Montagnes russes', ({ name, value }) => `Les notes de ${name} vont de ${value}.`),
   },
 
   finished: {

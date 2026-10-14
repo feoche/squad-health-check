@@ -1,4 +1,4 @@
-import { ClientSessionState, NamedVote, Vote, VoteColor, VoteDelay } from '../types';
+import { ClientSessionState, NamedVote, Vote, VoteColor, VoteDelay, VoteMode } from '../types';
 import { sharedNamedVotes } from './deriveClientState';
 import { t } from './i18n';
 import { localizeCategory } from './localizeCategory';
@@ -15,15 +15,18 @@ export interface FunStatParams {
   category?: string;
   value?: string;
   color?: string;
+  score?: string;
 }
 
 export const FUN_STAT_IDS = [
   // team
   'sunnySide', 'stormCloud', 'hotDebate', 'choir', 'greenParty', 'redAlert', 'teamMood', 'lookingUp',
   'slidingDown', 'risingStar', 'flawless', 'splitRoom', 'redFree', 'steady', 'voiceCount',
+  'teamAverage', 'topMarks', 'rockBottom', 'bullseye', 'rubberBand', 'highFloor',
   // person
   'pessimisticPal', 'optimisticOtter', 'devilsAdvocate', 'teamMirror', 'blackOrWhite', 'fenceSitter',
   'stormChaser', 'greenThumb', 'worrier', 'believer', 'creatureOfHabit',
+  'sunnyAverage', 'gloomyAverage', 'allOrNothing', 'middleGround', 'nineLives', 'oneTrickPony', 'rollercoaster',
   // speed
   'quickestDraw', 'deepThinker', 'lightning', 'firstResponder', 'fashionablyLate', 'inSync', 'slowBurner',
 ] as const;
@@ -37,6 +40,8 @@ export interface FunStat {
 }
 
 export interface FunStatsInput {
+  /** How people voted: Range sessions get their own stats and skip the colour ones */
+  voteMode: VoteMode;
   /** Category titles in the user's language, by index */
   titles: string[];
   /** Every vote of each category, offline ones included */
@@ -50,6 +55,7 @@ export interface FunStatsInput {
 export function funStatsInput(session: ClientSessionState): FunStatsInput {
   const indexes = session.categories.map((_, i) => i);
   return {
+    voteMode: session.voteMode,
     titles: session.categories.map((c) => localizeCategory(c).title),
     votes: indexes.map((i) => session.allResults.find((r) => r.categoryIndex === i)?.votes ?? []),
     named: indexes.map((i) => sharedNamedVotes(session, i)),
@@ -203,6 +209,12 @@ const share = (votes: Vote[], pick: (v: Vote) => boolean) => votes.filter(pick).
 const MIN_VOTES = 3;
 const sized = (cats: Cat[]) => cats.filter((c) => c.votes.length >= MIN_VOTES);
 
+/** These read colours, so they only apply to Colors sessions */
+const COLOR_ONLY = new Set<FunStatId>([
+  'greenParty', 'redAlert', 'teamMood', 'flawless', 'splitRoom', 'redFree', 'pessimisticPal',
+  'optimisticOtter', 'blackOrWhite', 'fenceSitter', 'stormChaser', 'greenThumb', 'creatureOfHabit',
+]);
+
 const DEFINITIONS: Definition[] = [
   /* Team */
   { id: 'sunnySide', group: 'team', emoji: '☀️', compute: ({ cats }) => {
@@ -354,6 +366,77 @@ const DEFINITIONS: Definition[] = [
   } },
 ];
 
+const outOf9 = (n: number) => `${n.toFixed(1)}/9`;
+const countOf = (weights: number[], pick: (w: number) => boolean) => weights.filter(pick).length;
+const span = (weights: number[]) => `${Math.min(...weights)} → ${Math.max(...weights)}`;
+
+const RANGE_DEFINITIONS: Definition[] = [
+  /* Team */
+  { id: 'teamAverage', group: 'team', emoji: '📊', compute: ({ allVotes }) =>
+    allVotes.length >= MIN_VOTES ? { value: outOf9(mean(allVotes.map(voteWeight))) } : null },
+  { id: 'topMarks', group: 'team', emoji: '🏆', compute: ({ cats }) => {
+    const top = unique(cats, (c) => countOf(c.weights, (w) => w === 9));
+    const nines = top && countOf(top.weights, (w) => w === 9);
+    return top && nines && nines >= 2 ? { category: top.title, value: count(nines) } : null;
+  } },
+  { id: 'rockBottom', group: 'team', emoji: '🕳️', compute: ({ cats }) => {
+    const top = unique(cats, (c) => countOf(c.weights, (w) => w === 1));
+    const ones = top && countOf(top.weights, (w) => w === 1);
+    return top && ones && ones >= 2 ? { category: top.title, value: count(ones) } : null;
+  } },
+  { id: 'bullseye', group: 'team', emoji: '🎯', compute: ({ cats }) => {
+    const top = sized(cats).find((c) => c.weights.every((w) => w === c.weights[0]));
+    return top ? { category: top.title, value: count(top.weights[0]) } : null;
+  } },
+  { id: 'rubberBand', group: 'team', emoji: '🪀', compute: ({ cats }) => {
+    const gap = (c: Cat) => Math.max(...c.weights) - Math.min(...c.weights);
+    const top = unique(sized(cats), gap);
+    return top && gap(top) >= 6 ? { category: top.title, value: span(top.weights) } : null;
+  } },
+  { id: 'highFloor', group: 'team', emoji: '🏢', compute: ({ allVotes, cats }) => {
+    if (cats.length < 2 || allVotes.length < MIN_VOTES) return null;
+    const floor = Math.min(...allVotes.map(voteWeight));
+    return floor >= 4 ? { value: count(floor) } : null;
+  } },
+
+  /* Person */
+  { id: 'sunnyAverage', group: 'person', emoji: '🌞', compute: ({ people }) => {
+    const p = unique(people, (x) => mean(x.weights));
+    return p ? { name: p.name, value: outOf9(mean(p.weights)) } : null;
+  } },
+  { id: 'gloomyAverage', group: 'person', emoji: '🌫️', compute: ({ people }) => {
+    const p = unique(people, (x) => mean(x.weights), 'min');
+    return p ? { name: p.name, value: outOf9(mean(p.weights)) } : null;
+  } },
+  { id: 'allOrNothing', group: 'person', emoji: '🏁', compute: ({ people }) => {
+    const extremes = (p: Person) => countOf(p.weights, (w) => w === 1 || w === 9);
+    const p = unique(people, extremes);
+    return p && extremes(p) >= 2 ? { name: p.name, value: count(extremes(p)) } : null;
+  } },
+  { id: 'middleGround', group: 'person', emoji: '🪑', compute: ({ people }) => {
+    const fives = (p: Person) => countOf(p.weights, (w) => w === 5);
+    const p = unique(people, fives);
+    return p && fives(p) >= 2 ? { name: p.name, value: count(fives(p)) } : null;
+  } },
+  { id: 'nineLives', group: 'person', emoji: '🐈', compute: ({ people }) => {
+    const nines = (p: Person) => countOf(p.weights, (w) => w === 9);
+    const p = unique(people, nines);
+    return p && nines(p) >= 2 ? { name: p.name, value: count(nines(p)) } : null;
+  } },
+  { id: 'oneTrickPony', group: 'person', emoji: '🐴', compute: ({ people }) => {
+    const habit = (p: Person) => Math.max(...[...new Set(p.weights)].map((s) => countOf(p.weights, (w) => w === s)));
+    const p = unique(people.filter((x) => x.weights.length >= 4), (x) => habit(x) / x.weights.length);
+    if (!p || habit(p) / p.weights.length < 0.75) return null;
+    const score = p.weights.find((s) => countOf(p.weights, (w) => w === s) === habit(p))!;
+    return { name: p.name, score: count(score), value: `${habit(p)}/${p.weights.length}` };
+  } },
+  { id: 'rollercoaster', group: 'person', emoji: '🎢', compute: ({ people }) => {
+    const gap = (p: Person) => Math.max(...p.weights) - Math.min(...p.weights);
+    const p = unique(people, gap);
+    return p && gap(p) >= 4 ? { name: p.name, value: span(p.weights) } : null;
+  } },
+];
+
 /** Every stat that applies to this session */
 export function computeFunStats(input: FunStatsInput): FunStat[] {
   const speed = speedOf(input);
@@ -365,7 +448,11 @@ export function computeFunStats(input: FunStatsInput): FunStat[] {
     rounds: speed.rounds,
     allVotes: input.votes.flat(),
   };
-  return DEFINITIONS.flatMap((d) => {
+  const definitions =
+    input.voteMode === 'range'
+      ? [...DEFINITIONS.filter((d) => !COLOR_ONLY.has(d.id)), ...RANGE_DEFINITIONS]
+      : DEFINITIONS;
+  return definitions.flatMap((d) => {
     const params = d.compute(ctx);
     return params ? [{ id: d.id, group: d.group, emoji: d.emoji, params }] : [];
   });
