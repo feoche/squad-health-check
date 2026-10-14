@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { Range, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_COLOR, Range, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Category } from '../types';
 import { MAX_SCORE, MIN_SCORE } from '../lib/voteScore';
 import { t } from '../lib/i18n';
@@ -31,16 +31,20 @@ function ScoreInput({ category, score, invalid, onChange }: Props) {
 
   return (
     <div className="score-input">
-      <div className="score-input__ends">
-        <div className="score-input__end">
-          <Text preset={TEXT_PRESET.label} as="span">{t.voting.scaleLow}</Text>
-          <Text preset={TEXT_PRESET.paragraph} className="score-input__description">{low}</Text>
-        </div>
-        <div className="score-input__end score-input__end--high">
-          <Text preset={TEXT_PRESET.label} as="span">{t.voting.scaleHigh}</Text>
-          <Text preset={TEXT_PRESET.paragraph} className="score-input__description">{high}</Text>
-        </div>
-      </div>
+      <ul className="score-input__ends">
+        <li className="score-input__end">
+          <Badge className="score-input__end-badge" color={BADGE_COLOR.critical} aria-hidden="true">{MIN_SCORE}</Badge>
+          <Text preset={TEXT_PRESET.paragraph} className="score-input__description">
+            <span className="visually-hidden">{t.voting.scaleLow}: </span>{low}
+          </Text>
+        </li>
+        <li className="score-input__end">
+          <Badge className="score-input__end-badge" color={BADGE_COLOR.success} aria-hidden="true">{MAX_SCORE}</Badge>
+          <Text preset={TEXT_PRESET.paragraph} className="score-input__description">
+            <span className="visually-hidden">{t.voting.scaleHigh}: </span>{high}
+          </Text>
+        </li>
+      </ul>
       {/* Only a press on the slider or a move key with focus on it counts as touching it */}
       <div onPointerUp={touch} onKeyDownCapture={(e) => MOVE_KEYS.has(e.key) && touch()}>
         <Range

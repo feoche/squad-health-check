@@ -1050,13 +1050,23 @@ body {
 }
 
 .score-input__ends {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ods-theme-row-gap);
+}
+
+/* The score in its colour, then its meaning: read top to bottom like the slider left to right */
+.score-input__end {
+  display: flex;
+  align-items: flex-start;
   gap: calc(var(--ods-theme-column-gap) * 2);
 }
 
-.score-input__end--high {
-  text-align: right;
+.score-input__end-badge {
+  flex: none;
 }
 
 .score-input__value {
