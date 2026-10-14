@@ -31,11 +31,11 @@ function FinishedNotes({ session, previous, onChangeNote }: Props) {
                 {session.categoryResults[i] && ` (${t.votes(session.categoryResults[i].length)})`}
               </Text>
               {session.categoryResults[i] ? (
-                <VoteSummary votes={session.categoryResults[i]} />
+                <VoteSummary votes={session.categoryResults[i]} voteMode={session.voteMode} />
               ) : (
                 <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
               )}
-              {before && <PreviousResult previous={before} votes={session.categoryResults[i]} />}
+              {before && <PreviousResult previous={before} votes={session.categoryResults[i]} voteMode={session.voteMode} />}
             </div>
             <NoteFields
               note={session.facilitatorNotes[i] ?? EMPTY_NOTE}

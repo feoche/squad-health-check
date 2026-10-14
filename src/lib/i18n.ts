@@ -241,6 +241,10 @@ const en = {
     finish: 'Finish Session',
     noVotes: 'No votes',
     medianPrefix: 'Median:',
+    median: 'median',
+    histogramCaption: 'Votes by score',
+    trendsCaption: 'Votes by trend',
+    scoreOutOf: (n: string) => `${n} / 9`,
     byPerson: 'Votes',
     matrixCaption: 'Votes by health colour and trend',
     descriptions: 'Health descriptions',
@@ -356,6 +360,10 @@ const en = {
     removeOfflineVote: (color: string, trend: string) => `Remove a vote you added: ${color}, ${trend}`,
     offlineInCell: (n: number) => `${plural(n, 'vote')} added manually`,
     resetOffline: 'Reset manual votes',
+    addOfflineScore: (score: number, trend: string) => `Add a vote: ${score}, ${trend}`,
+    removeOfflineScore: (score: number, trend: string) => `Remove a vote you added: ${score}, ${trend}`,
+    offlineScoreInCell: (n: number) => `${plural(n, 'vote')} added manually`,
+    offlineTrend: 'Trend of the votes you add',
   },
 
   notes: {
@@ -568,6 +576,10 @@ const fr: Messages = {
     finish: 'Terminer la session',
     noVotes: 'Aucun vote',
     medianPrefix: 'Médiane :',
+    median: 'médiane',
+    histogramCaption: 'Votes par note',
+    trendsCaption: 'Votes par tendance',
+    scoreOutOf: (n) => `${n} / 9`,
     byPerson: 'Votes',
     matrixCaption: 'Votes par couleur de santé et tendance',
     descriptions: 'Description des couleurs',
@@ -682,6 +694,10 @@ const fr: Messages = {
     removeOfflineVote: (color, trend) => `Retirer un vote ajouté : ${color}, ${trend}`,
     offlineInCell: (n) => `${pluralFr(n, 'vote')} ajouté${n > 1 ? 's' : ''} manuellement`,
     resetOffline: 'Réinitialiser les votes manuels',
+    addOfflineScore: (score, trend) => `Ajouter un vote : ${score}, ${trend}`,
+    removeOfflineScore: (score, trend) => `Retirer un vote ajouté : ${score}, ${trend}`,
+    offlineScoreInCell: (n) => `${pluralFr(n, 'vote')} ajouté${n > 1 ? 's' : ''} manuellement`,
+    offlineTrend: 'Tendance des votes ajoutés',
   },
 
   notes: {

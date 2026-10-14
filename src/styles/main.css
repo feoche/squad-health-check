@@ -994,3 +994,66 @@ body {
 .scale-cards--large .scale-cards__score {
   font-size: 3rem;
 }
+
+/* Range results: nine bars, the median marked with a triangle as well as a darker bar */
+.score-histogram__table {
+  margin-inline: auto;
+  border-collapse: separate;
+  border-spacing: var(--ods-theme-column-gap);
+}
+
+.score-histogram__score {
+  font-weight: normal;
+  text-align: center;
+}
+
+.score-histogram__median {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.score-histogram__cell {
+  min-width: 56px;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.score-histogram__bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 140px;
+}
+
+.score-histogram--compact .score-histogram__bars {
+  height: 56px;
+}
+
+.score-histogram--compact .score-histogram__cell {
+  min-width: 28px;
+}
+
+.score-histogram__bar {
+  display: block;
+  height: var(--bar-height);
+  min-height: 2px;
+  border-radius: var(--ods-theme-border-radius);
+  background-color: var(--ods-color-primary-500);
+}
+
+.score-histogram__bar--median {
+  background-color: var(--ods-color-primary-700);
+}
+
+.score-histogram__trends {
+  justify-content: center;
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.score-histogram__add-trend {
+  justify-content: center;
+}

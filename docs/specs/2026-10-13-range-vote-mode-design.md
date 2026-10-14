@@ -79,8 +79,10 @@ The mode is fixed once the session exists, like `anonymity`.
   the facilitator, presenter and participant views and on the finished screen.
   Nine bars (1–9) with counts, the median marked, and a trend strip below:
   ↗ improving · → stable · ↘ worsening counts.
-- The facilitator's offline "+/−" controls sit on each bar (score) and on each
-  trend count, as they sit on matrix cells today.
+- The facilitator's offline "+/−" controls sit under each bar. A vote needs a
+  score *and* a trend, so a small trend selector (↗ → ↘, default stable) sets
+  the trend of the votes added with "+"; "−" removes an added vote of that
+  score, preferring the selected trend.
 - `NamedVotes`: score number and trend arrow per voter, no color badge.
 - `MedianBadge`: shows the score, uncolored. `VoteSummary` follows.
 - The histogram is readable without color alone and exposes its counts to

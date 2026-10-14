@@ -1,11 +1,10 @@
 import { Card, CARD_COLOR, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import FunStatsBanner from './FunStatsBanner';
-import VoteMatrix from './VoteMatrix';
+import VoteBreakdown from './VoteBreakdown';
 import VoteSummary from './VoteSummary';
 import { computeFunStats, funStatsInput, pickFunStats } from '../lib/funStats';
 import { t } from '../lib/i18n';
-import { colorVotes } from '../lib/voteScore';
 import { localizeCategory } from '../lib/localizeCategory';
 
 interface Props {
@@ -37,9 +36,9 @@ function SessionFinished({ session }: Props) {
                 <Text preset={TEXT_PRESET.heading4} as="h3">
                   {result.categoryIndex + 1}. {localizeCategory(cat).title} ({t.votes(result.votes.length)})
                 </Text>
-                <VoteSummary votes={result.votes} prefix={false} />
+                <VoteSummary votes={result.votes} prefix={false} voteMode={session.voteMode} />
               </div>
-              <VoteMatrix votes={colorVotes(result.votes)} compact />
+              <VoteBreakdown votes={result.votes} voteMode={session.voteMode} compact />
             </Card>
           );
         })}

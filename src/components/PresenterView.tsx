@@ -69,7 +69,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
           <Text preset={TEXT_PRESET.heading1} as="h2" className="presenter-view__title">
             {results ? `${title} (${t.votes(results.length)})` : title}
           </Text>
-          {results && <VoteSummary votes={results} large />}
+          {results && <VoteSummary votes={results} large voteMode={session.voteMode} />}
         </div>
         {subtitle && (
           <Text
@@ -90,7 +90,7 @@ function PresenterView({ session }: { session: ClientSessionState }) {
 
       {phase === 'revealed' &&
         (results ? (
-          <ResultsGrid votes={results} namedVotes={sharedNamedVotes(session, currentCategoryIndex)} />
+          <ResultsGrid votes={results} voteMode={session.voteMode} namedVotes={sharedNamedVotes(session, currentCategoryIndex)} />
         ) : (
           <Text preset={TEXT_PRESET.caption}>{t.loadingResults}</Text>
         ))}

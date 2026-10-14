@@ -1,12 +1,14 @@
 import { Button, BUTTON_SIZE, BUTTON_VARIANT, Card, CARD_COLOR, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { t } from '../lib/i18n';
-import { NamedVote, Vote } from '../types';
-import { colorVotes } from '../lib/voteScore';
+import { NamedVote, Vote, VoteMode } from '../types';
+import { colorVotes, rangeVotes } from '../lib/voteScore';
 import NamedVotes from './NamedVotes';
+import ScoreHistogram from './ScoreHistogram';
 import VoteMatrix from './VoteMatrix';
 
 interface Props {
   votes: Vote[];
+  voteMode: VoteMode;
   /** Who voted what, when this audience may see it */
   namedVotes?: NamedVote[];
   inline?: boolean;
@@ -21,12 +23,16 @@ interface Props {
  * Results in their own card, or `inline` as a section of an enclosing card; the page around titles them.
  * Who voted what sits beside the matrix, 70:30.
  */
-function ResultsGrid({ votes, namedVotes, inline = false, offlineVotes, onAdjust, onResetOffline }: Props) {
+function ResultsGrid({ votes, voteMode, namedVotes, inline = false, offlineVotes, onAdjust, onResetOffline }: Props) {
   const content = (
     <>
       <div className={namedVotes?.length ? 'results-grid__body results-grid__body--split' : 'results-grid__body'}>
         <div className="table-scroll results-grid__matrix">
-          <VoteMatrix votes={colorVotes(votes)} offlineVotes={colorVotes(offlineVotes ?? [])} onAdjust={onAdjust} />
+          {voteMode === 'range' ? (
+            <ScoreHistogram votes={rangeVotes(votes)} offlineVotes={rangeVotes(offlineVotes ?? [])} onAdjust={onAdjust} />
+          ) : (
+            <VoteMatrix votes={colorVotes(votes)} offlineVotes={colorVotes(offlineVotes ?? [])} onAdjust={onAdjust} />
+          )}
         </div>
         {namedVotes && <NamedVotes votes={namedVotes} />}
       </div>

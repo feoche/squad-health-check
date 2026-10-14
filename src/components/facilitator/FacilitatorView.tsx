@@ -114,20 +114,21 @@ function FacilitatorView({ session, actions }: Props) {
       voteCount={(phase === 'voting' ? session.liveResults : session.currentResults)?.length}
     >
       {phase === 'voting' && session.liveResults && (
-        <ResultsGrid votes={session.liveResults} inline {...offline} />
+        <ResultsGrid votes={session.liveResults} voteMode={session.voteMode} inline {...offline} />
       )}
       {phase === 'revealed' &&
         (session.currentResults ? (
           <>
             <ResultsGrid
               votes={session.currentResults}
+              voteMode={session.voteMode}
               namedVotes={session.namedVotes[current]}
               inline
               {...offline}
             />
             <div className="inline wrap facilitator-view__round-summary">
-              <VoteSummary votes={session.currentResults} />
-              {previousOfRound && <PreviousResult previous={previousOfRound} votes={session.currentResults} />}
+              <VoteSummary votes={session.currentResults} voteMode={session.voteMode} />
+              {previousOfRound && <PreviousResult previous={previousOfRound} votes={session.currentResults} voteMode={session.voteMode} />}
             </div>
           </>
         ) : (

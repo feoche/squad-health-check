@@ -1,5 +1,5 @@
 import { Icon, ICON_NAME, Text, TEXT_PRESET, type IconName } from '@ovhcloud/ods-react';
-import { Vote } from '../../types';
+import { Vote, VoteMode } from '../../types';
 import { CategoryExport, Evolution, evolution } from '../../lib/sessionHistory';
 import { medianScore } from '../../lib/voteScore';
 import { t } from '../../lib/i18n';
@@ -12,7 +12,15 @@ const EVOLUTION_ICON: Record<Evolution, IconName> = {
 };
 
 /** The category's median in the imported previous session, and how its health moved since */
-function PreviousResult({ previous, votes }: { previous: CategoryExport; votes: Vote[] | undefined }) {
+function PreviousResult({
+  previous,
+  votes,
+  voteMode,
+}: {
+  previous: CategoryExport;
+  votes: Vote[] | undefined;
+  voteMode: VoteMode;
+}) {
   const change = evolution(previous.median, votes ? medianScore(votes) : null);
 
   return (
@@ -21,7 +29,7 @@ function PreviousResult({ previous, votes }: { previous: CategoryExport; votes: 
       {previous.median === null ? (
         <Text preset={TEXT_PRESET.caption}>{t.results.noVotes}</Text>
       ) : (
-        <MedianBadge score={previous.median} />
+        <MedianBadge score={previous.median} voteMode={voteMode} />
       )}
       {change && (
         <span className="inline previous-result__evolution">

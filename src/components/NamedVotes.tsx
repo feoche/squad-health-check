@@ -1,10 +1,10 @@
-import { Badge, BADGE_SIZE, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_COLOR, BADGE_SIZE, Icon, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { NamedVote } from '../types';
 import { COLOR_OPTIONS, TREND_OPTIONS } from './voteOptions';
 import { t } from '../lib/i18n';
-import { colorOf } from '../lib/voteScore';
+import { isRangeVote } from '../lib/voteScore';
 
-/** Each voter as a badge in their colour with their trend, stacked in columns. */
+/** Each voter as a badge in their colour (or with their score) and trend, stacked in columns. */
 function NamedVotes({ votes }: { votes: NamedVote[] }) {
   if (!votes.length) return null;
   return (
@@ -12,17 +12,20 @@ function NamedVotes({ votes }: { votes: NamedVote[] }) {
       <Text preset={TEXT_PRESET.heading5} as="h3">{t.results.byPerson}</Text>
       <ul className="named-votes__list">
         {votes.map(({ id, name, vote, quick }) => {
-          const color = COLOR_OPTIONS.find((o) => o.value === colorOf(vote))!;
+          const range = isRangeVote(vote);
+          const color = range ? undefined : COLOR_OPTIONS.find((o) => o.value === vote.color)!;
           const trend = TREND_OPTIONS.find((o) => o.value === vote.trend)!;
+          const summary = range ? t.results.scoreOutOf(String(vote.score)) : color!.label;
           return (
             <li key={id} className="named-votes__item">
-              <Badge className="named-votes__badge" color={color.badge} size={BADGE_SIZE.lg}>
+              <Badge className="named-votes__badge" color={color ? color.badge : BADGE_COLOR.neutral} size={BADGE_SIZE.lg}>
                 {quick && <span aria-hidden="true">⚡ </span>}
                 <span className="named-votes__name">{name ?? t.results.unknownVoter}</span>
+                {range && <span aria-hidden="true">{vote.score}</span>}
                 <Icon name={trend.icon} aria-hidden="true" />
                 <span className="visually-hidden">
                   {' — '}
-                  {color.label}, {trend.label}
+                  {summary}, {trend.label}
                   {quick && `, ${t.facilitator.quickVote}`}
                 </span>
               </Badge>
