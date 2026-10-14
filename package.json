@@ -12,6 +12,8 @@
     "workshop:async": "node scripts/workshop-async.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/nunito-sans": "^5.3.0",
+    "@fontsource-variable/outfit": "^5.3.0",
     "@ovhcloud/ods-react": "19.7.0",
     "@ovhcloud/ods-themes": "19.7.0",
     "firebase": "^12.19.0",

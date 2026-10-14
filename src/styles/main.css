@@ -4,6 +4,24 @@
    below use ODS design tokens exclusively.
    ═══════════════════════════════════════════════════════════════ */
 
+:root {
+  /* Nunito Sans for text; headings below use Outfit. Both are self-hosted (fontsource), imported in main.tsx */
+  --font-heading: 'Outfit Variable', 'Trebuchet MS', arial, 'Segoe UI', sans-serif;
+  --ods-theme-font-family: 'Nunito Sans Variable', arial, 'Segoe UI', sans-serif;
+  --ods-font-family-default: var(--ods-theme-font-family);
+}
+
+/* Native headings, and the ODS Text heading presets, which render with a hashed class */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[class*='_text--heading-'] {
+  font-family: var(--font-heading);
+}
+
 html {
   font-family: var(--ods-theme-font-family);
   color: var(--ods-theme-text-color);
