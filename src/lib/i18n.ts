@@ -93,7 +93,7 @@ const en = {
     green: "Not perfect, but we're happy with how things are and see no need to improve right now.",
     red: "This really isn't working and needs to improve quickly.",
   },
-  trends: { up: 'Improving', stable: 'Stable', down: 'Getting worse' },
+  trends: { up: 'Improvement', stable: 'Stability', down: 'Decline' },
 
   home: {
     welcome: 'Squad Health Check',
@@ -393,7 +393,7 @@ const en = {
     introScriptTitle: 'Introduction to read out',
     introScript: [
       "Thanks for joining this Squad Health Check. It's a quick, honest look at how we feel about our work. It's not an evaluation, and there are no wrong answers.",
-      "For each category, vote on your phone with a colour and a trend (improving, stable or getting worse).",
+      "For each category, vote on your phone with a colour and a trend (improvement, stability or decline).",
       "{green} doesn't mean perfect: it just means we're happy with how things are and see no need to improve right now. {orange} means there are significant problems to address, but it's not a disaster. {red} means it really isn't working and needs to improve quickly.",
     ],
     introScriptEnd: "After each vote, we'll discuss the results, especially where we disagree. Let's start!",
@@ -484,7 +484,7 @@ const fr: Messages = {
     green: "Pas parfait, mais nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant.",
     red: "Ça ne fonctionne vraiment pas et doit être amélioré très rapidement.",
   },
-  trends: { up: 'En amélioration', stable: 'Stable', down: 'En dégradation' },
+  trends: { up: 'Amélioration', stable: 'Stabilité', down: 'Dégradation' },
 
   home: {
     welcome: 'Squad Health Check',
@@ -782,7 +782,7 @@ const fr: Messages = {
     introScriptTitle: "Introduction à lire",
     introScript: [
       "Merci de participer à ce Squad Health Check. C'est un regard rapide et honnête sur la façon dont nous vivons notre travail. Ce n'est pas une évaluation, et il n'y a pas de mauvaise réponse.",
-      "Pour chaque catégorie, votez sur votre téléphone avec une couleur et une tendance (en amélioration, stable ou en dégradation).",
+      "Pour chaque catégorie, votez sur votre téléphone avec une couleur et une tendance (amélioration, stabilité ou dégradation).",
       "{green} ne veut pas dire parfait : cela signifie simplement que nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant. {orange} signifie qu'il y a des problèmes importants à traiter, mais ce n'est pas une catastrophe. {red} signifie que ça ne fonctionne vraiment pas et que cela doit être amélioré très rapidement.",
     ],
     introScriptEnd: "Après chaque vote, nous discuterons des résultats, surtout là où nous ne sommes pas d'accord. C'est parti !",

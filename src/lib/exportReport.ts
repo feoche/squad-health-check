@@ -39,7 +39,7 @@ export function scoreSummary(votes: Vote[]): string {
     .join(' · ');
 }
 
-/** "Improving 2 · Stable 1 · Getting worse 0", improving first */
+/** "Improvement 2 · Stability 1 · Decline 0", improvement first */
 export function trendSummary(votes: Vote[], labels: Record<VoteTrend, string>): string {
   const counts = trendCounts(votes);
   return (['up', 'stable', 'down'] as VoteTrend[]).map((trend) => `${labels[trend]} ${counts[trend]}`).join(' · ');

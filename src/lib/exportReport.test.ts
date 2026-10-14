@@ -128,8 +128,8 @@ const rangeVotes: CategoryResult = {
 describe('range sessions', () => {
   it('summarises scores and trends without any color', () => {
     expect(scoreSummary(rangeVotes.votes)).toBe('7 ×2 · 9 ×1');
-    expect(trendSummary(rangeVotes.votes, { up: 'Improving', stable: 'Stable', down: 'Getting worse' })).toBe(
-      'Improving 2 · Stable 1 · Getting worse 0',
+    expect(trendSummary(rangeVotes.votes, { up: 'Improvement', stable: 'Stability', down: 'Decline' })).toBe(
+      'Improvement 2 · Stability 1 · Decline 0',
     );
   });
 

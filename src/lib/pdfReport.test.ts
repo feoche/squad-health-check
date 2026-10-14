@@ -134,7 +134,7 @@ describe('buildPDF', () => {
       ['P', '3 votes'],
       ['P', 'Median: 7/9'],
       ['P', 'Scores: 7 ×2 · 9 ×1'],
-      ['P', 'Trends: Improving 2 · Stable 1 · Getting worse 0'],
+      ['P', 'Trends: Improvement 2 · Stability 1 · Decline 0'],
       ['H3', '2. Ownership'],
       ['P', '0 votes'],
       ['P', 'Median: —'],
@@ -150,7 +150,7 @@ describe('buildPDF', () => {
       ['H2', 'Notes'],
       ['H3', '1. Fun'],
       ['P', '2 votes'],
-      ['P', 'Median: Orange · Improving'],
+      ['P', 'Median: Orange · Improvement'],
       ['P', 'we laughed a lot'],
       ['H3', '2. Ownership'],
       ['P', '0 votes'],
@@ -175,7 +175,7 @@ describe('buildPDF', () => {
     const { tags, info } = await readPDF([fun, ownership], 'fr');
     expect(info.Language).toBe('fr');
     expect(tagged(tags, 'P')).toContain('Nombre de votants : 2');
-    expect(tagged(tags, 'P')).toContain('Médiane : Orange · En amélioration');
+    expect(tagged(tags, 'P')).toContain('Médiane : Orange · Amélioration');
     expect(tagged(tags, 'P')).toContain('0 vote');
   });
 
