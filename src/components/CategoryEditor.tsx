@@ -399,9 +399,11 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                 ) : (
                   <div className="category-editor__row">
                     <Icon name={ICON_NAME.dragDrop} className="category-editor__drag-handle" aria-hidden />
-                    <Badge className="category-editor__position" color={BADGE_COLOR.primary} aria-hidden>
-                      {i + 1}
-                    </Badge>
+                    <span className="category-editor__position-slot" aria-hidden>
+                      <Badge className="category-editor__position" color={BADGE_COLOR.primary}>
+                        {i + 1}
+                      </Badge>
+                    </span>
                     <div className="grow category-editor__label">
                       <Text preset={TEXT_PRESET.label}>{title}</Text>
                       {subtitle && (

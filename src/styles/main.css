@@ -888,11 +888,22 @@ body {
 }
 
 /* Fixed width so labels stay aligned whatever the number of digits */
+/* Wide enough for a two-digit pill, so the titles line up whatever the position */
+.category-editor__position-slot {
+  display: flex;
+  flex: none;
+  width: 34px;
+}
+
+/* Round for one digit, a pill once two digits are wider than it is tall */
 .category-editor__position {
-  flex: 0 0 30px;
-  width: 30px;
-  justify-content: center;
+  flex: none;
   box-sizing: border-box;
+  min-width: 28px;
+  height: 28px;
+  padding-inline: 8px;
+  justify-content: center;
+  border-radius: 999px;
 }
 
 /* ─── Session settings (creation form) ─── */
