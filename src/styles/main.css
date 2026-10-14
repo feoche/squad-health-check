@@ -847,6 +847,10 @@ body {
   gap: calc(var(--ods-theme-row-gap) / 2);
 }
 
+.category-editor__preset {
+  gap: calc(var(--ods-theme-row-gap) / 2);
+}
+
 .create-session__time-line {
   display: block;
 }

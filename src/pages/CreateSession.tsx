@@ -31,7 +31,7 @@ import {
   ToggleLabel,
 } from '@ovhcloud/ods-react';
 import { ANONYMITY_LEVELS, Anonymity, Category, SessionSettings, VOTE_MODES, VoteMode } from '../types';
-import { defaultCategories } from '../data/defaultCategories';
+import { CategoryPreset, defaultCategories, presetCategories } from '../data/categoryPresets';
 import CategoryEditor from '../components/CategoryEditor';
 import PreviousSessionPicker from '../components/PreviousSessionPicker';
 import { clearStoredCategories, loadSelectedCategories, saveSelectedCategories } from '../lib/categoryStorage';
@@ -59,9 +59,10 @@ function CreateSession() {
     setCategoriesState(next);
     saveSelectedCategories(next);
   };
-  const resetCategories = () => {
+  /** Picks a built-in set, forgetting the removed categories; the set becomes the stored choice */
+  const resetCategories = (preset: CategoryPreset) => {
     clearStoredCategories();
-    setCategoriesState([...defaultCategories]);
+    setCategories([...presetCategories[preset].selected]);
   };
   const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SESSION_SETTINGS);
   /** Kept as typed, so the field can be cleared while editing; settings keep the last valid value */

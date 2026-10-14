@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { localizeCategory } from './localizeCategory';
-import { defaultCategories } from '../data/defaultCategories';
+import { defaultCategories } from '../data/categoryPresets';
 
 const learning = {
   name: 'Ownership',

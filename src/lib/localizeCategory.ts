@@ -1,6 +1,6 @@
 import { Category } from '../types';
 import { LANG, Lang } from './i18n';
-import { builtInCategories } from '../data/defaultCategories';
+import { builtInCategories } from '../data/categoryPresets';
 
 export interface LocalizedCategory {
   /** Name in the user's language */

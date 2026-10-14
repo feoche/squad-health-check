@@ -80,7 +80,7 @@ A static site on GitHub Pages, synced in real time through Firebase (free plan).
 
 | | |
 |---|---|
-| 🗂️ **Categories** | Edit, add, remove and reorder the categories (drag and drop or the ↑/↓ buttons); each one describes its 🟢 green and 🔴 red states, in English and French tabs of the editor, while 🟠 orange keeps a generic description to keep the discussion on the extremes; removed ones stay among the suggestions, and the last choice is the default for the next session |
+| 🗂️ **Categories** | Start from **our set** (15 categories that each ask about a single thing, 10 selected) or **Spotify's original cards**, with a switch; edit, add, remove and reorder the categories (drag and drop or the ↑/↓ buttons); each one describes its 🟢 green and 🔴 red states, in English and French tabs of the editor, while 🟠 orange keeps a generic description to keep the discussion on the extremes; removed ones stay among the suggestions, and the last choice is the default for the next session |
 | 📤 **Recap export** | The facilitator edits the notes of every category at the end and downloads results and notes as **Markdown**, an accessible **PDF**, or **JSON** (format: [`public/session-export.schema.json`](public/session-export.schema.json)) |
 | 💡 **Suggested categories** | Built-in categories removed from the list stay among the suggestions, with a button to add them back or delete them for good |
 | 📈 **Comparison with the previous session** | The JSON of a past session, picked at creation (the last one finished in this browser by default) or imported on the recap, shows each category's previous median and how it moved |

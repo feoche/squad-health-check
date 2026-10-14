@@ -1,16 +1,27 @@
 import { Category } from '../types';
 
-/** The default selection stays within this many categories, so the workshop fits its time box */
-export const RECOMMENDED_MAX_CATEGORIES = 10;
+/** Shared by both category sets */
+export const psychologicalSafety: Category = {
+  name: 'Psychological Safety',
+  nameFr: 'Sécurité psychologique',
+  positiveDescription:
+    'We can speak up, ask questions and admit mistakes without fear.',
+  negativeDescription:
+    'We keep quiet: raising a problem or admitting a mistake feels risky.',
+  positiveDescriptionFr:
+    'Nous pouvons parler, poser des questions et reconnaître nos erreurs sans crainte.',
+  negativeDescriptionFr:
+    'Nous nous taisons : soulever un problème ou avouer une erreur semble risqué.',
+};
 
 /**
- * Default categories, picked from Spotify's original cards, the slide deck (file.md) and
- * psychological safety (Google's Project Aristotle). Each one is backed by team-effectiveness
+ * Spotify set: the selected categories, picked from Spotify's original cards, the slide deck
+ * (file.md) and psychological safety (Google's Project Aristotle). Each one is backed by team-effectiveness
  * research (Project Aristotle, DORA) and none overlaps another. Sorted from the least to the
  * most personal topic, so trust builds before the sensitive votes.
  * The facilitator can customise these before starting a session.
  */
-export const defaultCategories: Category[] = [
+export const spotifyCategories: Category[] = [
   {
     name: 'Easy to Release',
     nameFr: 'Facile pour déployer',
@@ -107,18 +118,7 @@ export const defaultCategories: Category[] = [
     negativeDescriptionFr:
       "Nous sommes des individus qui ignorent ce que font les autres, et s'en moquent.",
   },
-  {
-    name: 'Psychological Safety',
-    nameFr: 'Sécurité psychologique',
-    positiveDescription:
-      'We can speak up, ask questions and admit mistakes without fear.',
-    negativeDescription:
-      'We keep quiet: raising a problem or admitting a mistake feels risky.',
-    positiveDescriptionFr:
-      'Nous pouvons parler, poser des questions et reconnaître nos erreurs sans crainte.',
-    negativeDescriptionFr:
-      'Nous nous taisons : soulever un problème ou avouer une erreur semble risqué.',
-  },
+  psychologicalSafety,
   {
     name: 'Fun',
     nameFr: 'Plaisir',
@@ -137,7 +137,7 @@ export const defaultCategories: Category[] = [
  * The other built-in cards, suggested to the facilitator but not selected by default:
  * each one largely overlaps a default category.
  */
-export const extraCategories: Category[] = [
+export const spotifyExtraCategories: Category[] = [
   {
     name: 'Speed',
     nameFr: 'Vitesse',
@@ -200,5 +200,3 @@ export const extraCategories: Category[] = [
   },
 ];
 
-/** Every built-in category: the defaults, then the extra suggestions */
-export const builtInCategories: Category[] = [...defaultCategories, ...extraCategories];

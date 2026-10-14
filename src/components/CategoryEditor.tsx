@@ -1,4 +1,4 @@
-import { DragEvent, useEffect, useRef, useState } from 'react';
+import { DragEvent, useEffect, useId, useRef, useState } from 'react';
 import {
   Badge,
   BADGE_COLOR,
@@ -23,6 +23,7 @@ import {
   TabContent,
   TabList,
   Tabs,
+  TABS_VARIANT,
   Text,
   Textarea,
   TEXT_PRESET,
@@ -33,13 +34,13 @@ import { localizeCategory } from '../lib/localizeCategory';
 import { moveItem } from '../lib/moveItem';
 import { isBuiltInCategory, suggestedCategories } from '../lib/suggestedCategories';
 import { loadRemovedCategories, saveRemovedCategories } from '../lib/categoryStorage';
-import { defaultCategories } from '../data/defaultCategories';
+import { CATEGORY_PRESETS, CategoryPreset, detectPreset, presetCategories } from '../data/categoryPresets';
 
 interface Props {
   categories: Category[];
   onChange: (categories: Category[]) => void;
-  /** Goes back to the repo default categories and forgets the stored ones */
-  onReset: () => void;
+  /** Selects the categories of a built-in set and forgets the stored ones */
+  onReset: (preset: CategoryPreset) => void;
 }
 
 const emptyCategory: Category = {
@@ -80,7 +81,9 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
     setRemovedState(next);
     saveRemovedCategories(next);
   };
-  const suggestions = suggestedCategories(categories, removed);
+  const preset = detectPreset(categories);
+  const suggestions = suggestedCategories(categories, removed, preset);
+  const presetLabelId = useId();
   /** Confirms list changes to screen readers, since the control used may disappear with them */
   const [announcement, setAnnouncement] = useState('');
   /** Selector of the element to focus after the next render, when the focused control goes away */
@@ -196,11 +199,15 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
   };
 
   const customized =
-    removed.length > 0 || JSON.stringify(categories) !== JSON.stringify(defaultCategories);
-  const reset = () => {
+    removed.length > 0 || JSON.stringify(categories) !== JSON.stringify(presetCategories[preset].selected);
+  const selectPreset = (next: CategoryPreset) => {
     setRemovedState([]);
     setEditingIndex(null);
-    onReset();
+    setIsAdding(false);
+    onReset(next);
+  };
+  const reset = () => {
+    selectPreset(preset);
     focusOn('add');
   };
 
@@ -339,6 +346,31 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
     <div className="stack category-editor" ref={root}>
       <div role="status" className="visually-hidden">
         {announcement}
+      </div>
+      <div className="stack category-editor__preset">
+        <Text id={presetLabelId} preset={TEXT_PRESET.label}>{t.editor.preset}</Text>
+        <Tabs
+          variant={TABS_VARIANT.switch}
+          value={preset}
+          onValueChange={({ value }) => {
+            if (value !== preset) {
+              selectPreset(value as CategoryPreset);
+              setAnnouncement(t.editor.presetSelected(t.editor.presets[value as CategoryPreset]));
+            }
+          }}
+        >
+          <TabList role="group" aria-labelledby={presetLabelId}>
+            {CATEGORY_PRESETS.map((p) => (
+              <Tab key={p} value={p}>{t.editor.presets[p]}</Tab>
+            ))}
+          </TabList>
+          {/* The panel under the switch explains the set picked */}
+          {CATEGORY_PRESETS.map((p) => (
+            <TabContent key={p} value={p}>
+              <Text preset={TEXT_PRESET.caption}>{t.editor.presetHints[p]}</Text>
+            </TabContent>
+          ))}
+        </Tabs>
       </div>
       <ol className="stack category-editor__list" aria-label={t.editor.list}>
         {categories.map((cat, i) => {
