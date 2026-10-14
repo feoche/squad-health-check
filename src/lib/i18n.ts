@@ -157,6 +157,11 @@ const en = {
     youDontVote: "You don't take part in the vote",
     categoryMinutes: 'Time per category (minutes)',
     minutesInvalid: (min: number, max: number) => `Enter a whole number of minutes from ${min} to ${max}.`,
+    asyncVoting: 'Asynchronous voting',
+    asyncVotingHint:
+      'Everyone votes on their own time before the meeting, which is then spent on the results of each category.',
+    votingTime: 'Voting',
+    modes: { live: 'During the meeting', async: 'Beforehand (asynchronous)' },
   },
 
   timer: {
@@ -213,6 +218,34 @@ const en = {
     categoriesToReview: (n: number) =>
       `${n} ${n !== 1 ? 'categories' : 'category'} to review`,
     waiting: 'Waiting for the facilitator to start the session…',
+  },
+
+  collecting: {
+    title: 'Vote before the meeting',
+    intro:
+      'Vote on each category at your own pace. You can change your answers until the facilitator starts the meeting.',
+    answered: (n: number, total: number) => `${n} of ${total} answered`,
+    progress: 'Your progress',
+    previous: 'Previous',
+    next: 'Next',
+    skip: 'Skip for now',
+    saveAndNext: 'Save and continue',
+    review: 'Review your answers',
+    reviewTitle: 'Your answers',
+    notAnswered: 'Not answered yet',
+    answer: 'Answer',
+    edit: 'Edit',
+    saved: (category: string) => `Vote saved for ${category}`,
+    allDone: 'All your answers are saved. You can come back to change them until the meeting starts.',
+    missing: (n: number) => `${n} ${n !== 1 ? 'categories are' : 'category is'} still unanswered.`,
+    loadingAnswer: 'Loading your answer…',
+    closed: 'Voting is closed: the meeting has started.',
+    shareHint: 'Send this code before the meeting so everyone can vote beforehand.',
+    participation: (n: number, total: number) => `${n} of ${total} voted on every category`,
+    perPerson: (name: string, n: number, total: number) => `${name}, ${n} of ${total} categories`,
+    start: 'Start the meeting',
+    startWarning: (names: string) => `Not finished: ${names}. They can no longer vote once the meeting starts.`,
+    presenterTitle: 'Voting is open',
   },
 
   voting: {
@@ -508,6 +541,11 @@ const fr: Messages = {
     youDontVote: 'Vous ne participez pas au vote',
     categoryMinutes: 'Temps par catégorie (minutes)',
     minutesInvalid: (min, max) => `Saisissez un nombre entier de minutes entre ${min} et ${max}.`,
+    asyncVoting: 'Vote asynchrone',
+    asyncVotingHint:
+      "Chacun vote à son rythme avant la réunion, qui est ensuite consacrée aux résultats de chaque catégorie.",
+    votingTime: 'Vote',
+    modes: { live: 'Pendant la réunion', async: 'En amont (asynchrone)' },
   },
 
   timer: {
@@ -563,6 +601,34 @@ const fr: Messages = {
     facilitator: ', facilitateur',
     categoriesToReview: (n) => `${n} catégorie${n !== 1 ? 's' : ''} à passer en revue`,
     waiting: 'En attente du lancement de la session par le facilitateur…',
+  },
+
+  collecting: {
+    title: 'Votez avant la réunion',
+    intro:
+      "Votez sur chaque catégorie à votre rythme. Vous pouvez modifier vos réponses jusqu'au début de la réunion.",
+    answered: (n, total) => `${n} réponse${n > 1 ? 's' : ''} sur ${total}`,
+    progress: 'Votre progression',
+    previous: 'Précédent',
+    next: 'Suivant',
+    skip: 'Passer pour le moment',
+    saveAndNext: 'Enregistrer et continuer',
+    review: 'Relire vos réponses',
+    reviewTitle: 'Vos réponses',
+    notAnswered: 'Pas encore de réponse',
+    answer: 'Répondre',
+    edit: 'Modifier',
+    saved: (category) => `Vote enregistré pour ${category}`,
+    allDone: "Toutes vos réponses sont enregistrées. Vous pouvez les modifier jusqu'au début de la réunion.",
+    missing: (n) => `${n} ${n > 1 ? 'catégories sont sans réponse' : 'catégorie est sans réponse'}.`,
+    loadingAnswer: 'Chargement de votre réponse…',
+    closed: 'Le vote est clos : la réunion a commencé.',
+    shareHint: "Envoyez ce code avant la réunion pour que chacun puisse voter en amont.",
+    participation: (n, total) => `${n} sur ${total} ont voté sur toutes les catégories`,
+    perPerson: (name, n, total) => `${name}, ${n} catégorie${n > 1 ? 's' : ''} sur ${total}`,
+    start: 'Démarrer la réunion',
+    startWarning: (names) => `Pas terminé : ${names}. Ils ne pourront plus voter une fois la réunion démarrée.`,
+    presenterTitle: 'Le vote est ouvert',
   },
 
   voting: {

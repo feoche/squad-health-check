@@ -3,6 +3,7 @@ import { Category, ClientSessionState } from '../types';
 import {
   RawSession,
   canStartWorkshop,
+  completedVoterCount,
   deriveClientState,
   expandOfflineVotes,
   readableBallotIndexes,
@@ -700,3 +701,84 @@ describe('expandOfflineVotes', () => {
   });
 });
 
+describe('async mode', () => {
+  const asyncState = { phase: 'collecting' as const, currentCategoryIndex: 0, mode: 'async' as const };
+  const key = 'k'.repeat(20);
+
+  it('defaults to live and reads the mode', () => {
+    expect(deriveClientState('ABC234', raw(), 'bob')!.mode).toBe('live');
+    expect(deriveClientState('ABC234', raw({ state: asyncState }), 'bob')!.mode).toBe('async');
+  });
+
+  it('counts the categories each eligible voter answered, and lists my own answers', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: asyncState,
+        voters: { 0: { bob: 1, fac: 1 }, 2: { bob: 1 } },
+        ballots: {
+          '0': { key, color: 'red', trend: 'down' },
+          '2': { key, color: 'green', trend: 'up' },
+        },
+      }),
+      'bob',
+    )!;
+    expect(s.answeredCounts).toEqual({ fac: 1, bob: 2 });
+    expect(s.myVotedIndexes).toEqual([0, 2]);
+    expect(s.myVotes).toEqual({
+      0: { color: 'red', trend: 'down' },
+      2: { color: 'green', trend: 'up' },
+    });
+  });
+
+  it('knows a voted category whose ballot has not loaded yet', () => {
+    const s = deriveClientState('ABC234', raw({ state: asyncState, voters: { 1: { bob: 1 } } }), 'bob')!;
+    expect(s.myVotedIndexes).toEqual([1]);
+    expect(s.myVotes).toEqual({});
+  });
+
+  it('counts the voters who answered every category', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: asyncState,
+        voters: { 0: { bob: 1, fac: 1 }, 1: { bob: 1, fac: 1 }, 2: { bob: 1 } },
+      }),
+      'fac',
+    )!;
+    expect(completedVoterCount(s)).toBe(1);
+  });
+
+  it('never marks a voter as quick: the votes came in before the meeting', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { ...asyncState, phase: 'revealed', roundStartedAt: 10_000 },
+        voters: { 0: { bob: 500 } },
+      }),
+      'fac',
+    )!;
+    expect(s.quickVoterIds).toEqual([]);
+  });
+
+  it('keeps results available for categories where only some voted', () => {
+    const s = deriveClientState(
+      'ABC234',
+      raw({
+        state: { ...asyncState, phase: 'revealed' },
+        voters: { 0: { bob: 1 } },
+        votes: { 0: { [key]: { color: 'green', trend: 'up' } } },
+      }),
+      'fac',
+    )!;
+    expect(s.currentResults).toHaveLength(1);
+    expect(s.voteCount).toBe(1);
+    expect(s.totalVoters).toBe(2);
+  });
+});
+
+describe('summaryIndexes in async', () => {
+  it('lists no category while collecting', () => {
+    expect(summaryIndexes({ phase: 'collecting', currentCategoryIndex: 0, categories })).toEqual([]);
+  });
+});

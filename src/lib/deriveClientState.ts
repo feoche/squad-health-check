@@ -7,6 +7,7 @@ import {
   FacilitatorNote,
   NamedVote,
   OfflineVoteCounts,
+  SessionMode,
   SessionPhase,
   Vote,
   VoteDelay,
@@ -37,6 +38,8 @@ export interface SessionStateNode {
   categoryMinutes?: number;
   /** Server time the current round's voting opened, absent in sessions created before the timer */
   roundStartedAt?: number;
+  /** Absent in sessions created before asynchronous voting: counts as 'live' */
+  mode?: SessionMode;
 }
 
 /** Raw contents of /sessions/{code}, one field per listened child. */
@@ -114,6 +117,7 @@ export function deriveClientState(
   const { categories, facilitatorId } = raw.meta;
   const { phase, currentCategoryIndex } = raw.state;
   const voteMode: VoteMode = raw.state.voteMode ?? 'colors';
+  const mode: SessionMode = raw.state.mode ?? 'live';
 
   const participants = Object.entries(raw.participants ?? {})
     .map(([id, p]) => ({ id, name: p.name }))
@@ -131,9 +135,22 @@ export function deriveClientState(
   const roundReady = phase === 'revealed' ? (at(raw.ready, currentCategoryIndex) ?? {}) : {};
   const readyIds = participants.filter((p) => p.id !== facilitatorId && roundReady[p.id]).map((p) => p.id);
   const { roundStartedAt = null } = raw.state;
+  /* Async votes come in before the meeting: there is no round start to be quick against */
   const quickVoterIds = voterIds.filter((id) => {
     const votedAt = roundVoters[id];
-    return roundStartedAt !== null && typeof votedAt === 'number' && votedAt - roundStartedAt < QUICK_VOTE_MS;
+    return (
+      mode === 'live' && roundStartedAt !== null && typeof votedAt === 'number' && votedAt - roundStartedAt < QUICK_VOTE_MS
+    );
+  });
+  const answeredCounts: Record<string, number> = {};
+  for (const p of eligibleVoters) {
+    answeredCounts[p.id] = categories.filter((_, i) => at(raw.voters, i)?.[p.id]).length;
+  }
+  const myVotedIndexes = categories.flatMap((_, i) => (at(raw.voters, i)?.[myId] ? [i] : []));
+  const myVotes: Record<number, Vote> = {};
+  categories.forEach((_, i) => {
+    const ballot = raw.ballots[String(i)];
+    if (ballot) myVotes[i] = voteOf(ballot);
   });
   /* Unknown until loaded: nobody is shown as disconnected meanwhile. My own tab is connected by definition. */
   const disconnectedIds =
@@ -212,6 +229,10 @@ export function deriveClientState(
     facilitatorVotes,
     anonymity,
     voteMode,
+    mode,
+    answeredCounts,
+    myVotedIndexes,
+    myVotes,
     categoryMinutes: raw.state.categoryMinutes ?? DEFAULT_CATEGORY_MINUTES,
     roundStartedAt: raw.state.roundStartedAt ?? null,
     eligibleVoters,
@@ -308,7 +329,7 @@ export function summaryIndexes(
   const count =
     session.phase === 'finished'
       ? session.categories.length
-      : session.phase === 'lobby' || session.phase === 'intro'
+      : session.phase === 'lobby' || session.phase === 'intro' || session.phase === 'collecting'
         ? 0
         : session.currentCategoryIndex;
   return Array.from({ length: count }, (_, i) => i);
@@ -329,4 +350,12 @@ export function canStartWorkshop(
   session: Pick<ClientSessionState, 'isFacilitator' | 'phase' | 'totalVoters'>,
 ): boolean {
   return session.isFacilitator && session.phase === 'lobby' && session.totalVoters > 0;
+}
+
+/** Eligible voters who voted on every category: the ones whose async answers are complete */
+export function completedVoterCount(
+  session: Pick<ClientSessionState, 'eligibleVoters' | 'answeredCounts' | 'categories'>,
+): number {
+  return session.eligibleVoters.filter((p) => (session.answeredCounts[p.id] ?? 0) >= session.categories.length)
+    .length;
 }

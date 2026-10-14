@@ -45,6 +45,10 @@ function finished(allResults: CategoryResult[], voteMode: ClientSessionState['vo
     categoryResults: {},
     namedVotes: {},
     offlineVotes: {},
+    mode: 'live',
+    answeredCounts: {},
+    myVotedIndexes: [],
+    myVotes: {},
   };
 }
 

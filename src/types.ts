@@ -20,8 +20,13 @@ export type VoteMode = (typeof VOTE_MODES)[number];
 export const ANONYMITY_LEVELS = ['off', 'facilitator', 'full'] as const;
 export type Anonymity = (typeof ANONYMITY_LEVELS)[number];
 
+/** When people vote: during the meeting, one category at a time, or beforehand on their own time */
+export const SESSION_MODES = ['live', 'async'] as const;
+export type SessionMode = (typeof SESSION_MODES)[number];
+
 /** Chosen when creating the session, fixed afterwards (see database.rules.json) */
 export interface SessionSettings {
+  mode: SessionMode;
   facilitatorVotes: boolean;
   anonymity: Anonymity;
   voteMode: VoteMode;
@@ -63,7 +68,7 @@ export interface FacilitatorNote {
   notes: string;
 }
 
-export type SessionPhase = 'lobby' | 'intro' | 'voting' | 'revealed' | 'finished';
+export type SessionPhase = 'lobby' | 'intro' | 'collecting' | 'voting' | 'revealed' | 'finished';
 
 export interface Participant {
   id: string;
@@ -104,6 +109,14 @@ export interface ClientSessionState {
   anonymity: Anonymity;
   /** Absent in the database means 'colors' (sessions created before the setting existed) */
   voteMode: VoteMode;
+  /** Absent in the database means 'live' (sessions created before asynchronous voting) */
+  mode: SessionMode;
+  /** Categories each eligible voter has voted on, by participant id: the progress of an async session's collecting phase */
+  answeredCounts: Record<string, number>;
+  /** Indexes of the categories the current user has voted on, ascending */
+  myVotedIndexes: number[];
+  /** The current user's votes by category index, for the ballots that have loaded */
+  myVotes: Record<number, Vote>;
   /** Absent in the database means DEFAULT_CATEGORY_MINUTES (sessions created before the setting existed) */
   categoryMinutes: number;
   /** Server time the current round's voting opened; null in sessions created before the timer */

@@ -61,7 +61,8 @@ function CreateSession() {
   const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SESSION_SETTINGS);
   /** Kept as typed, so the field can be cleared while editing; settings keep the last valid value */
   const [minutesText, setMinutesText] = useState(String(DEFAULT_SESSION_SETTINGS.categoryMinutes));
-  const minutesInvalid = !isValidMinutes(Number(minutesText));
+  const asyncVoting = settings.mode === 'async';
+  const minutesInvalid = !asyncVoting && !isValidMinutes(Number(minutesText));
   /* Quantity does not pick up the FormField error by itself */
   const minutesErrorId = useId();
   /** The session the new one is compared with: the last one finished in this browser, unless imported or removed */
@@ -110,38 +111,52 @@ function CreateSession() {
             <ToggleControl />
             <ToggleLabel>{t.settings.facilitatorVotes}</ToggleLabel>
           </Toggle>
-          <FormField invalid={minutesInvalid}>
-            <FormFieldLabel>{t.settings.categoryMinutes}</FormFieldLabel>
-            <Quantity
-              min={MIN_CATEGORY_MINUTES}
-              max={MAX_CATEGORY_MINUTES}
-              value={minutesText}
-              onValueChange={({ value, valueAsNumber }) => {
-                setMinutesText(value);
-                if (isValidMinutes(valueAsNumber)) {
-                  setSettings((s) => ({ ...s, categoryMinutes: valueAsNumber }));
-                }
-              }}
-            >
-              <QuantityControl>
-                <QuantityInput aria-describedby={minutesInvalid ? minutesErrorId : undefined} />
-              </QuantityControl>
-            </Quantity>
-            <FormFieldError id={minutesErrorId}>{t.settings.minutesInvalid(MIN_CATEGORY_MINUTES, MAX_CATEGORY_MINUTES)}</FormFieldError>
-          </FormField>
-          {categories.length > 0 && (
-            <Message className="create-session__time-hint" color={MESSAGE_COLOR.information} dismissible={false}>
-              <MessageIcon name={ICON_NAME.circleInfo} />
-              <MessageBody>
-                {t.editor.timeHint(categories.length)}
-                <span className="create-session__time-line">
-                  {t.editor.timeExample(
-                    formatHoursMinutes(workshopMinutes(categories.length, settings.categoryMinutes)),
-                    ASSUMED_VOTERS,
-                  )}
-                </span>
-              </MessageBody>
-            </Message>
+          <Toggle
+            checked={asyncVoting}
+            onCheckedChange={({ checked }) =>
+              setSettings((s) => ({ ...s, mode: checked ? 'async' : 'live' }))
+            }
+          >
+            <ToggleControl />
+            <ToggleLabel>{t.settings.asyncVoting}</ToggleLabel>
+          </Toggle>
+          <Text preset={TEXT_PRESET.caption}>{t.settings.asyncVotingHint}</Text>
+          {!asyncVoting && (
+            <>
+              <FormField invalid={minutesInvalid}>
+                <FormFieldLabel>{t.settings.categoryMinutes}</FormFieldLabel>
+                <Quantity
+                  min={MIN_CATEGORY_MINUTES}
+                  max={MAX_CATEGORY_MINUTES}
+                  value={minutesText}
+                  onValueChange={({ value, valueAsNumber }) => {
+                    setMinutesText(value);
+                    if (isValidMinutes(valueAsNumber)) {
+                      setSettings((s) => ({ ...s, categoryMinutes: valueAsNumber }));
+                    }
+                  }}
+                >
+                  <QuantityControl>
+                    <QuantityInput aria-describedby={minutesInvalid ? minutesErrorId : undefined} />
+                  </QuantityControl>
+                </Quantity>
+                <FormFieldError id={minutesErrorId}>{t.settings.minutesInvalid(MIN_CATEGORY_MINUTES, MAX_CATEGORY_MINUTES)}</FormFieldError>
+              </FormField>
+              {categories.length > 0 && (
+                <Message className="create-session__time-hint" color={MESSAGE_COLOR.information} dismissible={false}>
+                  <MessageIcon name={ICON_NAME.circleInfo} />
+                  <MessageBody>
+                    {t.editor.timeHint(categories.length)}
+                    <span className="create-session__time-line">
+                      {t.editor.timeExample(
+                        formatHoursMinutes(workshopMinutes(categories.length, settings.categoryMinutes)),
+                        ASSUMED_VOTERS,
+                      )}
+                    </span>
+                  </MessageBody>
+                </Message>
+              )}
+            </>
           )}
           <FormField>
             <FormFieldLabel>{t.settings.voteMode}</FormFieldLabel>

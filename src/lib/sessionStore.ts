@@ -64,6 +64,7 @@ export function describeError(err: unknown): string {
 const MAX_CODE_ATTEMPTS = 10;
 
 export const DEFAULT_SESSION_SETTINGS: SessionSettings = {
+  mode: 'live',
   facilitatorVotes: true,
   anonymity: 'off',
   voteMode: 'colors',
@@ -91,7 +92,7 @@ export async function createSession(categories: Category[], settings: SessionSet
         categories: toFirebaseCategories(categories),
         createdAt: serverTimestamp(),
       },
-      state: { phase: 'lobby', currentCategoryIndex: 0, ...settings },
+      state: { phase: settings.mode === 'async' ? 'collecting' : 'lobby', currentCategoryIndex: 0, ...settings },
     });
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
     const code = generateSessionCode();
@@ -174,7 +175,7 @@ export function subscribeSession(
   const voteUnsubs = new Map<number, Unsubscribe>();
   const offlineVoteUnsubs = new Map<number, Unsubscribe>();
   const roundBallotUnsubs = new Map<number, Unsubscribe>();
-  let ballotListener: { index: number; unsubscribe: Unsubscribe } | null = null;
+  const ballotUnsubs = new Map<number, Unsubscribe>();
   let facilitatorListening = false;
 
   const isFacilitator = () => raw.meta?.facilitatorId === uid;
@@ -269,22 +270,32 @@ export function subscribeSession(
     }
   };
 
-  /* Only the round being voted matters: a ballot can't be edited once the round is over */
-  const syncBallotListener = () => {
-    const index = raw.state?.currentCategoryIndex;
-    if (index === undefined || ballotListener?.index === index) return;
-    ballotListener?.unsubscribe();
-    ballotListener = {
-      index,
-      unsubscribe: onValue(
-        sessionRef(code, `ballots/${index}/${uid}`),
-        (snap: DataSnapshot) => {
-          raw.ballots[String(index)] = snap.val() as Ballot | null;
-          emit();
-        },
-        warnCancelled(`ballots/${index}`),
-      ),
-    };
+  /* My own ballots: every category while collecting (any answer can be edited), else only the round being voted */
+  const syncBallotListeners = () => {
+    if (!raw.meta || !raw.state) return;
+    const indexes =
+      raw.state.phase === 'collecting'
+        ? raw.meta.categories.map((_, i) => i)
+        : [raw.state.currentCategoryIndex];
+    for (const [index, unsubscribe] of ballotUnsubs) {
+      if (indexes.includes(index)) continue;
+      unsubscribe();
+      ballotUnsubs.delete(index);
+    }
+    for (const index of indexes) {
+      if (ballotUnsubs.has(index)) continue;
+      ballotUnsubs.set(
+        index,
+        onValue(
+          sessionRef(code, `ballots/${index}/${uid}`),
+          (snap: DataSnapshot) => {
+            raw.ballots[String(index)] = snap.val() as Ballot | null;
+            emit();
+          },
+          warnCancelled(`ballots/${index}`),
+        ),
+      );
+    }
   };
 
   const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'ready' | 'roundStarts' | 'facilitator' | 'closed' | 'presence') => {
@@ -294,7 +305,7 @@ export function subscribeSession(
         (snap: DataSnapshot) => {
           (raw as unknown as Record<string, unknown>)[key] = snap.val();
           if (key === 'meta') syncFacilitatorListeners();
-          if (key === 'state') syncBallotListener();
+          if (key === 'meta' || key === 'state') syncBallotListeners();
           if (key === 'participants') syncPresence();
           if (key !== 'participants' && key !== 'facilitator' && key !== 'presence') {
             syncVoteListeners();
@@ -335,7 +346,7 @@ export function subscribeSession(
     voteUnsubs.forEach((u) => u());
     offlineVoteUnsubs.forEach((u) => u());
     roundBallotUnsubs.forEach((u) => u());
-    ballotListener?.unsubscribe();
+    ballotUnsubs.forEach((u) => u());
     stopPresence?.();
   };
 }
@@ -403,11 +414,25 @@ export async function revealVotes(s: ClientSessionState): Promise<void> {
   await writeState(s, { phase: 'revealed' });
 }
 
+/** Closes the voting window of an async session and opens the first category's results */
+export async function startMeeting(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'collecting') return;
+  await writeState(s, { phase: 'revealed', currentCategoryIndex: 0 });
+}
+
 /** Closing the round in the same write keeps the facilitator's vote listener readable. */
 export async function nextCategory(s: ClientSessionState): Promise<void> {
   if (!s.isFacilitator || s.phase !== 'revealed') return;
   const idx = s.currentCategoryIndex;
   if (idx >= s.categories.length - 1) return;
+  /* Async: the votes are already in, so the next category goes straight to its results, with no round to time */
+  if (s.mode === 'async') {
+    await update(sessionRef(s.code), {
+      'state/currentCategoryIndex': idx + 1,
+      [`closed/${idx}`]: true,
+    });
+    return;
+  }
   await update(sessionRef(s.code), {
     'state/phase': 'voting',
     'state/currentCategoryIndex': idx + 1,
@@ -463,25 +488,30 @@ export async function updateFacilitatorNote(
 
 /**
  * Voter flag, anonymous vote and private ballot are written atomically; rules require them together.
- * Once voted, the ballot's key lets the voter overwrite their vote until the round is revealed.
+ * Once voted, the ballot's key lets the voter overwrite their vote until the round is revealed
+ * (live) or the meeting starts (async, where any category can be voted while collecting).
  */
-export async function submitVote(s: ClientSessionState, vote: Vote): Promise<void> {
-  if (s.phase !== 'voting') return;
-  const idx = s.currentCategoryIndex;
-  if (s.hasVoted) {
-    const ballot = await get(sessionRef(s.code, `ballots/${idx}/${s.myId}`));
+export async function submitVote(
+  s: ClientSessionState,
+  vote: Vote,
+  index: number = s.currentCategoryIndex,
+): Promise<void> {
+  const open = s.phase === 'collecting' || (s.phase === 'voting' && index === s.currentCategoryIndex);
+  if (!open || index < 0 || index >= s.categories.length) return;
+  if (s.myVotedIndexes.includes(index)) {
+    const ballot = await get(sessionRef(s.code, `ballots/${index}/${s.myId}`));
     if (!ballot.exists()) return;
     const { key } = ballot.val() as Ballot;
     await update(sessionRef(s.code), {
-      [`votes/${idx}/${key}`]: vote,
-      [`ballots/${idx}/${s.myId}`]: { key, ...vote },
+      [`votes/${index}/${key}`]: vote,
+      [`ballots/${index}/${s.myId}`]: { key, ...vote },
     });
     return;
   }
   const key = randomKey();
   await update(sessionRef(s.code), {
-    [`voters/${idx}/${s.myId}`]: serverTimestamp(),
-    [`votes/${idx}/${key}`]: vote,
-    [`ballots/${idx}/${s.myId}`]: { key, ...vote },
+    [`voters/${index}/${s.myId}`]: serverTimestamp(),
+    [`votes/${index}/${key}`]: vote,
+    [`ballots/${index}/${s.myId}`]: { key, ...vote },
   });
 }

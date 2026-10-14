@@ -46,6 +46,10 @@ function finished(
     categoryResults: {},
     namedVotes,
     offlineVotes: {},
+    mode: 'live',
+    answeredCounts: {},
+    myVotedIndexes: [],
+    myVotes: {},
   };
 }
 
