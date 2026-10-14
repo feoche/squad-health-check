@@ -11,12 +11,11 @@ import {
   RadioControl,
   RadioGroup,
   RadioLabel,
-  Text,
-  TEXT_PRESET,
   Tile,
 } from '@ovhcloud/ods-react';
 import { Category, Vote, VoteMode, VoteColor, VoteTrend } from '../types';
-import { COLOR_OPTIONS, TREND_OPTIONS_WORST_FIRST, colorDescription } from './voteOptions';
+import { COLOR_OPTIONS_WORST_FIRST, TREND_OPTIONS_WORST_FIRST } from './voteOptions';
+import ColorCards from './ColorCards';
 import ScoreInput from './ScoreInput';
 import { t } from '../lib/i18n';
 import { colorOf, isRangeVote } from '../lib/voteScore';
@@ -68,6 +67,13 @@ function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, 
   return (
     <form className="stack voting-panel" ref={form} onSubmit={handleSubmit} noValidate>
       {!range && (
+        <section className="voting-panel__recap" aria-label={t.voting.colorMeanings}>
+          {/* Orange has no description of its own: only the extremes are spelled out */}
+          <ColorCards category={category} only={['red', 'green']} />
+        </section>
+      )}
+
+      {!range && (
         <FormField className="voting-panel__field voting-panel__field--color" invalid={colorMissing}>
           <FormFieldLabel className="voting-panel__field-label">{t.voting.healthColor}</FormFieldLabel>
           <RadioGroup
@@ -76,7 +82,7 @@ function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, 
             value={selectedColor ?? undefined}
             onValueChange={({ value }) => setSelectedColor(value as VoteColor)}
           >
-            {COLOR_OPTIONS.map((option) => (
+            {COLOR_OPTIONS_WORST_FIRST.map((option) => (
               <Tile
                 key={option.value}
                 className={`voting-panel__tile--${option.value}`}
@@ -88,9 +94,6 @@ function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, 
                     <RadioLabel>
                       <Badge color={option.badge}>{option.label}</Badge>
                     </RadioLabel>
-                    <Text className="voting-panel__description" preset={TEXT_PRESET.paragraph}>
-                      {colorDescription(category, option)}
-                    </Text>
                   </div>
                 </Radio>
               </Tile>

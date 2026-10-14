@@ -12,11 +12,22 @@ const CARD_COLORS: Record<VoteColor, CardColor> = {
 /**
  * The three health colours, described for a category or, without one, in general terms.
  * `large` sizes them for the shared screen, where they are what the voters read.
+ * `only` limits them to some colors, in the order given.
  */
-function ColorCards({ category, large = false }: { category?: Category; large?: boolean }) {
+function ColorCards({
+  category,
+  large = false,
+  only,
+}: {
+  category?: Category;
+  large?: boolean;
+  only?: VoteColor[];
+}) {
+  const options = only ? only.map((color) => COLOR_OPTIONS.find((o) => o.value === color)!) : COLOR_OPTIONS;
+  const grid = options.length === 2 ? 'grid-2' : 'grid-3';
   return (
-    <div className={large ? 'grid-3 color-cards color-cards--large' : 'grid-3 color-cards'}>
-      {COLOR_OPTIONS.map((option) => (
+    <div className={`${grid} color-cards${large ? ' color-cards--large' : ''}`}>
+      {options.map((option) => (
         <Card
           key={option.value}
           className={`card-body card-compact color-cards__card color-cards__card--${option.value}`}

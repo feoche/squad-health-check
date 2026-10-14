@@ -30,6 +30,9 @@ export const COLOR_OPTIONS = withLabels<
   () => t.colors,
 );
 
+/** Worst first, like the trends, for choices read left to right */
+export const COLOR_OPTIONS_WORST_FIRST = [...COLOR_OPTIONS].reverse();
+
 /** Description in the user's language, or a generic one when the category leaves it empty */
 export function colorDescription(
   category: Category,

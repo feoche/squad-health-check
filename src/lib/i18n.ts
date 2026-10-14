@@ -258,6 +258,7 @@ const en = {
   voting: {
     sessionProgress: 'Session progress',
     healthColor: 'Health Color',
+    colorMeanings: 'What red and green mean for this category',
     trend: 'Trend',
     pickColor: 'Pick a health color.',
     pickTrend: 'Pick a trend.',
@@ -648,6 +649,7 @@ const fr: Messages = {
   voting: {
     sessionProgress: 'Progression de la session',
     healthColor: 'Couleur',
+    colorMeanings: 'Ce que signifient le rouge et le vert pour cette catégorie',
     trend: 'Tendance',
     pickColor: 'Choisissez une couleur.',
     pickTrend: 'Choisissez une tendance.',

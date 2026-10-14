@@ -421,6 +421,12 @@ body {
   gap: calc(var(--ods-theme-column-gap) * 1.5);
 }
 
+/* Tile metrics shared by the colours and the trends, so their tiles keep the same height */
+.voting-panel {
+  --voting-panel-pad-y: calc(var(--ods-theme-padding-vertical) * 2);
+  --voting-panel-arrow-size: 2.5rem;
+}
+
 /* ODS centres horizontal radio groups: stretch so every tile in a row is as tall */
 .voting-panel__options {
   display: grid;
@@ -469,11 +475,6 @@ body {
   width: 100%;
 }
 
-/* Half a dashboard is too narrow for three described colours side by side */
-.facilitator-view__dashboard--round .voting-panel__options--color {
-  grid-template-columns: 1fr;
-}
-
 .voting-panel__radio,
 .voting-panel__radio-body {
   height: 100%;
@@ -490,14 +491,30 @@ body {
   padding: calc(var(--ods-theme-padding-vertical) * 2);
 }
 
-/* Second row, under the label */
-.voting-panel__description {
-  grid-column: 2;
+/* Colours show their badge beside the radio, like the trends' captions.
+   Their tiles are as tall as the trends' (arrow, caption and the card's padding), which they are shown with */
+.voting-panel__options--color .voting-panel__radio-body {
+  align-items: center;
+  min-height: calc(var(--voting-panel-pad-y) * 2 + var(--voting-panel-arrow-size) + 1lh + var(--ods-theme-row-gap));
+  padding-block: var(--voting-panel-pad-y);
 }
 
-/* Trends show a big arrow captioned below, centred beside the radio */
+/* Trends keep the radio in the top left corner, at the card's padding, and centre the
+   arrow with its caption, one below the other, in the whole card */
 .voting-panel__options--trend .voting-panel__radio-body {
+  --voting-panel-pad-x: calc(var(--ods-theme-padding-vertical) * 2);
+  position: relative;
+  display: flex;
   align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--voting-panel-pad-y) var(--voting-panel-pad-x);
+}
+
+.voting-panel__options--trend .voting-panel__radio-body > [data-ods='radio-control'] {
+  position: absolute;
+  top: var(--voting-panel-pad-y);
+  left: var(--voting-panel-pad-x);
 }
 
 .voting-panel__options--trend [data-ods='radio-label'] {
@@ -509,11 +526,10 @@ body {
 }
 
 .voting-panel__options--trend [data-ods='radio-label'] > [data-ods='icon'] {
-  font-size: 2.5rem;
+  font-size: var(--voting-panel-arrow-size);
 }
 
 /* Voters read the colour descriptions on their phone, so give them a little more size */
-.participant-view--round .voting-panel__description,
 .participant-view--round .color-cards__text {
   font-size: 1.125rem;
 }
@@ -709,27 +725,16 @@ body {
     padding: var(--ods-theme-padding-vertical) calc(var(--ods-theme-padding-horizontal) * 1.5);
   }
 
-  /* Description flows right after the color badge instead of on its own row */
-  .voting-panel__radio-body:has(.voting-panel__description) {
-    display: block;
-    position: relative;
-    padding-left: calc(var(--ods-theme-padding-horizontal) * 4.5);
+  .voting-panel {
+    --voting-panel-pad-y: var(--ods-theme-padding-vertical);
   }
 
-  .voting-panel__radio-body:has(.voting-panel__description) > [data-ods='radio-control'] {
-    position: absolute;
-    left: calc(var(--ods-theme-padding-horizontal) * 1.5);
-    top: calc(var(--ods-theme-padding-vertical) * 1.25);
+  .voting-panel__options--trend .voting-panel__radio-body {
+    --voting-panel-pad-x: calc(var(--ods-theme-padding-horizontal) * 1.5);
   }
 
-  .voting-panel__radio-body:has(.voting-panel__description) > [data-ods='radio-label'] {
-    margin-right: calc(var(--ods-theme-column-gap) / 2);
-  }
-
-  .voting-panel__description {
-    display: inline;
-  }
-
+  /* Colours and trends stay three in a row: their tiles only hold a short label */
+  .voting-panel__options--color,
   .voting-panel__options--trend {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -796,12 +801,12 @@ body {
 /* Most phones once the browser bars are counted: regular-size descriptions and
    smaller arrows, so the trends and the submit button fit under the colours */
 @media (max-width: 640px) and (max-height: 740px) {
-  .participant-view--round .voting-panel__description {
+  .participant-view--round .color-cards__text {
     font-size: 1rem;
   }
 
-  .voting-panel__options--trend [data-ods='radio-label'] > [data-ods='icon'] {
-    font-size: 1.75rem;
+  .voting-panel {
+    --voting-panel-arrow-size: 1.75rem;
   }
 }
 
