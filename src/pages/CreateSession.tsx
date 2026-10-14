@@ -19,6 +19,11 @@ import {
   RadioControl,
   RadioGroup,
   RadioLabel,
+  Tab,
+  TabContent,
+  TabList,
+  Tabs,
+  TABS_VARIANT,
   Text,
   TEXT_PRESET,
   Toggle,
@@ -67,6 +72,8 @@ function CreateSession() {
   const minutesErrorId = useId();
   /* The async switch is described by its hint, which says what the mode changes */
   const asyncHintId = useId();
+  /* The vote mode tabs are labelled by the text above them */
+  const voteModeLabelId = useId();
   /** The session the new one is compared with: the last one finished in this browser, unless imported or removed */
   const [previous, setPrevious] = useState<SessionExport | null>(loadLastSession);
   const [isCreating, setIsCreating] = useState(false);
@@ -160,26 +167,26 @@ function CreateSession() {
               )}
             </>
           )}
-          <FormField>
-            <FormFieldLabel>{t.settings.voteMode}</FormFieldLabel>
-            <RadioGroup
-              className="create-session__levels"
+          <div className="stack create-session__vote-mode">
+            <Text id={voteModeLabelId} preset={TEXT_PRESET.label}>{t.settings.voteMode}</Text>
+            <Tabs
+              variant={TABS_VARIANT.switch}
               value={settings.voteMode}
               onValueChange={({ value }) => setSettings((s) => ({ ...s, voteMode: value as VoteMode }))}
             >
+              <TabList role="group" aria-labelledby={voteModeLabelId}>
+                {VOTE_MODES.map((mode) => (
+                  <Tab key={mode} value={mode}>{t.settings.voteModes[mode]}</Tab>
+                ))}
+              </TabList>
+              {/* The panel under the switch explains the mode picked */}
               {VOTE_MODES.map((mode) => (
-                <Radio key={mode} className="create-session__level" value={mode}>
-                  <div className="create-session__level-body">
-                    <RadioControl />
-                    <RadioLabel>{t.settings.voteModes[mode]}</RadioLabel>
-                    <Text preset={TEXT_PRESET.caption} className="create-session__level-hint">
-                      {t.settings.voteModeHints[mode]}
-                    </Text>
-                  </div>
-                </Radio>
+                <TabContent key={mode} value={mode}>
+                  <Text preset={TEXT_PRESET.caption}>{t.settings.voteModeHints[mode]}</Text>
+                </TabContent>
               ))}
-            </RadioGroup>
-          </FormField>
+            </Tabs>
+          </div>
           <FormField>
             <FormFieldLabel>{t.settings.anonymity}</FormFieldLabel>
             <RadioGroup
