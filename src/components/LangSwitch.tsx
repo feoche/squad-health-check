@@ -24,7 +24,7 @@ const FLAGS = {
   ),
 };
 
-/** Navbar FR/EN swap: shows the flag of the language it switches to. */
+/** Navbar FR/EN swap: shows the flag of the current language; its label, read in the other language, says what a click does. */
 function LangSwitch() {
   const other = LANG === 'fr' ? 'en' : 'fr';
 
@@ -38,7 +38,7 @@ function LangSwitch() {
       title={t.switchLang}
       onClick={() => switchLang(other)}
     >
-      {FLAGS[other]}
+      {FLAGS[LANG]}
     </Button>
   );
 }
