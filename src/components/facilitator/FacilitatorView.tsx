@@ -23,6 +23,7 @@ import {
 } from '../../lib/sessionHistory';
 import OpenPresenterButton from '../OpenPresenterButton';
 import NoteFields, { EMPTY_NOTE } from '../NoteFields';
+import { withColorBadges } from '../ColorBadge';
 import ResultsGrid from '../ResultsGrid';
 import VoteSummary from '../VoteSummary';
 import PreviousResult from './PreviousResult';
@@ -185,7 +186,7 @@ function FacilitatorView({ session, actions }: Props) {
             `${t.intro.anonymity[session.anonymity]} ${t.facilitator.introScriptEnd}`,
           ].map((paragraph) => (
             <Text key={paragraph} preset={TEXT_PRESET.paragraph}>
-              {paragraph}
+              {withColorBadges(paragraph)}
             </Text>
           ))}
         </Card>

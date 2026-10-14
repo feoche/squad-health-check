@@ -34,7 +34,7 @@ function CurrentCategory({ session, onSubmitVote, voteCount, children }: Props) 
       </Text>
       {voting &&
         (session.hasVoted && !isEditing ? (
-          <VoteSubmitted onEdit={session.myVote ? () => setEditingIndex(index) : undefined} />
+          <VoteSubmitted vote={session.myVote} onEdit={session.myVote ? () => setEditingIndex(index) : undefined} />
         ) : (
           <VotingPanel
             key={`${index}-${isEditing}`}

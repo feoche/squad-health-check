@@ -159,6 +159,7 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
 
       {phase === 'voting' && session.hasVoted && !isEditing && (
         <VoteSubmitted
+          vote={session.myVote}
           onEdit={session.myVote ? () => setEditingIndex(currentCategoryIndex) : undefined}
         />
       )}

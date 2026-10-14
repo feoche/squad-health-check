@@ -394,7 +394,7 @@ const en = {
     introScript: [
       "Thanks for joining this Squad Health Check. It's a quick, honest look at how we feel about our work. It's not an evaluation, and there are no wrong answers.",
       "For each category, vote on your phone with a colour and a trend (improving, stable or getting worse).",
-      "Green doesn't mean perfect: it just means we're happy with how things are and see no need to improve right now. Orange means there are significant problems to address, but it's not a disaster. Red means it really isn't working and needs to improve quickly.",
+      "{green} doesn't mean perfect: it just means we're happy with how things are and see no need to improve right now. {orange} means there are significant problems to address, but it's not a disaster. {red} means it really isn't working and needs to improve quickly.",
     ],
     introScriptEnd: "After each vote, we'll discuss the results, especially where we disagree. Let's start!",
     startFirst: 'Start first category',
@@ -783,7 +783,7 @@ const fr: Messages = {
     introScript: [
       "Merci de participer à ce Squad Health Check. C'est un regard rapide et honnête sur la façon dont nous vivons notre travail. Ce n'est pas une évaluation, et il n'y a pas de mauvaise réponse.",
       "Pour chaque catégorie, votez sur votre téléphone avec une couleur et une tendance (en amélioration, stable ou en dégradation).",
-      "Vert ne veut pas dire parfait : cela signifie simplement que nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant. Orange signifie qu'il y a des problèmes importants à traiter, mais ce n'est pas une catastrophe. Rouge signifie que ça ne fonctionne vraiment pas et que cela doit être amélioré très rapidement.",
+      "{green} ne veut pas dire parfait : cela signifie simplement que nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant. {orange} signifie qu'il y a des problèmes importants à traiter, mais ce n'est pas une catastrophe. {red} signifie que ça ne fonctionne vraiment pas et que cela doit être amélioré très rapidement.",
     ],
     introScriptEnd: "Après chaque vote, nous discuterons des résultats, surtout là où nous ne sommes pas d'accord. C'est parti !",
     startFirst: 'Lancer la première catégorie',

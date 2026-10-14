@@ -17,6 +17,8 @@ import VotingPanel from './VotingPanel';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 import { voteText } from '../lib/voteText';
+import { isRangeVote } from '../lib/voteScore';
+import ColorBadge from './ColorBadge';
 
 interface Props {
   session: ClientSessionState;
@@ -89,7 +91,15 @@ function CollectingView({ session, onSubmitVote }: Props) {
               <li key={i} className="inline wrap collecting-view__answer">
                 <Text preset={TEXT_PRESET.label}>{title}</Text>
                 <Text preset={TEXT_PRESET.paragraph}>
-                  {answered ? (vote ? voteText(vote) : t.collecting.loadingAnswer) : t.collecting.notAnswered}
+                  {answered && vote && !isRangeVote(vote) ? (
+                    <>
+                      <ColorBadge color={vote.color} />, {t.trends[vote.trend]}
+                    </>
+                  ) : answered ? (
+                    vote ? voteText(vote) : t.collecting.loadingAnswer
+                  ) : (
+                    t.collecting.notAnswered
+                  )}
                 </Text>
                 <Button variant={BUTTON_VARIANT.ghost} onClick={() => setStep(i)}>
                   <Icon name={answered ? ICON_NAME.pen : ICON_NAME.arrowRight} />
