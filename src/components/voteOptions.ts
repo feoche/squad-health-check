@@ -17,7 +17,7 @@ export const COLOR_OPTIONS = withLabels<
   VoteColor,
   {
     value: VoteColor;
-    /** Category field describing this color; orange has none: the generic text keeps the discussion on the extremes */
+    /** Category field describing this color; orange has none and is not described anywhere */
     field?: 'positiveDescription' | 'negativeDescription';
     badge: BadgeColor;
   }
@@ -36,7 +36,7 @@ export const COLOR_OPTIONS_WORST_FIRST = [...COLOR_OPTIONS].reverse();
 /** Description in the user's language, or a generic one when the category leaves it empty */
 export function colorDescription(
   category: Category,
-  option: (typeof COLOR_OPTIONS)[number],
+  option: (typeof COLOR_OPTIONS)[number] & { value: 'green' | 'red' },
 ): string {
   return (option.field && localizeCategory(category)[option.field]?.trim()) || t.colorFallbacks[option.value];
 }

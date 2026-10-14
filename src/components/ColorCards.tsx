@@ -1,32 +1,28 @@
 import { Badge, BADGE_SIZE, Card, CARD_COLOR, type CardColor, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
-import { Category, VoteColor } from '../types';
+import { Category } from '../types';
 import { COLOR_OPTIONS, colorDescription } from './voteOptions';
 import { t } from '../lib/i18n';
 
-const CARD_COLORS: Record<VoteColor, CardColor> = {
+const CARD_COLORS: Record<'green' | 'red', CardColor> = {
   green: CARD_COLOR.success,
-  orange: CARD_COLOR.warning,
   red: CARD_COLOR.critical,
 };
 
 /**
- * The three health colours, described for a category or, without one, in general terms.
+ * The two extreme health colours, described for a category or, without one, in general terms;
+ * orange has no description, so the discussion stays on the extremes.
  * `large` sizes them for the shared screen, where they are what the voters read.
- * `only` limits them to some colors, in the order given.
  */
 function ColorCards({
   category,
   large = false,
-  only,
 }: {
   category?: Category;
   large?: boolean;
-  only?: VoteColor[];
 }) {
-  const options = only ? only.map((color) => COLOR_OPTIONS.find((o) => o.value === color)!) : COLOR_OPTIONS;
-  const grid = options.length === 2 ? 'grid-2' : 'grid-3';
+  const options = COLOR_OPTIONS.filter((o): o is typeof o & { value: 'green' | 'red' } => o.value !== 'orange');
   return (
-    <div className={`${grid} color-cards${large ? ' color-cards--large' : ''}`}>
+    <div className={`grid-2 color-cards${large ? ' color-cards--large' : ''}`}>
       {options.map((option) => (
         <Card
           key={option.value}

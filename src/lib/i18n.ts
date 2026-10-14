@@ -91,7 +91,6 @@ const en = {
   colors: { green: 'Green', orange: 'Orange', red: 'Red' },
   colorFallbacks: {
     green: "Not perfect, but we're happy with how things are and see no need to improve right now.",
-    orange: "Significant problems we need to address, but it's not a disaster.",
     red: "This really isn't working and needs to improve quickly.",
   },
   trends: { up: 'Improving', stable: 'Stable', down: 'Getting worse' },
@@ -483,7 +482,6 @@ const fr: Messages = {
   colors: { green: 'Vert', orange: 'Orange', red: 'Rouge' },
   colorFallbacks: {
     green: "Pas parfait, mais nous sommes satisfaits ainsi et ne voyons pas de besoin d'amélioration pour l'instant.",
-    orange: "Des problèmes importants à traiter, mais ce n'est pas une catastrophe.",
     red: "Ça ne fonctionne vraiment pas et doit être amélioré très rapidement.",
   },
   trends: { up: 'En amélioration', stable: 'Stable', down: 'En dégradation' },

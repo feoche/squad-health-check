@@ -31,12 +31,15 @@ interface Props {
   submitLabel?: string;
 }
 
+/** Score preselected in range mode, so the slider's middle thumb is already the vote */
+const DEFAULT_SCORE = 5;
+
 /** The vote form. Render it with a key per category so picks never carry over. */
 function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, submitLabel }: Props) {
   const range = voteMode === 'range';
   const [selectedColor, setSelectedColor] = useState<VoteColor | null>((initialVote && colorOf(initialVote)) ?? null);
   const [selectedScore, setSelectedScore] = useState<number | null>(
-    initialVote && isRangeVote(initialVote) ? initialVote.score : null,
+    initialVote && isRangeVote(initialVote) ? initialVote.score : DEFAULT_SCORE,
   );
   const [selectedTrend, setSelectedTrend] = useState<VoteTrend | null>(initialVote?.trend ?? null);
   const [submitted, setSubmitted] = useState(false);
@@ -68,8 +71,7 @@ function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, 
     <form className="stack voting-panel" ref={form} onSubmit={handleSubmit} noValidate>
       {!range && (
         <section className="voting-panel__recap" aria-label={t.voting.colorMeanings}>
-          {/* Orange has no description of its own: only the extremes are spelled out */}
-          <ColorCards category={category} only={['red', 'green']} />
+          <ColorCards category={category} />
         </section>
       )}
 
