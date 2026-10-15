@@ -1234,3 +1234,10 @@ body {
     padding-block: var(--ods-theme-padding-vertical);
   }
 }
+
+/* Very narrow phones: the navbar also holds a round's progress, timer and code, so the brand keeps only its icon */
+@media (max-width: 360px) {
+  .app__brand-short {
+    display: none;
+  }
+}
