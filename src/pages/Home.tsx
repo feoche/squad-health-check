@@ -42,7 +42,9 @@ function Home() {
   return (
     <div className="page page-narrow home">
       <div className="stack stack-center home__intro">
-        <Text preset={TEXT_PRESET.heading2}>{t.home.welcome}</Text>
+        <Text preset={TEXT_PRESET.heading2}>
+          <Icon name={ICON_NAME.diagnostic} aria-hidden /> {t.home.welcome}
+        </Text>
         <Text preset={TEXT_PRESET.paragraph}>{t.home.intro}</Text>
       </div>
 
