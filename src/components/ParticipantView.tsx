@@ -15,6 +15,7 @@ import IntroContent from './IntroContent';
 import ParticipantBadges from './ParticipantBadges';
 import SessionProgress from './SessionProgress';
 import VoteSubmitted from './VoteSubmitted';
+import SessionFinished from './SessionFinished';
 import VotingPanel from './VotingPanel';
 import CollectingView from './CollectingView';
 import { LANG, t } from '../lib/i18n';
@@ -73,11 +74,9 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
 
   if (phase === 'finished') {
     return (
-      <div className="page page-narrow participant-view participant-view--finished">
-        <div className="stack stack-center participant-view__finished">
-          <Text preset={TEXT_PRESET.heading2}>{t.finished.title}</Text>
-          <Text preset={TEXT_PRESET.paragraph}>{t.finished.participantIntro}</Text>
-        </div>
+      <div className="page participant-view participant-view--finished">
+        <Text preset={TEXT_PRESET.paragraph} className="participant-view__thanks">{t.finished.participantIntro}</Text>
+        <SessionFinished session={session} />
       </div>
     );
   }

@@ -345,7 +345,7 @@ const en = {
   finished: {
     title: 'Session Complete!',
     intro: "Here's the summary of all results from the health check.",
-    participantIntro: 'Thanks for taking part! The summary is on the shared screen.',
+    participantIntro: 'Thanks for taking part! Here is what came out of the health check.',
   },
 
   presenter: {
@@ -735,7 +735,7 @@ const fr: Messages = {
   finished: {
     title: 'Session terminée !',
     intro: 'Voici le récapitulatif de tous les résultats du bilan.',
-    participantIntro: "Merci pour votre participation ! Le récapitulatif est sur l'écran partagé.",
+    participantIntro: 'Merci pour votre participation ! Voici ce qui est ressorti du bilan.',
   },
 
   presenter: {

@@ -190,9 +190,10 @@ export function subscribeSession(
 
   /* Attach vote listeners only where the rules allow reading (see readableVoteIndexes) */
   const syncVoteListeners = () => {
-    // Only the facilitator's views and the presenter window render results; a participant's
-    // listener would also be cancelled with PERMISSION_DENIED as soon as the round moves on
-    if (!isFacilitator()) return;
+    // Only the facilitator's views and the presenter window render results while the session runs;
+    // a participant's listener would be cancelled with PERMISSION_DENIED as soon as the round moves on.
+    // Once finished, everything stays readable and the participant's phone shows the recap too
+    if (!isFacilitator() && raw.state?.phase !== 'finished') return;
     if (!raw.meta || !raw.state) return;
     const readable = readableVoteIndexes(
       raw.state,
@@ -241,8 +242,8 @@ export function subscribeSession(
 
   /* Everyone's ballots, in sessions that are not fully anonymous and only where the rules allow */
   const syncRoundBallotListeners = () => {
-    // Only the facilitator's views and the presenter window (signed in as the facilitator) render results
-    if (!isFacilitator()) return;
+    // Same as the votes: a participant reads ballots only once the session is finished
+    if (!isFacilitator() && raw.state?.phase !== 'finished') return;
     if (!raw.meta || !raw.state) return;
     const readable = readableBallotIndexes(
       raw.state,
