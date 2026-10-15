@@ -14,7 +14,6 @@ import { ClientSessionState, Vote } from '../types';
 import IntroContent from './IntroContent';
 import ParticipantBadges from './ParticipantBadges';
 import SessionProgress from './SessionProgress';
-import VoteLegend from './VoteLegend';
 import VoteSubmitted from './VoteSubmitted';
 import VotingPanel from './VotingPanel';
 import CollectingView from './CollectingView';
@@ -139,8 +138,6 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
             {subtitle}
           </Text>
         )}
-        {/* While picking, the descriptions live in the vote tiles instead */}
-        {!isPicking && <VoteLegend mode={session.voteMode} category={category} />}
       </div>
 
       {isPicking && (
