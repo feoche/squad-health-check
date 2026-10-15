@@ -179,9 +179,13 @@ body {
 
 /* The shared screen and the dashboard use the whole width */
 .app__main:has(.presenter-view),
-.app__main:has(.facilitator-view__dashboard),
 .app__main:has(.create-session) {
   max-width: 1200px;
+}
+
+/* The facilitator's dashboard gets more room still: the score bars must show whole without scrolling */
+.app__main:has(.facilitator-view__dashboard) {
+  max-width: 1440px;
 }
 
 /* ─── Layout primitives ─── */
@@ -665,10 +669,17 @@ body {
   align-items: start;
 }
 
-/* During a round: two equal columns whose cards end level */
+/* During a round: the results get the wider column, and the cards end level */
 .facilitator-view__dashboard--round {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
   align-items: stretch;
+}
+
+/* On a small laptop the notes go under the results, which keep the full width for their nine bars */
+@media (max-width: 1100px) {
+  .facilitator-view__dashboard--round {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .facilitator-view__dashboard--round > .facilitator-view__main > :first-child,
@@ -1107,6 +1118,7 @@ body {
 
 /* Range results: nine bars, the median marked with a triangle as well as a darker bar */
 .score-histogram__table {
+  width: 100%;
   margin-inline: auto;
   border-collapse: separate;
   border-spacing: var(--ods-theme-column-gap);
@@ -1124,7 +1136,7 @@ body {
 }
 
 .score-histogram__cell {
-  min-width: 56px;
+  min-width: 40px;
   text-align: center;
   vertical-align: bottom;
 }

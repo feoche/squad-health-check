@@ -21,12 +21,17 @@ interface Props {
 
 /**
  * Results in their own card, or `inline` as a section of an enclosing card; the page around titles them.
- * Who voted what sits beside the matrix, 70:30.
+ * Who voted what sits beside the color matrix, 70:30, or below the score bars.
  */
 function ResultsGrid({ votes, voteMode, namedVotes, inline = false, offlineVotes, onAdjust, onResetOffline }: Props) {
   const content = (
     <>
-      <div className={namedVotes?.length ? 'results-grid__body results-grid__body--split' : 'results-grid__body'}>
+      {/* The nine bars need the card's whole width: in range mode the named votes go below them */}
+      <div
+        className={
+          namedVotes?.length && voteMode !== 'range' ? 'results-grid__body results-grid__body--split' : 'results-grid__body'
+        }
+      >
         <div className="table-scroll results-grid__matrix">
           {voteMode === 'range' ? (
             <ScoreHistogram votes={rangeVotes(votes)} offlineVotes={rangeVotes(offlineVotes ?? [])} onAdjust={onAdjust} />
