@@ -88,7 +88,6 @@ function Home() {
               className="home__card-action"
               type="submit"
               color={BUTTON_COLOR.primary}
-              variant={BUTTON_VARIANT.outline}
             >
               {t.home.joinButton}
             </Button>
@@ -101,7 +100,7 @@ function Home() {
             {t.home.createTitle}
           </Text>
           <Text preset={TEXT_PRESET.paragraph}>{t.home.createText}</Text>
-          <Button className="home__card-action" onClick={() => navigate('/create')}>{t.home.createButton}</Button>
+          <Button className="home__card-action" variant={BUTTON_VARIANT.outline} onClick={() => navigate('/create')}>{t.home.createButton}</Button>
         </Card>
       </div>
 
