@@ -1,0 +1,1285 @@
+/* ═══════════════════════════════════════════════════════════════
+   Squad Health Check — layout only
+   Visual styling comes from ODS components; spacing and colors
+   below use ODS design tokens exclusively.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Nunito Sans for text; headings below use Outfit. Both are self-hosted (fontsource), imported in main.tsx */
+  --font-heading: 'Outfit Variable', 'Trebuchet MS', arial, 'Segoe UI', sans-serif;
+  --ods-theme-font-family: 'Nunito Sans Variable', arial, 'Segoe UI', sans-serif;
+  --ods-font-family-default: var(--ods-theme-font-family);
+}
+
+/* Native headings, and the ODS Text heading presets, which render with a hashed class */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+[class*='_text--heading-'] {
+  font-family: var(--font-heading);
+}
+
+html {
+  font-family: var(--ods-theme-font-family);
+  color: var(--ods-theme-text-color);
+  /* Keeps a focused or anchored element from scrolling under the sticky header */
+  scroll-padding-top: calc(var(--app-header-height, 0px) + var(--ods-theme-row-gap));
+}
+
+body {
+  margin: 0;
+  background: var(--ods-theme-background-color);
+  min-height: 100vh;
+}
+
+/* ─── App shell ─── */
+
+/* Off screen until focused by the keyboard, then over the header's left end */
+.skip-link {
+  position: absolute;
+  top: var(--ods-theme-padding-vertical);
+  left: var(--ods-theme-padding-horizontal);
+  z-index: calc(var(--ods-theme-overlay-z-index) + 1);
+  padding: var(--ods-theme-padding-vertical) var(--ods-theme-padding-horizontal);
+  border-radius: var(--ods-theme-border-radius);
+  background: var(--ods-theme-background-color);
+  color: var(--ods-color-primary-500);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* Elements focused by script only (page, confirmations) need no focus ring: they are not controls */
+[tabindex='-1']:focus {
+  outline: none;
+}
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__header {
+  position: sticky;
+  top: 0;
+  z-index: var(--ods-theme-overlay-z-index);
+  background: var(--ods-theme-background-color);
+  border-bottom: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
+  --app-header-padding-inline: calc(var(--ods-theme-padding-horizontal) * 2);
+  padding: var(--ods-theme-padding-vertical) var(--app-header-padding-inline);
+  --app-header-gap: calc(var(--ods-theme-column-gap) * 3);
+  display: flex;
+  align-items: center;
+  gap: var(--app-header-gap);
+}
+
+/* Shrinks onto more lines rather than pushing the progress onto a new line; never cut, so it stays readable when zoomed */
+.app__brand {
+  min-width: 0;
+}
+
+.app__brand > * {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.app__brand-short {
+  display: none;
+}
+
+.app__header-slot {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.app__header-slot:empty {
+  display: none;
+}
+
+/* Right end of the navbar, even when the slot is empty */
+.lang-switch {
+  flex: none;
+  margin-left: auto;
+  /* 44px target (WCAG 2.5.5 enhanced) around the flag, easy to hit on touch screens */
+  justify-content: center;
+  padding: 0;
+  min-width: 44px;
+  min-height: 44px;
+  height: auto;
+  /* The extra target spills over the navbar padding instead of making the navbar taller or the flag move */
+  margin-block: -10px;
+  margin-right: -7px;
+}
+
+/* Flag close to the slot's last button: the navbar padding instead of its gap */
+.app__header-slot:not(:empty) + .lang-switch {
+  margin-left: calc(var(--app-header-padding-inline) - var(--app-header-gap) - 7px);
+}
+
+.lang-switch__flag {
+  display: block;
+  width: 30px;
+  height: 20px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 15%);
+}
+
+.session-progress {
+  flex: 1;
+  min-width: 0;
+  max-width: 640px;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+  justify-content: flex-end;
+}
+
+.session-progress__bar {
+  flex: 1;
+  min-width: 120px;
+}
+
+.session-progress__label {
+  white-space: nowrap;
+}
+
+.session-code-button {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fixed-width digits so the badge does not jiggle every second; the colour fades rather than jumps */
+.round-timer {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  gap: 4px;
+  transition: background-color 1s ease, color 1s ease;
+}
+
+.show-mobile {
+  display: none;
+}
+
+.app__main {
+  flex: 1;
+  width: 100%;
+  max-width: 900px;
+  box-sizing: border-box;
+  margin: 0 auto;
+  padding: calc(var(--ods-theme-padding-vertical) * 4) calc(var(--ods-theme-padding-horizontal) * 2);
+}
+
+/* The shared screen and the dashboard use the whole width */
+.app__main:has(.presenter-view),
+.app__main:has(.create-session) {
+  max-width: 1200px;
+}
+
+/* The facilitator's dashboard gets more room still: the score bars must show whole without scrolling */
+.app__main:has(.facilitator-view__dashboard) {
+  max-width: 1440px;
+}
+
+/* ─── Layout primitives ─── */
+
+.page,
+.stack,
+.card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+/* .stack's display would win over the hidden attribute of the inactive language panel */
+.stack[hidden] {
+  display: none;
+}
+
+.page {
+  gap: calc(var(--ods-theme-row-gap) * 3);
+}
+
+.page-narrow {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.stack,
+.card-body {
+  gap: var(--ods-theme-row-gap);
+}
+
+.stack-center {
+  align-items: center;
+  text-align: center;
+}
+
+.card-body {
+  padding: calc(var(--ods-theme-padding-vertical) * 3) calc(var(--ods-theme-padding-horizontal) * 3);
+  gap: calc(var(--ods-theme-row-gap) * 2);
+}
+
+.card-compact {
+  padding: var(--ods-theme-padding-vertical) calc(var(--ods-theme-padding-horizontal) * 2);
+  gap: var(--ods-theme-row-gap);
+}
+
+.inline {
+  display: flex;
+  align-items: center;
+  gap: var(--ods-theme-column-gap);
+}
+
+.wrap {
+  flex-wrap: wrap;
+}
+
+/* Lists marked up for screen readers, laid out by their own classes */
+.participant-badges,
+.live-round,
+.category-editor__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.grow {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ODS Message is inline-flex, sized to its text */
+.message-full {
+  display: flex;
+  width: 100%;
+}
+
+.self-start {
+  align-self: flex-start;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.color-cards--large {
+  grid-template-columns: 1fr;
+}
+
+/* One colour per line: badge on the left, description beside it, on the same baseline */
+.color-cards--large .color-cards__card {
+  flex-direction: row;
+  align-items: baseline;
+  padding: calc(var(--ods-theme-padding-vertical) * 3) calc(var(--ods-theme-padding-horizontal) * 3);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+}
+
+.color-cards--large .color-cards__badge {
+  flex: 0 0 9rem;
+  justify-content: center;
+  align-self: baseline;
+  font-size: 1.75rem;
+}
+
+.color-cards--large .color-cards__text {
+  font-size: 2rem;
+  line-height: 1.35;
+}
+
+/* Once results are shown, the colours shrink so they and the vote matrix fit on one screen */
+.presenter-view--revealed .color-cards--large .color-cards__card {
+  padding: calc(var(--ods-theme-padding-vertical) * 1.5) calc(var(--ods-theme-padding-horizontal) * 2);
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.presenter-view--revealed .color-cards--large .color-cards__badge {
+  flex-basis: 6rem;
+  font-size: clamp(0.875rem, 1.8vh, 1.25rem);
+}
+
+.presenter-view--revealed .color-cards--large .color-cards__text {
+  font-size: clamp(1rem, 2.2vh, 1.5rem);
+  line-height: 1.3;
+}
+
+/* Trend legend: one card per trend, a large arrow above its label */
+.intro-content__trend {
+  align-items: center;
+  text-align: center;
+}
+
+.intro-content__trend-icon {
+  font-size: 3rem;
+}
+
+.intro-content--compact .intro-content__trend-icon {
+  font-size: 2rem;
+}
+
+/* On a phone the introduction has to fit the screen without scrolling: the three trends share one row */
+@media (max-width: 640px) {
+  .intro-content--compact {
+    gap: var(--ods-theme-row-gap);
+  }
+
+  .intro-content--compact .intro-content__trends {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--ods-theme-row-gap);
+  }
+
+  .intro-content--compact .intro-content__trend {
+    gap: 0;
+    padding: var(--ods-theme-padding-vertical) 4px;
+  }
+
+  .intro-content--compact .intro-content__trend-label {
+    font-size: 0.875rem;
+  }
+}
+
+.connecting {
+  padding: calc(var(--ods-theme-padding-vertical) * 8) 0;
+}
+
+.connection-banner {
+  position: sticky;
+  top: var(--app-header-height, calc(var(--ods-theme-padding-vertical) * 7));
+  z-index: var(--ods-theme-overlay-z-index);
+  margin-bottom: calc(var(--ods-theme-row-gap) * 2);
+}
+
+/* ─── Feature-specific layout ─── */
+
+.vote-summary__badge {
+  gap: 4px;
+}
+
+.facilitator-view__round-summary {
+  column-gap: calc(var(--ods-theme-column-gap) * 3);
+}
+
+.previous-result__evolution {
+  gap: 4px;
+}
+
+.finished-notes__item + .finished-notes__item {
+  padding-top: calc(var(--ods-theme-row-gap) * 2);
+}
+
+/* Set apart from the downloads above it on the recap */
+.report-exports .previous-session-picker {
+  border-top: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
+  padding-top: calc(var(--ods-theme-row-gap) * 2);
+}
+
+/* Helper right under its label, like a form field's */
+.previous-session-picker__heading {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--ods-theme-row-gap) / 4);
+}
+
+/* Grow so each card's button sits at the bottom, level with its neighbour's */
+.home__join-form {
+  flex: 1;
+}
+
+/* Helper (example code) right under the input; the label is visually hidden */
+.home__code-field[data-ods='form-field'] {
+  row-gap: calc(var(--ods-theme-row-gap) / 4);
+}
+
+/* Flex drops the line box the inherited body line-height adds around the caption */
+.home__code-field [data-ods='form-field-helper'] {
+  display: flex;
+}
+
+.home__card-action {
+  margin-top: auto;
+}
+
+.home__steps {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--ods-theme-row-gap) * 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.home__step {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.home__step-number {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--ods-color-primary-100);
+  color: var(--ods-color-primary-700);
+  font-weight: 600;
+}
+
+.home__step-body > * {
+  margin: 0;
+}
+
+.share-panel__qr {
+  border-radius: var(--ods-theme-border-radius, 8px);
+  background: #fff;
+}
+
+.share-panel__code {
+  letter-spacing: 0.2em;
+  font-family: var(--ods-theme-font-family-code);
+}
+
+.category-editor__row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--ods-theme-column-gap) * 1.5);
+}
+
+/* Tile metrics shared by the colours and the trends, so their tiles keep the same height */
+.voting-panel {
+  --voting-panel-pad-y: calc(var(--ods-theme-padding-vertical) * 2);
+  --voting-panel-arrow-size: 2.5rem;
+}
+
+/* ODS centres horizontal radio groups: stretch so every tile in a row is as tall */
+.voting-panel__options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-items: stretch;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+/* Health colour tiles, and the radio inside, take their colour's status palette instead of the primary one */
+.voting-panel__tile--green {
+  --ods-tile-border-color-hover: var(--ods-color-success-500);
+  --ods-tile-border-color-selected: var(--ods-color-success-500);
+  --ods-tile-background-color-selected: var(--ods-color-success-025);
+  --ods-theme-input-border-color-checked: var(--ods-color-success-500);
+  --ods-theme-input-background-color-checked: var(--ods-color-success-500);
+  --ods-theme-input-border-color-checked-hover: var(--ods-color-success-700);
+  --ods-theme-input-background-color-checked-hover: var(--ods-color-success-700);
+}
+
+.voting-panel__tile--orange {
+  --ods-tile-border-color-hover: var(--ods-color-warning-500);
+  --ods-tile-border-color-selected: var(--ods-color-warning-500);
+  --ods-tile-background-color-selected: var(--ods-color-warning-025);
+  --ods-theme-input-border-color-checked: var(--ods-color-warning-500);
+  --ods-theme-input-background-color-checked: var(--ods-color-warning-500);
+  --ods-theme-input-border-color-checked-hover: var(--ods-color-warning-700);
+  --ods-theme-input-background-color-checked-hover: var(--ods-color-warning-700);
+}
+
+.voting-panel__tile--red {
+  --ods-tile-border-color-hover: var(--ods-color-critical-500);
+  --ods-tile-border-color-selected: var(--ods-color-critical-500);
+  --ods-tile-background-color-selected: var(--ods-color-critical-025);
+  --ods-theme-input-border-color-checked: var(--ods-color-critical-500);
+  --ods-theme-input-background-color-checked: var(--ods-color-critical-500);
+  --ods-theme-input-border-color-checked-hover: var(--ods-color-critical-700);
+  --ods-theme-input-background-color-checked-hover: var(--ods-color-critical-700);
+}
+
+.create-session__start {
+  width: 100%;
+}
+
+/* ODS sizes Radio to max-content, which keeps long labels on one line */
+.voting-panel__radio {
+  width: 100%;
+}
+
+.voting-panel__radio,
+.voting-panel__radio-body {
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.voting-panel__radio-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  /* Tiles stretch to the tallest one; keep rows packed instead of spreading them out */
+  align-content: start;
+  gap: var(--ods-theme-row-gap) var(--ods-theme-column-gap);
+  padding: calc(var(--ods-theme-padding-vertical) * 2);
+}
+
+/* Colours show their badge beside the radio, like the trends' captions.
+   Their tiles are as tall as the trends' (arrow, caption and the card's padding), which they are shown with */
+.voting-panel__options--color .voting-panel__radio-body {
+  align-items: center;
+  align-content: center;
+  min-height: calc(var(--voting-panel-pad-y) * 2 + var(--voting-panel-arrow-size) + 1lh);
+  padding-block: var(--voting-panel-pad-y);
+}
+
+/* Trends keep the radio in the top left corner, at the card's padding, and centre the
+   arrow with its caption, one below the other, in the whole card */
+.voting-panel__options--trend .voting-panel__radio-body {
+  --voting-panel-pad-x: calc(var(--ods-theme-padding-vertical) * 2);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--voting-panel-pad-y) var(--voting-panel-pad-x);
+}
+
+.voting-panel__options--trend .voting-panel__radio-body > [data-ods='radio-control'] {
+  position: absolute;
+  top: var(--voting-panel-pad-y);
+  left: var(--voting-panel-pad-x);
+}
+
+.voting-panel__options--trend [data-ods='radio-label'] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.voting-panel__options--trend [data-ods='radio-label'] > [data-ods='icon'] {
+  font-size: var(--voting-panel-arrow-size);
+}
+
+/* Voters read the colour descriptions on their phone, so give them a little more size */
+.participant-view--round .color-cards__text {
+  font-size: 1.125rem;
+}
+
+/* Wrappers of what used to sit straight in their card: keep the card's spacing */
+.share-panel,
+.results-grid--inline {
+  gap: calc(var(--ods-theme-row-gap) * 2);
+}
+
+/* The vote matrix and who voted what, 70:30 */
+.results-grid__body--split {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  align-items: start;
+}
+
+@media (max-width: 720px) {
+  .results-grid__body--split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.vote-progress__bar {
+  width: 250px;
+  max-width: 100%;
+}
+
+.vote-matrix {
+  --cell-size: 88px;
+  margin-inline: auto;
+  border-collapse: separate;
+  border-spacing: var(--ods-theme-column-gap);
+}
+
+.vote-matrix th {
+  font-weight: normal;
+  text-align: center;
+}
+
+.vote-matrix__trend {
+  font-size: 2rem;
+}
+
+.vote-matrix--compact .vote-matrix__trend {
+  font-size: 1.5rem;
+}
+
+.vote-matrix th[scope='row'] {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.vote-matrix--compact {
+  --cell-size: 44px;
+  border-spacing: calc(var(--ods-theme-column-gap) / 2);
+}
+
+.vote-matrix th[scope='col'],
+.vote-matrix__cell {
+  width: var(--cell-size);
+}
+
+.vote-matrix__cell {
+  height: var(--cell-size);
+  text-align: center;
+  border: var(--ods-theme-border-width) solid var(--ods-theme-split-border-color);
+  border-radius: var(--ods-theme-border-radius);
+  background-color: color-mix(in srgb, var(--cell-color) var(--cell-strength), transparent);
+}
+
+.session-finished__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+/* Median badge pushed to the right end of each recap card heading */
+.session-finished__heading .vote-summary {
+  margin-left: auto;
+}
+
+/* Facilitator dashboard: round on the left, controls and participants on the right */
+.facilitator-view__dashboard {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  align-items: start;
+}
+
+/* During a round: the results get the wider column, and the cards end level */
+.facilitator-view__dashboard--round {
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: stretch;
+}
+
+/* On a small laptop the notes go under the results, which keep the full width for their nine bars */
+@media (max-width: 1100px) {
+  .facilitator-view__dashboard--round {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.facilitator-view__dashboard--round > .facilitator-view__main > :first-child,
+.facilitator-view__dashboard--round > .facilitator-view__side > :first-child {
+  flex: 1;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 767px) {
+  .facilitator-view__dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .facilitator-view__side {
+    order: -1;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-2,
+  .voting-panel__options {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .app__header {
+    --app-header-padding-inline: var(--ods-theme-padding-horizontal);
+    --app-header-gap: calc(var(--ods-theme-column-gap) * 2);
+  }
+
+  .app__brand > * {
+    font-size: 1.125rem;
+  }
+
+  /* "SHC" on screen; the full name stays for screen readers */
+  .app__brand-name {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .app__brand-short {
+    display: inline;
+  }
+
+  /* Short "1/10" label, no bar; the brand shrinks instead */
+  .app__header-slot {
+    flex: 1 0 auto;
+  }
+
+  .session-progress {
+    flex: none;
+  }
+
+  .session-progress__bar {
+    display: none;
+  }
+
+  .hide-mobile {
+    display: none;
+  }
+
+  .show-mobile {
+    display: inline;
+  }
+
+  /* The word alone in the navbar, so the brand keeps room on one or two lines */
+  .session-code-button__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Voting fits on one phone screen: tighter spacing, trends side by side,
+     and the submit button pinned to the bottom in case it still overflows */
+  .app__main {
+    padding-top: calc(var(--ods-theme-padding-vertical) * 2);
+  }
+
+  .page {
+    gap: calc(var(--ods-theme-row-gap) * 2);
+  }
+
+  .voting-panel__options {
+    gap: var(--ods-theme-row-gap);
+  }
+
+  .voting-panel__radio-body {
+    padding: var(--ods-theme-padding-vertical) calc(var(--ods-theme-padding-horizontal) * 1.5);
+  }
+
+  .voting-panel {
+    --voting-panel-pad-y: var(--ods-theme-padding-vertical);
+  }
+
+  .voting-panel__options--trend .voting-panel__radio-body {
+    --voting-panel-pad-x: calc(var(--ods-theme-padding-horizontal) * 1.5);
+  }
+
+  /* Colours and trends stay three in a row: their tiles only hold a short label */
+  .voting-panel__options--color,
+  .voting-panel__options--trend {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .voting-panel__submit {
+    position: sticky;
+    bottom: 0;
+    padding-block: var(--ods-theme-padding-vertical);
+    background: var(--ods-theme-background-color);
+  }
+}
+
+/* Sets the submit apart from the last choices */
+.voting-panel__submit {
+  margin-top: calc(var(--ods-theme-row-gap) * 2);
+}
+
+.voting-panel__submit > * {
+  flex: 1;
+}
+
+/* Notes grow with their card (the round dashboard levels the cards) */
+.note-fields,
+.note-fields > *,
+.note-fields textarea {
+  flex: 1;
+}
+
+.current-category__position {
+  font-weight: normal;
+  color: var(--ods-color-neutral-600);
+  margin-top: calc(var(--ods-theme-column-gap) * -2);
+}
+
+.participant-view__category,
+.presenter-view__category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ods-theme-row-gap);
+}
+
+/* Async voting: one category per step, with a review of every answer */
+.collecting-view__heading:focus {
+  /* Moved to by script after a step change, not a control: no focus ring */
+  outline: none;
+}
+
+.collecting-view__answer {
+  justify-content: space-between;
+  gap: var(--ods-theme-column-gap);
+  min-width: 0;
+}
+
+.collecting-view__answers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.collecting-view__nav {
+  justify-content: space-between;
+}
+
+/* Most phones once the browser bars are counted: regular-size descriptions and
+   smaller arrows, so the trends and the submit button fit under the colours */
+@media (max-width: 640px) and (max-height: 740px) {
+  .participant-view--round .color-cards__text {
+    font-size: 1rem;
+  }
+
+  .voting-panel {
+    --voting-panel-arrow-size: 1.75rem;
+  }
+}
+
+/* Short phone screens: the badges and arrows speak for themselves,
+   so the field labels are kept for screen readers only */
+@media (max-width: 640px) and (max-height: 600px) {
+  .page {
+    gap: var(--ods-theme-row-gap);
+  }
+
+  .voting-panel__field-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Category editor: cards can be dragged to reorder them */
+.category-editor__item--draggable {
+  cursor: grab;
+}
+
+.category-editor__item--draggable:active {
+  cursor: grabbing;
+}
+
+.category-editor__item--dragging {
+  opacity: 0.4;
+}
+
+/* Spaced from what comes before, so suggestions and the new category don't read as part of the list */
+.category-editor__suggestions,
+.category-editor__add,
+.category-editor__new {
+  margin-top: var(--ods-theme-row-gap);
+}
+
+.category-editor__suggestions,
+.category-editor__suggestions > .category-editor__list {
+  gap: calc(var(--ods-theme-row-gap) / 2);
+}
+
+.category-editor__preset {
+  gap: calc(var(--ods-theme-row-gap) / 2);
+}
+
+.create-session__time-line {
+  display: block;
+}
+
+.category-editor__suggestion-hint {
+  display: block;
+  color: var(--ods-color-neutral-600);
+}
+
+.category-editor__drag-handle {
+  color: var(--ods-color-neutral-500);
+}
+
+/* Fixed width so labels stay aligned whatever the number of digits */
+/* Wide enough for a two-digit pill, so the titles line up whatever the position */
+.category-editor__position-slot {
+  display: flex;
+  flex: none;
+  width: 34px;
+}
+
+/* Round for one digit, a pill once two digits are wider than it is tall */
+.category-editor__position {
+  flex: none;
+  box-sizing: border-box;
+  min-width: 28px;
+  height: 28px;
+  padding-inline: 8px;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+/* ─── Session settings (creation form) ─── */
+
+/* Categories and settings side by side, so the settings stay in view */
+.create-session__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  align-items: start;
+}
+
+@media (max-width: 767px) {
+  .create-session__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.create-session .category-editor,
+.create-session .category-editor__list {
+  gap: calc(var(--ods-theme-row-gap) / 2);
+}
+
+.create-session__start {
+  width: 100%;
+}
+
+/* ODS sizes Radio to max-content, which keeps the hints on one line */
+.create-session__level {
+  width: 100%;
+}
+
+.create-session__level-body {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--ods-theme-column-gap);
+  align-items: center;
+}
+
+.create-session__level-hint {
+  grid-column: 2;
+}
+
+/* ─── Named votes ─── */
+
+/* Badges stack down a column, then wrap into the next one */
+.named-votes__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 8.5rem;
+  column-gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.named-votes__item {
+  break-inside: avoid;
+  margin-bottom: var(--ods-theme-row-gap);
+}
+
+.named-votes__badge {
+  font-size: 1.25rem;
+  max-width: 100%;
+}
+
+.named-votes__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.vote-matrix__count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.vote-matrix__manual {
+  display: inline-flex;
+  color: var(--ods-color-primary-500);
+}
+
+.vote-matrix__adjust {
+  justify-content: center;
+  gap: 0;
+}
+
+/* ─── Reduced motion ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Fun facts replacing the finished screen's title */
+.fun-stats__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: calc(var(--ods-theme-column-gap) * 2);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fun-stats__card {
+  height: 100%;
+  align-items: center;
+  text-align: center;
+}
+
+.fun-stats__emoji {
+  font-size: 2.5rem;
+  line-height: 1;
+}
+
+/* Range vote: the 1 and 9 wording above the slider, the picked value below it */
+.score-input {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.score-input__ends {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ods-theme-row-gap);
+}
+
+/* The score in its colour, then its meaning: read top to bottom like the slider left to right */
+.score-input__end {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--ods-theme-column-gap) * 2);
+}
+
+.score-input__end-badge {
+  flex: none;
+}
+
+.score-input__value {
+  text-align: center;
+}
+
+/* The track shows the three colour zones, split halfway between 3 and 4 (31.25%) and between 6 and 7 (68.75%);
+   the filled part would hide them, so it stays clear and the ticks keep one neutral colour */
+.score-input__slider {
+  --ods-theme-progress-background-color: var(--ods-color-neutral-600);
+}
+
+.score-input__slider [class*='_range-track_'] {
+  background: linear-gradient(
+    to right,
+    var(--ods-color-critical-500) 0 31.25%,
+    var(--ods-color-warning-500) 31.25% 68.75%,
+    var(--ods-color-success-500) 68.75%
+  );
+}
+
+.score-input__slider [class*='_range-track__filled_'] {
+  background: transparent;
+}
+
+/* The ends of the scale in their health colour, like the slider and the results */
+.scale-cards__score--red {
+  color: var(--ods-color-critical-500);
+}
+
+.scale-cards__score--green {
+  color: var(--ods-color-success-500);
+}
+
+.scale-cards__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ods-theme-row-gap);
+}
+
+.scale-cards--large .scale-cards__score {
+  font-size: 3rem;
+}
+
+/* Range results: nine bars, the median marked with a triangle as well as a darker bar */
+.score-histogram__table {
+  width: 100%;
+  margin-inline: auto;
+  border-collapse: separate;
+  border-spacing: var(--ods-theme-column-gap);
+}
+
+.score-histogram__score {
+  font-weight: normal;
+  text-align: center;
+}
+
+.score-histogram__median {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.score-histogram__cell {
+  min-width: 40px;
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.score-histogram__bars {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 140px;
+}
+
+.score-histogram--compact .score-histogram__bars {
+  height: 56px;
+}
+
+.score-histogram--compact .score-histogram__cell {
+  min-width: 28px;
+}
+
+.score-histogram__bar {
+  display: block;
+  height: var(--bar-height);
+  min-height: 2px;
+  border-radius: var(--ods-theme-border-radius);
+  background-color: var(--ods-color-primary-500);
+}
+
+.score-histogram__bar--red {
+  background-color: var(--ods-color-critical-500);
+}
+
+.score-histogram__bar--orange {
+  background-color: var(--ods-color-warning-500);
+}
+
+.score-histogram__bar--green {
+  background-color: var(--ods-color-success-500);
+}
+
+/* Every bar has a colour, so the median stands out by an outline (and its ▲) */
+.score-histogram__bar--median {
+  outline: 3px solid var(--ods-color-primary-700);
+  outline-offset: 2px;
+}
+
+.score-histogram__trends {
+  justify-content: center;
+  gap: calc(var(--ods-theme-column-gap) * 3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.score-histogram__add-trend {
+  justify-content: center;
+}
+
+/* On a narrow screen the buttons drop under the title instead of squeezing it into a column of broken words */
+.category-editor__row {
+  flex-wrap: wrap;
+}
+
+.category-editor__label {
+  flex: 1 1 10rem;
+  overflow-wrap: break-word;
+}
+
+.category-editor__label > * {
+  display: inline;
+}
+
+.category-editor__item-actions {
+  flex: none;
+  margin-left: auto;
+}
+
+/* Very narrow phones: three trend tiles side by side leave "Improvement" little room, so give the caption the card's width */
+@media (max-width: 400px) {
+  .voting-panel__options--trend .voting-panel__radio-body {
+    --voting-panel-pad-x: 4px;
+  }
+
+  .voting-panel__trend-caption {
+    font-size: 0.875rem;
+  }
+}
+
+/* Short phones: the introduction's headings and descriptions shrink to keep it on one screen */
+@media (max-width: 640px) and (max-height: 600px) {
+  .intro-content--compact h2,
+  .intro-content--compact h3 {
+    font-size: 1.125rem;
+  }
+
+  .intro-content--compact .color-cards__text {
+    font-size: 0.875rem;
+  }
+
+  .intro-content--compact .intro-content__trend-icon {
+    font-size: 1.5rem;
+  }
+
+  .intro-content--compact .color-cards {
+    gap: var(--ods-theme-row-gap);
+  }
+
+  .intro-content--compact .color-cards__card {
+    gap: 4px;
+    padding-block: var(--ods-theme-padding-vertical);
+  }
+}
+
+/* Very narrow phones: the navbar also holds a round's progress, timer and code, so the brand keeps only its icon */
+@media (max-width: 360px) {
+  .app__brand-short {
+    display: none;
+  }
+}
