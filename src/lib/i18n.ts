@@ -109,6 +109,7 @@ const en = {
     codeMissing: 'Enter the session code shared by your facilitator.',
     joinButton: 'Join Session',
     howItWorks: 'How it works',
+    lastDeployed: (date: string) => `Last deployed on ${date}`,
     steps: [
       {
         title: 'Prepare and invite',
@@ -500,6 +501,7 @@ const fr: Messages = {
     codeMissing: 'Saisissez le code de session partagé par votre facilitateur.',
     joinButton: 'Rejoindre la session',
     howItWorks: 'Comment ça marche',
+    lastDeployed: (date: string) => `${date}`,
     steps: [
       {
         title: 'Préparer et inviter',

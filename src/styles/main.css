@@ -416,6 +416,23 @@ body {
   display: flex;
 }
 
+/* Last deployment, kept discreet at the bottom right, under the last card;
+   neutral-600 still reaches 5.7:1 on the white background (WCAG AA) */
+.home__deployed[data-ods='text'] {
+  align-self: flex-end;
+  font-size: 0.6875rem;
+  color: var(--ods-color-neutral-600);
+}
+
+/* Wide screens leave room beside the centered page: pin it to the corner */
+@media (min-width: 1180px) {
+  .home__deployed[data-ods='text'] {
+    position: fixed;
+    right: calc(var(--ods-theme-column-gap) / 2);
+    bottom: calc(var(--ods-theme-row-gap) / 4);
+  }
+}
+
 .home__card-action {
   margin-top: auto;
 }

@@ -17,8 +17,10 @@ import {
   Text,
   TEXT_PRESET,
 } from '@ovhcloud/ods-react';
-import { t } from '../lib/i18n';
+import { LANG, t } from '../lib/i18n';
 import { usePageTitle } from '../lib/usePageTitle';
+
+const buildDate = new Date(__BUILD_TIME__);
 
 function Home() {
   const [sessionCode, setSessionCode] = useState('');
@@ -125,6 +127,14 @@ function Home() {
           ))}
         </ol>
       </Card>
+
+      <Text preset={TEXT_PRESET.caption} className="home__deployed">
+        <time dateTime={__BUILD_TIME__}>
+          {t.home.lastDeployed(
+            new Intl.DateTimeFormat(LANG, { dateStyle: 'long', timeStyle: 'short' }).format(buildDate),
+          )}
+        </time>
+      </Text>
     </div>
   );
 }
