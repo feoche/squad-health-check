@@ -1,0 +1,234 @@
+import { useId, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  Button,
+  Card,
+  CARD_COLOR,
+  FormField,
+  FormFieldError,
+  FormFieldLabel,
+  Message,
+  MESSAGE_COLOR,
+  MessageBody,
+  MessageIcon,
+  ICON_NAME,
+  Quantity,
+  QuantityControl,
+  QuantityInput,
+  Radio,
+  RadioControl,
+  RadioGroup,
+  RadioLabel,
+  Tab,
+  TabContent,
+  TabList,
+  Tabs,
+  TABS_VARIANT,
+  Text,
+  TEXT_PRESET,
+  Toggle,
+  ToggleControl,
+  ToggleLabel,
+} from '@ovhcloud/ods-react';
+import { ANONYMITY_LEVELS, Anonymity, Category, SessionSettings, VOTE_MODES, VoteMode } from '../types';
+import { CategoryPreset, defaultCategories, presetCategories } from '../data/categoryPresets';
+import CategoryEditor from '../components/CategoryEditor';
+import PreviousSessionPicker from '../components/PreviousSessionPicker';
+import { clearStoredCategories, loadSelectedCategories, saveSelectedCategories } from '../lib/categoryStorage';
+import { DEFAULT_SESSION_SETTINGS, createSession, describeError } from '../lib/sessionStore';
+import { loadLastSession, savePreviousSession, SessionExport } from '../lib/sessionHistory';
+import { t } from '../lib/i18n';
+import { usePageTitle } from '../lib/usePageTitle';
+import {
+  ASSUMED_VOTERS,
+  MAX_CATEGORY_MINUTES,
+  MIN_CATEGORY_MINUTES,
+  formatHoursMinutes,
+  workshopMinutes,
+} from '../lib/roundTimer';
+
+const isValidMinutes = (n: number) =>
+  Number.isInteger(n) && n >= MIN_CATEGORY_MINUTES && n <= MAX_CATEGORY_MINUTES;
+
+function CreateSession() {
+  /** The last category choice is the default for the next sessions */
+  const [categories, setCategoriesState] = useState<Category[]>(
+    () => loadSelectedCategories() ?? [...defaultCategories],
+  );
+  const setCategories = (next: Category[]) => {
+    setCategoriesState(next);
+    saveSelectedCategories(next);
+  };
+  /** Picks a built-in set, forgetting the removed categories; the set becomes the stored choice */
+  const resetCategories = (preset: CategoryPreset) => {
+    clearStoredCategories();
+    setCategories([...presetCategories[preset].selected]);
+  };
+  const [settings, setSettings] = useState<SessionSettings>(DEFAULT_SESSION_SETTINGS);
+  /** Kept as typed, so the field can be cleared while editing; settings keep the last valid value */
+  const [minutesText, setMinutesText] = useState(String(DEFAULT_SESSION_SETTINGS.categoryMinutes));
+  const asyncVoting = settings.mode === 'async';
+  const minutesInvalid = !isValidMinutes(Number(minutesText));
+  /* Quantity does not pick up the FormField error by itself */
+  const minutesErrorId = useId();
+  /* The async switch is described by its hint, which says what the mode changes */
+  const asyncHintId = useId();
+  /* The vote mode tabs are labelled by the text above them */
+  const voteModeLabelId = useId();
+  /** The session the new one is compared with: the last one finished in this browser, unless imported or removed */
+  const [previous, setPrevious] = useState<SessionExport | null>(loadLastSession);
+  const [isCreating, setIsCreating] = useState(false);
+  /** Kept raw and described at render time, so it follows language switches */
+  const [error, setError] = useState<unknown>(null);
+  const navigate = useNavigate();
+  const noCategories = categories.length === 0;
+  usePageTitle(t.create.title);
+
+  const handleCreate = async () => {
+    if (noCategories || minutesInvalid) return;
+    setIsCreating(true);
+    setError(null);
+    try {
+      const code = await createSession(categories, settings);
+      if (previous) savePreviousSession(code, previous);
+      navigate(`/session/${code}`);
+    } catch (err) {
+      setError(err);
+      setIsCreating(false);
+    }
+  };
+
+  return (
+    <div className="page create-session">
+      <div className="stack create-session__intro">
+        <Text preset={TEXT_PRESET.heading2}>{t.create.title}</Text>
+        <Text preset={TEXT_PRESET.paragraph}>{t.create.intro}</Text>
+      </div>
+
+      <div className="create-session__layout">
+        <CategoryEditor
+          categories={categories}
+          onChange={setCategories}
+          onReset={resetCategories}
+        />
+
+        <Card className="card-body stack create-session__settings" color={CARD_COLOR.neutral}>
+          <Text preset={TEXT_PRESET.heading4} as="h3">{t.settings.title}</Text>
+          <Toggle
+            checked={settings.facilitatorVotes}
+            onCheckedChange={({ checked }) => setSettings((s) => ({ ...s, facilitatorVotes: checked }))}
+          >
+            <ToggleControl />
+            <ToggleLabel>{t.settings.facilitatorVotes}</ToggleLabel>
+          </Toggle>
+          <Toggle
+            checked={asyncVoting}
+            onCheckedChange={({ checked }) =>
+              setSettings((s) => ({ ...s, mode: checked ? 'async' : 'live' }))
+            }
+          >
+            <ToggleControl aria-describedby={asyncHintId} />
+            <ToggleLabel>{t.settings.asyncVoting}</ToggleLabel>
+          </Toggle>
+          <Text id={asyncHintId} preset={TEXT_PRESET.caption}>{t.settings.asyncVotingHint}</Text>
+          <FormField invalid={minutesInvalid}>
+            <FormFieldLabel>{t.settings.categoryMinutes}</FormFieldLabel>
+            <Quantity
+              min={MIN_CATEGORY_MINUTES}
+              max={MAX_CATEGORY_MINUTES}
+              value={minutesText}
+              onValueChange={({ value, valueAsNumber }) => {
+                setMinutesText(value);
+                if (isValidMinutes(valueAsNumber)) {
+                  setSettings((s) => ({ ...s, categoryMinutes: valueAsNumber }));
+                }
+              }}
+            >
+              <QuantityControl>
+                <QuantityInput aria-describedby={minutesInvalid ? minutesErrorId : undefined} />
+              </QuantityControl>
+            </Quantity>
+            <FormFieldError id={minutesErrorId}>{t.settings.minutesInvalid(MIN_CATEGORY_MINUTES, MAX_CATEGORY_MINUTES)}</FormFieldError>
+          </FormField>
+          {categories.length > 0 && (
+            <Message className="create-session__time-hint" color={MESSAGE_COLOR.information} dismissible={false}>
+              <MessageIcon name={ICON_NAME.circleInfo} />
+              <MessageBody>
+                {t.editor.timeHint(categories.length)}
+                <span className="create-session__time-line">
+                  {t.editor.timeExample(
+                    formatHoursMinutes(workshopMinutes(categories.length, settings.categoryMinutes)),
+                    ASSUMED_VOTERS,
+                  )}
+                </span>
+              </MessageBody>
+            </Message>
+          )}
+          <div className="stack create-session__vote-mode">
+            <Text id={voteModeLabelId} preset={TEXT_PRESET.label}>{t.settings.voteMode}</Text>
+            <Tabs
+              variant={TABS_VARIANT.switch}
+              value={settings.voteMode}
+              onValueChange={({ value }) => setSettings((s) => ({ ...s, voteMode: value as VoteMode }))}
+            >
+              <TabList role="group" aria-labelledby={voteModeLabelId}>
+                {VOTE_MODES.map((mode) => (
+                  <Tab key={mode} value={mode}>{t.settings.voteModes[mode]}</Tab>
+                ))}
+              </TabList>
+              {/* The panel under the switch explains the mode picked */}
+              {VOTE_MODES.map((mode) => (
+                <TabContent key={mode} value={mode}>
+                  <Text preset={TEXT_PRESET.caption}>{t.settings.voteModeHints[mode]}</Text>
+                </TabContent>
+              ))}
+            </Tabs>
+          </div>
+          <FormField>
+            <FormFieldLabel>{t.settings.anonymity}</FormFieldLabel>
+            <RadioGroup
+              className="create-session__levels"
+              value={settings.anonymity}
+              onValueChange={({ value }) => setSettings((s) => ({ ...s, anonymity: value as Anonymity }))}
+            >
+              {ANONYMITY_LEVELS.map((level) => (
+                <Radio key={level} className="create-session__level" value={level}>
+                  <div className="create-session__level-body">
+                    <RadioControl />
+                    <RadioLabel>{t.settings.levels[level]}</RadioLabel>
+                    <Text preset={TEXT_PRESET.caption} className="create-session__level-hint">
+                      {t.settings.levelHints[level]}
+                    </Text>
+                  </div>
+                </Radio>
+              ))}
+            </RadioGroup>
+          </FormField>
+          <PreviousSessionPicker previous={previous} onImport={setPrevious} onRemove={() => setPrevious(null)} />
+          {(noCategories || error != null) && (
+            <Message
+              className="create-session__error"
+              color={MESSAGE_COLOR.critical}
+              dismissible={false}
+              role="alert"
+            >
+              <MessageIcon name={ICON_NAME.hexagonExclamation} />
+              <MessageBody>{noCategories ? t.create.noCategories : describeError(error)}</MessageBody>
+            </Message>
+          )}
+
+          <Button
+            className="create-session__start"
+            onClick={handleCreate}
+            loading={isCreating}
+            disabled={noCategories || minutesInvalid}
+          >
+            {t.create.start}
+          </Button>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+export default CreateSession;
