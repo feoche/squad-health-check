@@ -1,0 +1,521 @@
+import {
+  DataSnapshot,
+  get,
+  increment,
+  onDisconnect,
+  onValue,
+  push,
+  ref,
+  remove,
+  serverTimestamp,
+  set,
+  update,
+} from 'firebase/database';
+import {
+  Ballot,
+  Category,
+  ClientSessionState,
+  FacilitatorNote,
+  OfflineVoteCounts,
+  SessionSettings,
+  Vote,
+} from '../types';
+import { ensureSignedIn, getDb } from './firebase';
+import { generateSessionCode, isExpired, randomKey } from './sessionCode';
+import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
+import { t } from './i18n';
+import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
+import { toFirebaseCategories } from './serialize';
+import { isRangeVote, sameCell } from './voteScore';
+import {
+  RawSession,
+  at,
+  deriveClientState,
+  readableBallotIndexes,
+  readableVoteIndexes,
+} from './deriveClientState';
+
+type Unsubscribe = () => void;
+
+const sessionRef = (code: string, path = '') =>
+  ref(getDb(), `sessions/${code}${path ? `/${path}` : ''}`);
+
+function isPermissionDenied(err: unknown): boolean {
+  const e = err as { code?: string; message?: string } | undefined;
+  return /permission.denied/i.test(`${e?.code ?? ''} ${e?.message ?? ''}`);
+}
+
+/** An error worded by the app; its text is read when shown, in the language of the moment */
+export class AppError extends Error {
+  constructor(readonly text: () => string) {
+    super(text());
+  }
+}
+
+export function describeError(err: unknown): string {
+  if (err instanceof AppError) return err.text();
+  if (isPermissionDenied(err)) return t.errors.notAllowed;
+  if (err instanceof Error) return err.message;
+  return t.errors.generic;
+}
+
+/* ─── Create / join ─── */
+
+const MAX_CODE_ATTEMPTS = 10;
+
+export const DEFAULT_SESSION_SETTINGS: SessionSettings = {
+  mode: 'live',
+  facilitatorVotes: true,
+  anonymity: 'off',
+  voteMode: 'colors',
+  categoryMinutes: DEFAULT_CATEGORY_MINUTES,
+};
+
+/** Rules only allow deleting a whole session once it has expired */
+async function removeExpiredSession(code: string): Promise<boolean> {
+  try {
+    await remove(sessionRef(code));
+    return true;
+  } catch (err) {
+    if (isPermissionDenied(err)) return false;
+    throw err;
+  }
+}
+
+/** Settings are written once here: the rules refuse any later change */
+export async function createSession(categories: Category[], settings: SessionSettings): Promise<string> {
+  const uid = await ensureSignedIn();
+  const write = (code: string) =>
+    update(sessionRef(code), {
+      meta: {
+        facilitatorId: uid,
+        categories: toFirebaseCategories(categories),
+        createdAt: serverTimestamp(),
+      },
+      state: { phase: settings.mode === 'async' ? 'collecting' : 'lobby', currentCategoryIndex: 0, ...settings },
+    });
+  for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
+    const code = generateSessionCode();
+    try {
+      await write(code);
+      return code;
+    } catch (err) {
+      /* Rules deny writing meta of an existing session → code taken */
+      if (!isPermissionDenied(err)) throw err;
+    }
+    /* The session holding this code may have expired: delete it and take its code */
+    if (await removeExpiredSession(code)) {
+      try {
+        await write(code);
+        return code;
+      } catch (err) {
+        if (!isPermissionDenied(err)) throw err;
+      }
+    }
+  }
+  throw new AppError(() => t.errors.createFailed);
+}
+
+/** An expired session not yet replaced is treated as deleted */
+export async function sessionExists(code: string): Promise<boolean> {
+  await ensureSignedIn();
+  const snap = await get(sessionRef(code, 'meta/createdAt'));
+  return snap.exists() && !isExpired(snap.val() as number);
+}
+
+export async function getParticipantName(code: string, uid: string): Promise<string | null> {
+  const snap = await get(sessionRef(code, `participants/${uid}/name`));
+  return snap.exists() ? (snap.val() as string) : null;
+}
+
+/**
+ * Claims a free slot together with the participant entry; rules make slots write-once,
+ * so at most MAX_PARTICIPANTS can ever join. A denied claim means someone took that slot first.
+ */
+export async function joinSession(code: string, uid: string, name: string): Promise<void> {
+  for (let attempt = 0; attempt < MAX_PARTICIPANTS; attempt++) {
+    const [slot] = freeSlots((await get(sessionRef(code, 'slots'))).val());
+    if (slot === undefined) throw new AppError(() => t.errors.sessionFull(MAX_PARTICIPANTS));
+    try {
+      await update(sessionRef(code), {
+        [`slots/${slot}`]: uid,
+        [`participants/${uid}`]: { name, slot },
+      });
+      return;
+    } catch (err) {
+      if (!isPermissionDenied(err)) throw err;
+    }
+  }
+  throw new AppError(() => t.errors.generic);
+}
+
+/* ─── Subscriptions ─── */
+
+export function subscribeSession(
+  code: string,
+  uid: string,
+  onState: (s: ClientSessionState) => void,
+): Unsubscribe {
+  const raw: RawSession = {
+    meta: null,
+    state: null,
+    participants: null,
+    voters: null,
+    ready: null,
+    roundStarts: null,
+    votes: {},
+    facilitator: undefined,
+    closed: null,
+    ballots: {},
+    roundBallots: {},
+    offlineVotes: {},
+    presence: undefined,
+  };
+  const unsubs: Unsubscribe[] = [];
+  const voteUnsubs = new Map<number, Unsubscribe>();
+  const offlineVoteUnsubs = new Map<number, Unsubscribe>();
+  const roundBallotUnsubs = new Map<number, Unsubscribe>();
+  const ballotUnsubs = new Map<number, Unsubscribe>();
+  let facilitatorListening = false;
+
+  const isFacilitator = () => raw.meta?.facilitatorId === uid;
+
+  const emit = () => {
+    const state = deriveClientState(code, raw, uid);
+    if (state) onState(state);
+  };
+
+  const warnCancelled = (path: string) => (err: Error) =>
+    console.warn(`[session] listener on ${path} cancelled`, err);
+
+  /* Attach vote listeners only where the rules allow reading (see readableVoteIndexes) */
+  const syncVoteListeners = () => {
+    // Only the facilitator's views and the presenter window render results while the session runs;
+    // a participant's listener would be cancelled with PERMISSION_DENIED as soon as the round moves on.
+    // Once finished, everything stays readable and the participant's phone shows the recap too
+    if (!isFacilitator() && raw.state?.phase !== 'finished') return;
+    if (!raw.meta || !raw.state) return;
+    const readable = readableVoteIndexes(
+      raw.state,
+      raw.meta.categories.length,
+      raw.closed,
+      isFacilitator(),
+      Boolean(at(raw.voters, raw.state.currentCategoryIndex)?.[uid]),
+    );
+    for (const i of readable) {
+      if (voteUnsubs.has(i)) continue;
+      voteUnsubs.set(
+        i,
+        onValue(
+          sessionRef(code, `votes/${i}`),
+          (snap: DataSnapshot) => {
+            (raw.votes as Record<string, Record<string, Vote>>)[String(i)] = snap.val() ?? {};
+            emit();
+          },
+          (err: Error) => {
+            // Unexpected for the facilitator: keep cached data and allow re-attaching on the next sync
+            voteUnsubs.delete(i);
+            warnCancelled(`votes/${i}`)(err);
+          },
+        ),
+      );
+    }
+    /* Same read rule as the votes they add to */
+    for (const i of readable) {
+      if (offlineVoteUnsubs.has(i)) continue;
+      offlineVoteUnsubs.set(
+        i,
+        onValue(
+          sessionRef(code, `offlineVotes/${i}`),
+          (snap: DataSnapshot) => {
+            raw.offlineVotes[String(i)] = snap.val() as OfflineVoteCounts | null;
+            emit();
+          },
+          (err: Error) => {
+            offlineVoteUnsubs.delete(i);
+            warnCancelled(`offlineVotes/${i}`)(err);
+          },
+        ),
+      );
+    }
+  };
+
+  /* Everyone's ballots, in sessions that are not fully anonymous and only where the rules allow */
+  const syncRoundBallotListeners = () => {
+    // Same as the votes: a participant reads ballots only once the session is finished
+    if (!isFacilitator() && raw.state?.phase !== 'finished') return;
+    if (!raw.meta || !raw.state) return;
+    const readable = readableBallotIndexes(
+      raw.state,
+      raw.meta.categories.length,
+      raw.closed,
+      isFacilitator(),
+    );
+    for (const i of readable) {
+      if (roundBallotUnsubs.has(i)) continue;
+      roundBallotUnsubs.set(
+        i,
+        onValue(
+          sessionRef(code, `ballots/${i}`),
+          (snap: DataSnapshot) => {
+            raw.roundBallots[String(i)] = snap.val() as Record<string, Ballot> | null;
+            emit();
+          },
+          (err: Error) => {
+            // Expected for participants once the round is closed: keep cached data, re-attach when finished
+            roundBallotUnsubs.delete(i);
+            warnCancelled(`ballots/${i}`)(err);
+          },
+        ),
+      );
+    }
+  };
+
+  /* My own ballots: every category while collecting (any answer can be edited), else only the round being voted */
+  const syncBallotListeners = () => {
+    if (!raw.meta || !raw.state) return;
+    const indexes =
+      raw.state.phase === 'collecting'
+        ? raw.meta.categories.map((_, i) => i)
+        : [raw.state.currentCategoryIndex];
+    for (const [index, unsubscribe] of ballotUnsubs) {
+      if (indexes.includes(index)) continue;
+      unsubscribe();
+      ballotUnsubs.delete(index);
+    }
+    for (const index of indexes) {
+      if (ballotUnsubs.has(index)) continue;
+      ballotUnsubs.set(
+        index,
+        onValue(
+          sessionRef(code, `ballots/${index}/${uid}`),
+          (snap: DataSnapshot) => {
+            raw.ballots[String(index)] = snap.val() as Ballot | null;
+            emit();
+          },
+          warnCancelled(`ballots/${index}`),
+        ),
+      );
+    }
+  };
+
+  const listen = (key: 'meta' | 'state' | 'participants' | 'voters' | 'ready' | 'roundStarts' | 'facilitator' | 'closed' | 'presence') => {
+    unsubs.push(
+      onValue(
+        sessionRef(code, key),
+        (snap: DataSnapshot) => {
+          (raw as unknown as Record<string, unknown>)[key] = snap.val();
+          if (key === 'meta') syncFacilitatorListeners();
+          if (key === 'meta' || key === 'state') syncBallotListeners();
+          if (key === 'participants') syncPresence();
+          if (key !== 'participants' && key !== 'facilitator' && key !== 'presence') {
+            syncVoteListeners();
+            syncRoundBallotListeners();
+          }
+          emit();
+        },
+        warnCancelled(key),
+      ),
+    );
+  };
+
+  /* Tells the facilitator this tab is connected, once the rules know this user as a participant */
+  let stopPresence: Unsubscribe | null = null;
+  const syncPresence = () => {
+    if (stopPresence || !raw.participants?.[uid]) return;
+    stopPresence = trackPresence(code, uid);
+  };
+
+  /* Facilitator-only nodes: a participant's listener would be cancelled with PERMISSION_DENIED */
+  const syncFacilitatorListeners = () => {
+    if (facilitatorListening || !isFacilitator()) return;
+    facilitatorListening = true;
+    listen('facilitator');
+    listen('closed');
+    listen('presence');
+  };
+
+  listen('meta');
+  listen('state');
+  listen('participants');
+  listen('voters');
+  listen('ready');
+  listen('roundStarts');
+
+  return () => {
+    unsubs.forEach((u) => u());
+    voteUnsubs.forEach((u) => u());
+    offlineVoteUnsubs.forEach((u) => u());
+    roundBallotUnsubs.forEach((u) => u());
+    ballotUnsubs.forEach((u) => u());
+    stopPresence?.();
+  };
+}
+
+/**
+ * Marks this tab as connected to the session for as long as it is: the server removes
+ * the mark when the connection drops, and a new one is written on reconnection.
+ * One mark per tab, so closing one of two tabs keeps the participant connected.
+ */
+export function trackPresence(code: string, uid: string): Unsubscribe {
+  let mark: ReturnType<typeof push> | null = null;
+  const unsubscribe = onValue(ref(getDb(), '.info/connected'), (snap) => {
+    if (snap.val() !== true) return;
+    const next = push(sessionRef(code, `presence/${uid}`));
+    mark = next;
+    onDisconnect(next)
+      .remove()
+      .then(() => set(next, true))
+      .catch((err) => console.warn('[session] presence', err));
+  });
+  return () => {
+    unsubscribe();
+    if (!mark) return;
+    onDisconnect(mark).cancel().catch(() => {});
+    remove(mark).catch(() => {});
+  };
+}
+
+/** Reports connection changes, but only after the first successful connection. */
+export function subscribeConnection(onChange: (connected: boolean) => void): Unsubscribe {
+  let seenOnline = false;
+  return onValue(ref(getDb(), '.info/connected'), (snap) => {
+    const online = snap.val() === true;
+    if (online) seenOnline = true;
+    if (seenOnline) onChange(online);
+  });
+}
+
+/** Difference between the server clock and this device's, so every screen shows the same round time. */
+export function subscribeServerTimeOffset(onChange: (offsetMs: number) => void): Unsubscribe {
+  return onValue(ref(getDb(), '.info/serverTimeOffset'), (snap) => onChange(Number(snap.val()) || 0));
+}
+
+/* ─── Facilitator actions (guards mirror the former server) ─── */
+
+const writeState = (s: ClientSessionState, patch: Record<string, unknown>) =>
+  update(sessionRef(s.code, 'state'), patch);
+
+export async function startWorkshop(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'lobby') return;
+  await writeState(s, { phase: 'intro' });
+}
+
+export async function startVoting(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'intro') return;
+  await update(sessionRef(s.code), {
+    'state/phase': 'voting',
+    'state/roundStartedAt': serverTimestamp(),
+    'roundStarts/0': serverTimestamp(),
+  });
+}
+
+export async function revealVotes(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'voting') return;
+  await writeState(s, { phase: 'revealed' });
+}
+
+/** Closes the voting window of an async session and opens the first category's results, starting its review timer */
+export async function startMeeting(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'collecting') return;
+  await writeState(s, { phase: 'revealed', currentCategoryIndex: 0, roundStartedAt: serverTimestamp() });
+}
+
+/** Closing the round in the same write keeps the facilitator's vote listener readable. */
+export async function nextCategory(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || s.phase !== 'revealed') return;
+  const idx = s.currentCategoryIndex;
+  if (idx >= s.categories.length - 1) return;
+  /* Async: the votes are already in, so the next category goes straight to its results, its review timed like a round.
+     No roundStarts entry: those time the votes, which were cast before the meeting. */
+  if (s.mode === 'async') {
+    await update(sessionRef(s.code), {
+      'state/currentCategoryIndex': idx + 1,
+      'state/roundStartedAt': serverTimestamp(),
+      [`closed/${idx}`]: true,
+    });
+    return;
+  }
+  await update(sessionRef(s.code), {
+    'state/phase': 'voting',
+    'state/currentCategoryIndex': idx + 1,
+    'state/roundStartedAt': serverTimestamp(),
+    [`roundStarts/${idx + 1}`]: serverTimestamp(),
+    [`closed/${idx}`]: true,
+  });
+}
+
+export async function endSession(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator) return;
+  await writeState(s, { phase: 'finished' });
+}
+
+/**
+ * Adds or removes a vote for someone present but not connected, in the current round's results.
+ * Only the facilitator's added votes can be removed: participants' votes stay theirs.
+ */
+export async function adjustOfflineVote(s: ClientSessionState, vote: Vote, delta: 1 | -1): Promise<void> {
+  if (!s.isFacilitator || (s.phase !== 'voting' && s.phase !== 'revealed')) return;
+  const idx = s.currentCategoryIndex;
+  if (delta < 0 && !s.offlineVotes[idx]?.some((v) => sameCell(v, vote))) return;
+  const bucket = isRangeVote(vote) ? vote.score : vote.color;
+  await set(sessionRef(s.code, `offlineVotes/${idx}/${bucket}/${vote.trend}`), increment(delta));
+}
+
+/** Removes every vote the facilitator added in the current round, leaving participants' votes */
+export async function resetOfflineVotes(s: ClientSessionState): Promise<void> {
+  if (!s.isFacilitator || (s.phase !== 'voting' && s.phase !== 'revealed')) return;
+  await set(sessionRef(s.code, `offlineVotes/${s.currentCategoryIndex}`), null);
+}
+
+/** Tells the facilitator whether this participant is ready for the next category; they still decide when to move on */
+export async function setReady(s: ClientSessionState, ready: boolean): Promise<void> {
+  if (s.phase !== 'revealed' || s.isFacilitator) return;
+  const target = sessionRef(s.code, `ready/${s.currentCategoryIndex}/${s.myId}`);
+  await (ready ? set(target, true) : remove(target));
+}
+
+export type NoteField = keyof FacilitatorNote;
+
+export async function updateFacilitatorNote(
+  s: ClientSessionState,
+  categoryIndex: number,
+  field: NoteField,
+  value: string,
+): Promise<void> {
+  if (!s.isFacilitator) return;
+  await set(sessionRef(s.code, `facilitator/${categoryIndex}/${field}`), value);
+}
+
+/* ─── Participant action ─── */
+
+/**
+ * Voter flag, anonymous vote and private ballot are written atomically; rules require them together.
+ * Once voted, the ballot's key lets the voter overwrite their vote until the round is revealed
+ * (live) or the meeting starts (async, where any category can be voted while collecting).
+ */
+export async function submitVote(
+  s: ClientSessionState,
+  vote: Vote,
+  index: number = s.currentCategoryIndex,
+): Promise<boolean> {
+  const open = s.phase === 'collecting' || (s.phase === 'voting' && index === s.currentCategoryIndex);
+  if (!open || index < 0 || index >= s.categories.length) return false;
+  if (s.myVotedIndexes.includes(index)) {
+    const ballot = await get(sessionRef(s.code, `ballots/${index}/${s.myId}`));
+    if (!ballot.exists()) return false;
+    const { key } = ballot.val() as Ballot;
+    await update(sessionRef(s.code), {
+      [`votes/${index}/${key}`]: vote,
+      [`ballots/${index}/${s.myId}`]: { key, ...vote },
+    });
+    return true;
+  }
+  const key = randomKey();
+  await update(sessionRef(s.code), {
+    [`voters/${index}/${s.myId}`]: serverTimestamp(),
+    [`votes/${index}/${key}`]: vote,
+    [`ballots/${index}/${s.myId}`]: { key, ...vote },
+  });
+  return true;
+}

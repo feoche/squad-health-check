@@ -1,0 +1,361 @@
+import {
+  Anonymity,
+  Ballot,
+  Category,
+  CategoryResult,
+  ClientSessionState,
+  FacilitatorNote,
+  NamedVote,
+  OfflineVoteCounts,
+  SessionMode,
+  SessionPhase,
+  Vote,
+  VoteDelay,
+  VoteMode,
+} from '../types';
+import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
+import { isRangeVote } from './voteScore';
+
+/** A vote cast within this delay of the round opening gets a spark */
+export const QUICK_VOTE_MS = 2000;
+
+/**
+ * RTDB returns objects whose keys are integers (0..n) as arrays,
+ * possibly with null holes — so per-category children may be either shape.
+ */
+export type Indexed<T> = Record<string, T> | (T | null | undefined)[];
+
+export interface SessionStateNode {
+  phase: SessionPhase;
+  currentCategoryIndex: number;
+  /** Absent in sessions created before the setting existed: counts as true */
+  facilitatorVotes?: boolean;
+  /** Absent in sessions created before the setting existed: counts as 'full' */
+  anonymity?: Anonymity;
+  /** Absent in sessions created before the setting existed: counts as 'colors' */
+  voteMode?: VoteMode;
+  /** Absent in sessions created before the setting existed: counts as DEFAULT_CATEGORY_MINUTES */
+  categoryMinutes?: number;
+  /** Server time the current round's voting opened, absent in sessions created before the timer */
+  roundStartedAt?: number;
+  /** Absent in sessions created before asynchronous voting: counts as 'live' */
+  mode?: SessionMode;
+}
+
+/** Raw contents of /sessions/{code}, one field per listened child. */
+export interface RawSession {
+  meta: { facilitatorId: string; categories: Category[]; createdAt?: number } | null;
+  state: SessionStateNode | null;
+  participants: Record<string, { name: string }> | null;
+  /** Server time of the vote; `true` in votes cast before it was recorded */
+  voters: Indexed<Record<string, true | number>> | null;
+  votes: Indexed<Record<string, Vote>> | null;
+  /** Only listened to by the facilitator — the rules deny everyone else */
+  facilitator: Indexed<Partial<FacilitatorNote>> | null | undefined;
+  closed: Indexed<true> | null;
+  /** The current user's own ballots, by category index */
+  ballots: Record<string, Ballot | null>;
+  /** Everyone's ballots per category index, where the rules allow reading them (see readableBallotIndexes) */
+  roundBallots: Record<string, Record<string, Ballot> | null>;
+  /** Votes the facilitator added per category index, readable wherever the votes are */
+  offlineVotes: Record<string, OfflineVoteCounts | null>;
+  /** Server time each round's voting opened, by category index; absent for rounds before it was recorded */
+  roundStarts?: Indexed<number> | null;
+  /** Who said they are ready to move on, by category index; the rules only accept it in the revealed round */
+  ready?: Indexed<Record<string, true>> | null;
+  /** One mark per connected tab, by participant id; facilitator only, undefined until loaded */
+  presence?: Record<string, Record<string, true>> | null;
+}
+
+export function at<T>(coll: Indexed<T> | null | undefined, idx: number): T | undefined {
+  if (!coll) return undefined;
+  return (coll as Record<string, T | null | undefined>)[String(idx)] ?? undefined;
+}
+
+/** One vote per unit of each cell's count; the cell key is a color in 'colors' sessions, a score in 'range' ones */
+export function expandOfflineVotes(counts: OfflineVoteCounts | null | undefined, mode: VoteMode = 'colors'): Vote[] {
+  return Object.entries(counts ?? {}).flatMap(([key, trends]) =>
+    Object.entries(trends ?? {}).flatMap(([trend, n]) =>
+      Array.from(
+        { length: n ?? 0 },
+        () => (mode === 'range' ? { score: Number(key), trend } : { color: key, trend }) as Vote,
+      ),
+    ),
+  );
+}
+
+/** Participants' votes, then the ones the facilitator added for people without the app */
+function votesAt(raw: RawSession, idx: number, mode: VoteMode): Vote[] {
+  return [
+    ...Object.values(at(raw.votes, idx) ?? {}),
+    ...expandOfflineVotes(raw.offlineVotes[String(idx)], mode),
+  ];
+}
+
+/** The vote of a ballot, without its key */
+function voteOf(ballot: Ballot): Vote {
+  return isRangeVote(ballot)
+    ? { score: ballot.score, trend: ballot.trend }
+    : { color: ballot.color, trend: ballot.trend };
+}
+
+function myVote(ballot: Ballot | null | undefined): Vote | null {
+  return ballot ? voteOf(ballot) : null;
+}
+
+/** By name, voters who left (no name) last */
+const byName = (a: NamedVote, b: NamedVote) =>
+  a.name === null ? (b.name === null ? 0 : 1) : b.name === null ? -1 : a.name.localeCompare(b.name);
+
+export function deriveClientState(
+  code: string,
+  raw: RawSession,
+  myId: string,
+): ClientSessionState | null {
+  if (!raw.meta || !raw.state) return null;
+
+  const { categories, facilitatorId } = raw.meta;
+  const { phase, currentCategoryIndex } = raw.state;
+  const voteMode: VoteMode = raw.state.voteMode ?? 'colors';
+  const mode: SessionMode = raw.state.mode ?? 'live';
+
+  const participants = Object.entries(raw.participants ?? {})
+    .map(([id, p]) => ({ id, name: p.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+
+  const roundVoters = at(raw.voters, currentCategoryIndex) ?? {};
+
+  const isFacilitator = facilitatorId === myId;
+
+  const facilitatorVotes = raw.state.facilitatorVotes !== false;
+  const eligibleVoters = facilitatorVotes
+    ? participants
+    : participants.filter((p) => p.id !== facilitatorId);
+  const voterIds = eligibleVoters.filter((p) => roundVoters[p.id]).map((p) => p.id);
+  const roundReady = phase === 'revealed' ? (at(raw.ready, currentCategoryIndex) ?? {}) : {};
+  const readyIds = participants.filter((p) => p.id !== facilitatorId && roundReady[p.id]).map((p) => p.id);
+  const { roundStartedAt = null } = raw.state;
+  /* Async votes come in before the meeting: there is no round start to be quick against */
+  const quickVoterIds = voterIds.filter((id) => {
+    const votedAt = roundVoters[id];
+    return (
+      mode === 'live' && roundStartedAt !== null && typeof votedAt === 'number' && votedAt - roundStartedAt < QUICK_VOTE_MS
+    );
+  });
+  const answeredCounts: Record<string, number> = {};
+  for (const p of eligibleVoters) {
+    answeredCounts[p.id] = categories.filter((_, i) => at(raw.voters, i)?.[p.id]).length;
+  }
+  const myVotedIndexes = categories.flatMap((_, i) => (at(raw.voters, i)?.[myId] ? [i] : []));
+  const myVotes: Record<number, Vote> = {};
+  categories.forEach((_, i) => {
+    const ballot = raw.ballots[String(i)];
+    if (ballot) myVotes[i] = voteOf(ballot);
+  });
+  /* Unknown until loaded: nobody is shown as disconnected meanwhile. My own tab is connected by definition. */
+  const disconnectedIds =
+    isFacilitator && raw.presence !== undefined
+      ? eligibleVoters.filter((p) => p.id !== myId && !raw.presence?.[p.id]).map((p) => p.id)
+      : [];
+
+  const anonymity: Anonymity = raw.state.anonymity ?? 'full';
+  const names = new Map(participants.map((p) => [p.id, p.name]));
+  const namedVotes: Record<number, NamedVote[]> = {};
+  if (anonymity !== 'full') {
+    categories.forEach((_, i) => {
+      const ballots = raw.roundBallots[String(i)];
+      if (ballots === undefined) return;
+      namedVotes[i] = Object.entries(ballots ?? {})
+        .map(([id, b]) => ({
+          id,
+          name: names.get(id) ?? null,
+          vote: voteOf(b),
+          ...(i === currentCategoryIndex && quickVoterIds.includes(id) && { quick: true }),
+        }))
+        .sort(byName);
+    });
+  }
+
+  const voteDelays: Record<number, VoteDelay[]> = {};
+  categories.forEach((_, i) => {
+    const start = at(raw.roundStarts, i);
+    const voted = at(raw.voters, i);
+    if (typeof start !== 'number' || !voted) return;
+    voteDelays[i] = Object.entries(voted).flatMap(([id, votedAt]) =>
+      typeof votedAt === 'number' && names.has(id)
+        ? [{ id, name: names.get(id)!, ms: Math.max(0, votedAt - start) }]
+        : [],
+    );
+  });
+
+  const facilitatorNotes: Record<number, FacilitatorNote> = {};
+  if (isFacilitator) {
+    categories.forEach((_, i) => {
+      const n = at(raw.facilitator, i);
+      if (n?.notes) {
+        facilitatorNotes[i] = { notes: n.notes };
+      }
+    });
+  }
+
+  const categoryResults: Record<number, Vote[]> = {};
+  categories.forEach((_, i) => {
+    if (at(raw.votes, i) !== undefined) categoryResults[i] = votesAt(raw, i, voteMode);
+  });
+
+  const offlineVotes: Record<number, Vote[]> = {};
+  categories.forEach((_, i) => {
+    const counts = raw.offlineVotes[String(i)];
+    if (counts) offlineVotes[i] = expandOfflineVotes(counts, voteMode);
+  });
+
+  const allResults: CategoryResult[] =
+    phase === 'finished'
+      ? categories.map((_, i) => ({
+          categoryIndex: i,
+          votes: votesAt(raw, i, voteMode),
+          notes: facilitatorNotes[i]?.notes ?? '',
+        }))
+      : [];
+
+  return {
+    code,
+    categories,
+    participants,
+    currentCategoryIndex,
+    phase,
+    voteCount: voterIds.length,
+    totalVoters: eligibleVoters.length,
+    facilitatorVotes,
+    anonymity,
+    voteMode,
+    mode,
+    answeredCounts,
+    myVotedIndexes,
+    myVotes,
+    categoryMinutes: raw.state.categoryMinutes ?? DEFAULT_CATEGORY_MINUTES,
+    roundStartedAt: raw.state.roundStartedAt ?? null,
+    eligibleVoters,
+    voterIds,
+    quickVoterIds,
+    disconnectedIds,
+    voteDelays,
+    readyIds,
+    isReady: Boolean(roundReady[myId]),
+    hasVoted: Boolean(roundVoters[myId]),
+    myVote: myVote(raw.ballots[String(currentCategoryIndex)]),
+    isFacilitator,
+    myId,
+    facilitatorId,
+    currentResults:
+      phase === 'revealed' && at(raw.votes, currentCategoryIndex) !== undefined
+        ? votesAt(raw, currentCategoryIndex, voteMode)
+        : null,
+    liveResults:
+      isFacilitator &&
+      phase === 'voting' &&
+      at(raw.votes, currentCategoryIndex) !== undefined
+        ? votesAt(raw, currentCategoryIndex, voteMode)
+        : null,
+    allResults,
+    facilitatorNotes,
+    facilitatorNotesLoaded: isFacilitator && raw.facilitator !== undefined,
+    categoryResults,
+    namedVotes,
+    offlineVotes,
+  };
+}
+
+/**
+ * Vote indexes the rules allow reading. Listening to any other index gets the
+ * listener cancelled with PERMISSION_DENIED, so only these may be attached.
+ * The facilitator may also read categories already closed by "Next category",
+ * and the round being voted once they have voted (or right away when they don't vote).
+ */
+export function readableVoteIndexes(
+  state: SessionStateNode,
+  categoryCount: number,
+  closed: Indexed<true> | null = null,
+  isFacilitator = false,
+  facilitatorVoted = false,
+): number[] {
+  const all = Array.from({ length: categoryCount }, (_, i) => i);
+  if (state.phase === 'finished') return all;
+  return all.filter(
+    (i) =>
+      (state.phase === 'revealed' && i === state.currentCategoryIndex) ||
+      (isFacilitator && at(closed, i) === true) ||
+      (isFacilitator &&
+        state.phase === 'voting' &&
+        i === state.currentCategoryIndex &&
+        (facilitatorVoted || state.facilitatorVotes === false)),
+  );
+}
+
+/**
+ * Ballot indexes the rules allow reading in sessions that are not fully anonymous:
+ * the revealed round, closed rounds for the facilitator, everything once finished —
+ * for everyone when 'off', for the facilitator only when 'facilitator'. Never while voting.
+ */
+export function readableBallotIndexes(
+  state: SessionStateNode,
+  categoryCount: number,
+  closed: Indexed<true> | null = null,
+  isFacilitator = false,
+): number[] {
+  const allowed = state.anonymity === 'off' || (state.anonymity === 'facilitator' && isFacilitator);
+  if (!allowed) return [];
+  const all = Array.from({ length: categoryCount }, (_, i) => i);
+  if (state.phase === 'finished') return all;
+  return all.filter(
+    (i) =>
+      (state.phase === 'revealed' && i === state.currentCategoryIndex) ||
+      (isFacilitator && at(closed, i) === true),
+  );
+}
+
+/** Names on shared screens (presenter window): only when votes are not anonymous at all. */
+export function sharedNamedVotes(
+  session: Pick<ClientSessionState, 'anonymity' | 'namedVotes'>,
+  index: number,
+): NamedVote[] | undefined {
+  return session.anonymity === 'off' ? session.namedVotes[index] : undefined;
+}
+
+/** Categories listed in the notes-page summary: those already moved past, or all once finished. */
+export function summaryIndexes(
+  session: Pick<ClientSessionState, 'phase' | 'currentCategoryIndex' | 'categories'>,
+): number[] {
+  const count =
+    session.phase === 'finished'
+      ? session.categories.length
+      : session.phase === 'lobby' || session.phase === 'intro' || session.phase === 'collecting'
+        ? 0
+        : session.currentCategoryIndex;
+  return Array.from({ length: count }, (_, i) => i);
+}
+
+/** The facilitator's tab reveals the round once every eligible voter has voted. */
+export function shouldAutoReveal(session: ClientSessionState): boolean {
+  return (
+    session.isFacilitator &&
+    session.phase === 'voting' &&
+    session.totalVoters > 0 &&
+    session.voteCount >= session.totalVoters
+  );
+}
+
+/** With no eligible voter, no round could ever be revealed automatically. */
+export function canStartWorkshop(
+  session: Pick<ClientSessionState, 'isFacilitator' | 'phase' | 'totalVoters'>,
+): boolean {
+  return session.isFacilitator && session.phase === 'lobby' && session.totalVoters > 0;
+}
+
+/** Eligible voters who voted on every category: the ones whose async answers are complete */
+export function completedVoterCount(
+  session: Pick<ClientSessionState, 'eligibleVoters' | 'answeredCounts' | 'categories'>,
+): number {
+  return session.eligibleVoters.filter((p) => (session.answeredCounts[p.id] ?? 0) >= session.categories.length)
+    .length;
+}
