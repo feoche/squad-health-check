@@ -1,0 +1,14 @@
+node_modules
+dist
+*.local
+.env*
+!.env.example
+.idea
+
+# TypeScript build outputs
+*.tsbuildinfo
+vite.config.d.ts
+vite.config.js
+
+# Workshop simulation output
+workshop-report/
