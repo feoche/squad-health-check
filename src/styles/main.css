@@ -1300,3 +1300,12 @@ body {
     display: none;
   }
 }
+
+/* JSON reads best aligned, as in a code editor */
+.category-code__input {
+  width: 100%;
+  font-family: var(--ods-theme-font-family-code);
+  font-size: 0.875rem;
+  white-space: pre;
+  tab-size: 2;
+}

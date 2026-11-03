@@ -33,8 +33,13 @@ import { LANG, t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
 import { moveItem } from '../lib/moveItem';
 import { isBuiltInCategory, suggestedCategories } from '../lib/suggestedCategories';
-import { loadRemovedCategories, saveRemovedCategories } from '../lib/categoryStorage';
+import { loadCodeView, loadRemovedCategories, saveCodeView, saveRemovedCategories } from '../lib/categoryStorage';
 import { CATEGORY_PRESETS, CategoryPreset, detectPreset, presetCategories } from '../data/categoryPresets';
+import CategoryCodeEditor from './CategoryCodeEditor';
+
+/** The set switch offers the built-in sets, then the categories as code */
+const CATEGORY_VIEWS = [...CATEGORY_PRESETS, 'code'] as const;
+type CategoryView = (typeof CATEGORY_VIEWS)[number];
 
 interface Props {
   categories: Category[];
@@ -82,6 +87,13 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
     saveRemovedCategories(next);
   };
   const preset = detectPreset(categories);
+  /** Editing as code is remembered across visits, so the tab opens again */
+  const [codeView, setCodeViewState] = useState(loadCodeView);
+  const setCodeView = (next: boolean) => {
+    setCodeViewState(next);
+    saveCodeView(next);
+  };
+  const view: CategoryView = codeView ? 'code' : preset;
   const suggestions = suggestedCategories(categories, removed, preset);
   const presetLabelId = useId();
   /** Confirms list changes to screen readers, since the control used may disappear with them */
@@ -351,193 +363,207 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
         <Text id={presetLabelId} preset={TEXT_PRESET.label}>{t.editor.preset}</Text>
         <Tabs
           variant={TABS_VARIANT.switch}
-          value={preset}
+          value={view}
           onValueChange={({ value }) => {
-            if (value !== preset) {
-              selectPreset(value as CategoryPreset);
-              setAnnouncement(t.editor.presetSelected(t.editor.presets[value as CategoryPreset]));
+            if (value === view) return;
+            const next = value as CategoryView;
+            if (next === 'code') {
+              // The code starts from the current list, so nothing is reset
+              setEditingIndex(null);
+              setIsAdding(false);
+              setCodeView(true);
+            } else {
+              setCodeView(false);
+              selectPreset(next);
             }
+            setAnnouncement(t.editor.presetSelected(t.editor.presets[next]));
           }}
         >
           <TabList role="group" aria-labelledby={presetLabelId}>
-            {CATEGORY_PRESETS.map((p) => (
+            {CATEGORY_VIEWS.map((p) => (
               <Tab key={p} value={p}>{t.editor.presets[p]}</Tab>
             ))}
           </TabList>
           {/* The panel under the switch explains the set picked */}
-          {CATEGORY_PRESETS.map((p) => (
+          {CATEGORY_VIEWS.map((p) => (
             <TabContent key={p} value={p}>
               <Text preset={TEXT_PRESET.caption}>{t.editor.presetHints[p]}</Text>
             </TabContent>
           ))}
         </Tabs>
       </div>
-      <ol className="stack category-editor__list" aria-label={t.editor.list}>
-        {categories.map((cat, i) => {
-          const { title, subtitle } = localizeCategory(cat);
-          return (
-            <li key={i} className="category-editor__list-item">
-              <Card
-                className={`card-body card-compact category-editor__item${
-                  canDrag ? ' category-editor__item--draggable' : ''
-                }${dragIndex === i ? ' category-editor__item--dragging' : ''}${
-                  editingIndex === i ? ' category-editor__item--editing' : ''
-                }`}
-                color={CARD_COLOR.neutral}
-                draggable={canDrag}
-                onDragStart={(e) => {
-                  e.dataTransfer.effectAllowed = 'move';
-                  e.dataTransfer.setData('text/plain', title);
-                  setDragIndex(i);
-                }}
-                onDragOver={(e) => dragOver(e, i)}
-                onDrop={(e) => e.preventDefault()}
-                onDragEnd={() => setDragIndex(null)}
-              >
-                {editingIndex === i ? (
-                  renderForm(saveEdit, cancelEdit)
-                ) : (
-                  <div className="category-editor__row">
-                    <Icon name={ICON_NAME.dragDrop} className="category-editor__drag-handle" aria-hidden />
-                    <span className="category-editor__position-slot" aria-hidden>
-                      <Badge className="category-editor__position" color={BADGE_COLOR.primary}>
-                        {i + 1}
-                      </Badge>
-                    </span>
-                    <div className="grow category-editor__label">
-                      <Text preset={TEXT_PRESET.label}>{title}</Text>
-                      {subtitle && (
-                        <Text preset={TEXT_PRESET.caption}>
-                          {' ('}
-                          <span lang={subtitleLang}>{subtitle}</span>)
-                        </Text>
-                      )}
-                    </div>
-                    <div className="inline category-editor__item-actions">
-                      <Button
-                        size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
-                        disabled={!canDrag || i === 0}
-                        onClick={() => move(i, -1)}
-                        aria-label={t.editor.moveUp(title)}
-                        title={t.editor.moveUp(title)}
-                        data-focus={`up-${i}`}
-                      >
-                        <Icon name={ICON_NAME.arrowUp} />
-                      </Button>
-                      <Button
-                        size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
-                        disabled={!canDrag || i === categories.length - 1}
-                        onClick={() => move(i, 1)}
-                        aria-label={t.editor.moveDown(title)}
-                        title={t.editor.moveDown(title)}
-                        data-focus={`down-${i}`}
-                      >
-                        <Icon name={ICON_NAME.arrowDown} />
-                      </Button>
-                      <Button
-                        size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
-                        onClick={() => startEdit(i)}
-                        aria-label={t.editor.edit(title)}
-                        title={t.editor.edit(title)}
-                        data-focus={`edit-${i}`}
-                      >
-                        <Icon name={ICON_NAME.pen} />
-                      </Button>
-                      <Button
-                        size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
-                        color={BUTTON_COLOR.critical}
-                        onClick={() => remove(i)}
-                        aria-label={t.editor.remove(title)}
-                        title={t.editor.remove(title)}
-                      >
-                        <Icon name={ICON_NAME.trash} />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </Card>
-            </li>
-          );
-        })}
-      </ol>
-
-      {suggestions.length > 0 && (
-        <div className="stack category-editor__suggestions">
-          <Text preset={TEXT_PRESET.heading5} as="h3">{t.editor.suggestions}</Text>
-          <ul className="stack category-editor__list">
-            {suggestions.map((cat, index) => {
-              const { title, subtitle, positiveDescription } = localizeCategory(cat);
+      {codeView ? (
+        <CategoryCodeEditor categories={categories} onChange={onChange} />
+      ) : (
+        <>
+          <ol className="stack category-editor__list" aria-label={t.editor.list}>
+            {categories.map((cat, i) => {
+              const { title, subtitle } = localizeCategory(cat);
               return (
-                <li key={cat.name} className="category-editor__list-item">
-                  <Card className="card-body card-compact" color={CARD_COLOR.neutral}>
-                    <div className="category-editor__row">
-                      <div className="grow category-editor__label">
-                        <Text preset={TEXT_PRESET.label}>{title}</Text>
-                        {subtitle && (
-                          <Text preset={TEXT_PRESET.caption}>
-                            {' ('}
-                            <span lang={subtitleLang}>{subtitle}</span>)
-                          </Text>
-                        )}
-                        <Text preset={TEXT_PRESET.caption} className="category-editor__suggestion-hint">
-                          {positiveDescription}
-                        </Text>
-                      </div>
-                      <div className="inline category-editor__item-actions">
-                        {!isBuiltInCategory(cat) && (
+                <li key={i} className="category-editor__list-item">
+                  <Card
+                    className={`card-body card-compact category-editor__item${
+                      canDrag ? ' category-editor__item--draggable' : ''
+                    }${dragIndex === i ? ' category-editor__item--dragging' : ''}${
+                      editingIndex === i ? ' category-editor__item--editing' : ''
+                    }`}
+                    color={CARD_COLOR.neutral}
+                    draggable={canDrag}
+                    onDragStart={(e) => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('text/plain', title);
+                      setDragIndex(i);
+                    }}
+                    onDragOver={(e) => dragOver(e, i)}
+                    onDrop={(e) => e.preventDefault()}
+                    onDragEnd={() => setDragIndex(null)}
+                  >
+                    {editingIndex === i ? (
+                      renderForm(saveEdit, cancelEdit)
+                    ) : (
+                      <div className="category-editor__row">
+                        <Icon name={ICON_NAME.dragDrop} className="category-editor__drag-handle" aria-hidden />
+                        <span className="category-editor__position-slot" aria-hidden>
+                          <Badge className="category-editor__position" color={BADGE_COLOR.primary}>
+                            {i + 1}
+                          </Badge>
+                        </span>
+                        <div className="grow category-editor__label">
+                          <Text preset={TEXT_PRESET.label}>{title}</Text>
+                          {subtitle && (
+                            <Text preset={TEXT_PRESET.caption}>
+                              {' ('}
+                              <span lang={subtitleLang}>{subtitle}</span>)
+                            </Text>
+                          )}
+                        </div>
+                        <div className="inline category-editor__item-actions">
+                          <Button
+                            size={BUTTON_SIZE.xs}
+                            variant={BUTTON_VARIANT.ghost}
+                            disabled={!canDrag || i === 0}
+                            onClick={() => move(i, -1)}
+                            aria-label={t.editor.moveUp(title)}
+                            title={t.editor.moveUp(title)}
+                            data-focus={`up-${i}`}
+                          >
+                            <Icon name={ICON_NAME.arrowUp} />
+                          </Button>
+                          <Button
+                            size={BUTTON_SIZE.xs}
+                            variant={BUTTON_VARIANT.ghost}
+                            disabled={!canDrag || i === categories.length - 1}
+                            onClick={() => move(i, 1)}
+                            aria-label={t.editor.moveDown(title)}
+                            title={t.editor.moveDown(title)}
+                            data-focus={`down-${i}`}
+                          >
+                            <Icon name={ICON_NAME.arrowDown} />
+                          </Button>
+                          <Button
+                            size={BUTTON_SIZE.xs}
+                            variant={BUTTON_VARIANT.ghost}
+                            onClick={() => startEdit(i)}
+                            aria-label={t.editor.edit(title)}
+                            title={t.editor.edit(title)}
+                            data-focus={`edit-${i}`}
+                          >
+                            <Icon name={ICON_NAME.pen} />
+                          </Button>
                           <Button
                             size={BUTTON_SIZE.xs}
                             variant={BUTTON_VARIANT.ghost}
                             color={BUTTON_COLOR.critical}
-                            onClick={() => forget(cat, index)}
-                            aria-label={t.editor.deleteSuggestion(title)}
-                            title={t.editor.deleteSuggestion(title)}
+                            onClick={() => remove(i)}
+                            aria-label={t.editor.remove(title)}
+                            title={t.editor.remove(title)}
                           >
                             <Icon name={ICON_NAME.trash} />
                           </Button>
-                        )}
-                        <Button
-                          size={BUTTON_SIZE.xs}
-                          variant={BUTTON_VARIANT.outline}
-                          onClick={() => addSuggestion(cat, index)}
-                          aria-label={t.editor.addSuggestion(title)}
-                          title={t.editor.addSuggestion(title)}
-                          data-focus={`suggest-${index}`}
-                        >
-                          <Icon name={ICON_NAME.plus} />
-                        </Button>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </Card>
                 </li>
               );
             })}
-          </ul>
-        </div>
-      )}
+          </ol>
 
-      {isAdding ? (
-        <Card className="card-body category-editor__new" color={CARD_COLOR.neutral}>
-          <Text preset={TEXT_PRESET.heading4} as="h3">{t.editor.addTitle}</Text>
-          {renderForm(saveAdd, cancelAdd)}
-        </Card>
-      ) : (
-        <div className="inline category-editor__add">
-          <Button variant={BUTTON_VARIANT.outline} onClick={startAdd} data-focus="add">
-            <Icon name={ICON_NAME.plus} />
-            {t.editor.add}
-          </Button>
-          {customized && (
-            <Button variant={BUTTON_VARIANT.ghost} onClick={reset}>
-              <Icon name={ICON_NAME.undo} />
-              {t.editor.reset}
-            </Button>
+          {suggestions.length > 0 && (
+            <div className="stack category-editor__suggestions">
+              <Text preset={TEXT_PRESET.heading5} as="h3">{t.editor.suggestions}</Text>
+              <ul className="stack category-editor__list">
+                {suggestions.map((cat, index) => {
+                  const { title, subtitle, positiveDescription } = localizeCategory(cat);
+                  return (
+                    <li key={cat.name} className="category-editor__list-item">
+                      <Card className="card-body card-compact" color={CARD_COLOR.neutral}>
+                        <div className="category-editor__row">
+                          <div className="grow category-editor__label">
+                            <Text preset={TEXT_PRESET.label}>{title}</Text>
+                            {subtitle && (
+                              <Text preset={TEXT_PRESET.caption}>
+                                {' ('}
+                                <span lang={subtitleLang}>{subtitle}</span>)
+                              </Text>
+                            )}
+                            <Text preset={TEXT_PRESET.caption} className="category-editor__suggestion-hint">
+                              {positiveDescription}
+                            </Text>
+                          </div>
+                          <div className="inline category-editor__item-actions">
+                            {!isBuiltInCategory(cat) && (
+                              <Button
+                                size={BUTTON_SIZE.xs}
+                                variant={BUTTON_VARIANT.ghost}
+                                color={BUTTON_COLOR.critical}
+                                onClick={() => forget(cat, index)}
+                                aria-label={t.editor.deleteSuggestion(title)}
+                                title={t.editor.deleteSuggestion(title)}
+                              >
+                                <Icon name={ICON_NAME.trash} />
+                              </Button>
+                            )}
+                            <Button
+                              size={BUTTON_SIZE.xs}
+                              variant={BUTTON_VARIANT.outline}
+                              onClick={() => addSuggestion(cat, index)}
+                              aria-label={t.editor.addSuggestion(title)}
+                              title={t.editor.addSuggestion(title)}
+                              data-focus={`suggest-${index}`}
+                            >
+                              <Icon name={ICON_NAME.plus} />
+                            </Button>
+                          </div>
+                        </div>
+                      </Card>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
-        </div>
+
+          {isAdding ? (
+            <Card className="card-body category-editor__new" color={CARD_COLOR.neutral}>
+              <Text preset={TEXT_PRESET.heading4} as="h3">{t.editor.addTitle}</Text>
+              {renderForm(saveAdd, cancelAdd)}
+            </Card>
+          ) : (
+            <div className="inline category-editor__add">
+              <Button variant={BUTTON_VARIANT.outline} onClick={startAdd} data-focus="add">
+                <Icon name={ICON_NAME.plus} />
+                {t.editor.add}
+              </Button>
+              {customized && (
+                <Button variant={BUTTON_VARIANT.ghost} onClick={reset}>
+                  <Icon name={ICON_NAME.undo} />
+                  {t.editor.reset}
+                </Button>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   );

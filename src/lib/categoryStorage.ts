@@ -52,3 +52,23 @@ export function clearStoredCategories() {
     /* Storage blocked: nothing was stored */
   }
 }
+
+/** Whether the facilitator last edited the categories as code, so the code tab opens again */
+const CODE_VIEW_STORAGE_KEY = 'categoryCodeView';
+
+export function loadCodeView(): boolean {
+  try {
+    return localStorage.getItem(CODE_VIEW_STORAGE_KEY) === 'true';
+  } catch {
+    return false;
+  }
+}
+
+export function saveCodeView(codeView: boolean) {
+  try {
+    if (codeView) localStorage.setItem(CODE_VIEW_STORAGE_KEY, 'true');
+    else localStorage.removeItem(CODE_VIEW_STORAGE_KEY);
+  } catch {
+    /* Storage blocked */
+  }
+}
