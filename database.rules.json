@@ -1,15 +1,25 @@
 {
   "rules": {
+    "liveSlots": {
+      ".read": "auth != null",
+      "$n": {
+        ".write": "auth != null && $n.matches(/^[0-9]$/) && newData.exists() && newData.parent().parent().child('sessions/' + newData.child('code').val() + '/meta/facilitatorId').val() === auth.uid && newData.parent().parent().child('sessions/' + newData.child('code').val() + '/meta/liveSlot').val() + '' === $n && (!data.exists() || !root.child('sessions/' + data.child('code').val() + '/meta').exists() || root.child('sessions/' + data.child('code').val() + '/state/phase').val() === 'finished' || root.child('sessions/' + data.child('code').val() + '/meta/createdAt').val() < now - 43200000)",
+        ".validate": "newData.hasChildren(['code']) && newData.child('code').isString() && newData.child('code').val().matches(/^[A-Z2-9]{6}$/)",
+        "code": { ".validate": "newData.isString()" },
+        "$other": { ".validate": false }
+      }
+    },
     "sessions": {
       "$code": {
         ".write": "auth != null && !newData.exists() && data.child('meta/createdAt').val() < now - 15811200000",
         "meta": {
           ".read": "auth != null",
-          ".write": "auth != null && !data.exists() && $code.matches(/^[A-Z2-9]{6}$/) && newData.child('facilitatorId').val() === auth.uid",
-          ".validate": "newData.hasChildren(['facilitatorId', 'categories', 'createdAt'])",
+          ".write": "auth != null && !data.exists() && $code.matches(/^[A-Z2-9]{6}$/) && newData.child('facilitatorId').val() === auth.uid && newData.parent().parent().parent().child('liveSlots/' + newData.child('liveSlot').val() + '/code').val() === $code",
+          ".validate": "newData.hasChildren(['facilitatorId', 'categories', 'createdAt', 'liveSlot'])",
           "facilitatorId": { ".validate": "newData.isString()" },
           "categories": { ".validate": "newData.hasChildren()" },
-          "createdAt": { ".validate": "newData.isNumber()" },
+          "createdAt": { ".validate": "newData.val() === now" },
+          "liveSlot": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 === 0" },
           "$other": { ".validate": false }
         },
         "state": {
