@@ -74,6 +74,7 @@ A static site on GitHub Pages, synced in real time through Firebase (free plan).
 | ⚡ **Quick voters** | A ⚡ before the name of whoever voted within 2 seconds of the round opening, in the facilitator's live list and in the named votes of the current round |
 | 🎊 **Fun facts** | The finished screen opens with a banner of four fun facts picked from 33 in either mode, with facts about scores in Range sessions (*Pessimistic Pal*, *Quickest Draw*, *Hot Debate*, *Team Mood*…), mixing the team, people and speed; facts about what a person voted only appear when votes are not anonymous, and speed facts name people but never their votes. The same facts show whenever the screen reloads |
 | 🕐 **Asynchronous voting** | Chosen at creation (a switch): the session code is sent before the meeting, everyone votes on every category on their own time (a stepper, editable until the facilitator starts the meeting), the facilitator only sees who has voted how far, never the results. Starting the meeting closes voting for good and opens the results of the first category; the meeting is then spent on each category's results 🔒 |
+| 🚦 **Live session cap** | At most 10 sessions can be active at once (live or async), enforced by the database rules with ten slots; a slot frees when its session finishes, or 12 hours after creation. Creating an 11th shows *10 sessions are already running* |
 | 📝 **Private facilitator notes** | A note per category in the facilitator view, never on the shared screen; only the facilitator can read them 🔒 |
 
 ### 🧩 Preparing and following up

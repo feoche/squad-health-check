@@ -1,5 +1,7 @@
 # Live Session Cap Implementation Plan
 
+> Implemented on 2026-11-03 with a cap of **10** (slots `0..9`) instead of 5; the steps below keep the original numbers.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Allow at most 5 sessions active at the same time on the author's Firebase backend, enforced by the database rules, with a clear message when the limit is reached.

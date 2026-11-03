@@ -457,6 +457,7 @@ const en = {
     generic: 'Something went wrong. Check your connection and try again.',
     createFailed: 'Could not create a session. Please try again.',
     sessionFull: (max: number) => `This session is full (${max} participants maximum).`,
+    liveSessionsFull: (max: number) => `${max} sessions are already running. Try again in a while.`,
   },
 
   report: {
@@ -859,6 +860,7 @@ const fr: Messages = {
     generic: 'Une erreur est survenue. Vérifiez votre connexion et réessayez.',
     createFailed: 'Impossible de créer la session. Veuillez réessayer.',
     sessionFull: (max) => `Cette session est complète (${max} participants maximum).`,
+    liveSessionsFull: (max) => `${max} sessions sont déjà en cours. Réessayez dans un moment.`,
   },
 
   report: {

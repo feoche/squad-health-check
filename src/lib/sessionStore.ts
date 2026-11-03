@@ -23,6 +23,7 @@ import {
 import { ensureSignedIn, getDb } from './firebase';
 import { generateSessionCode, isExpired, randomKey } from './sessionCode';
 import { MAX_PARTICIPANTS, freeSlots } from './participantSlots';
+import { MAX_LIVE_SESSIONS, LiveHolder, LiveSlots, freeLiveSlots } from './liveSessionSlots';
 import { t } from './i18n';
 import { DEFAULT_CATEGORY_MINUTES } from './roundTimer';
 import { toFirebaseCategories } from './serialize';
@@ -82,37 +83,84 @@ async function removeExpiredSession(code: string): Promise<boolean> {
   }
 }
 
-/** Settings are written once here: the rules refuse any later change */
+/** Server clock, so the lease is judged like the rules judge it (one read, not a subscription) */
+const readServerOffset = () =>
+  new Promise<number>((resolve, reject) =>
+    onValue(
+      ref(getDb(), '.info/serverTimeOffset'),
+      (snap) => resolve(Number(snap.val()) || 0),
+      reject,
+      { onlyOnce: true },
+    ),
+  );
+
+/** Slots a new session could take right now: the slots, their holders' state, the server time */
+async function readFreeLiveSlots(): Promise<number[]> {
+  const slots = (await get(ref(getDb(), 'liveSlots'))).val() as LiveSlots;
+  const codes = Object.values(slots ?? {}).flatMap((s) => (s?.code ? [s.code] : []));
+  const holders: Record<string, LiveHolder | undefined> = {};
+  await Promise.all(
+    codes.map(async (code) => {
+      const [createdAt, phase] = await Promise.all([
+        get(sessionRef(code, 'meta/createdAt')),
+        get(sessionRef(code, 'state/phase')),
+      ]);
+      holders[code] = createdAt.exists()
+        ? { createdAt: createdAt.val() as number, phase: (phase.val() as string | null) ?? undefined }
+        : undefined;
+    }),
+  );
+  return freeLiveSlots(slots, holders, Date.now() + (await readServerOffset()));
+}
+
+/**
+ * Creates the session in one of the free live slots, in a single atomic update: the rules refuse
+ * the session without the slot, and the slot without the session. A denied write means a taken
+ * code or a slot taken first, so the slots are read again before the next attempt.
+ * Settings are written once here: the rules refuse any later change.
+ */
 export async function createSession(categories: Category[], settings: SessionSettings): Promise<string> {
   const uid = await ensureSignedIn();
-  const write = (code: string) =>
-    update(sessionRef(code), {
-      meta: {
+  const write = (code: string, slot: number) =>
+    update(ref(getDb()), {
+      [`liveSlots/${slot}`]: { code },
+      [`sessions/${code}/meta`]: {
         facilitatorId: uid,
         categories: toFirebaseCategories(categories),
         createdAt: serverTimestamp(),
+        liveSlot: slot,
       },
-      state: { phase: settings.mode === 'async' ? 'collecting' : 'lobby', currentCategoryIndex: 0, ...settings },
+      [`sessions/${code}/state`]: {
+        phase: settings.mode === 'async' ? 'collecting' : 'lobby',
+        currentCategoryIndex: 0,
+        ...settings,
+      },
     });
+  const full = () => new AppError(() => t.errors.liveSessionsFull(MAX_LIVE_SESSIONS));
+  let free = await readFreeLiveSlots();
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt++) {
+    if (free.length === 0) throw full();
+    const slot = free[attempt % free.length];
     const code = generateSessionCode();
     try {
-      await write(code);
+      await write(code, slot);
       return code;
     } catch (err) {
-      /* Rules deny writing meta of an existing session → code taken */
+      /* Rules deny a taken code or a slot taken first */
       if (!isPermissionDenied(err)) throw err;
     }
     /* The session holding this code may have expired: delete it and take its code */
     if (await removeExpiredSession(code)) {
       try {
-        await write(code);
+        await write(code, slot);
         return code;
       } catch (err) {
         if (!isPermissionDenied(err)) throw err;
       }
     }
+    free = await readFreeLiveSlots();
   }
+  if (free.length === 0) throw full();
   throw new AppError(() => t.errors.createFailed);
 }
 

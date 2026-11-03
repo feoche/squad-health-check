@@ -1,13 +1,13 @@
 # Live Session Cap — Design
 
-**Date:** 2026-10-14
+**Date:** 2026-10-14 (cap raised from 5 to 10 on 2026-11-03)
 **Status:** Pending written-spec review
 
 ## Goal
 
 The tool is presented at a conference, on the author's own Firebase backend.
-To avoid spam, **at most 5 sessions are active at the same time**. Creating a
-6th while 5 are active is refused with a clear message.
+To avoid spam, **at most 10 sessions are active at the same time**. Creating a
+11th while 10 are active is refused with a clear message.
 
 The limit is enforced by the database rules, not by the app: the app is a
 static page, so a check in the browser can be bypassed from devtools.
@@ -20,17 +20,17 @@ static page, so a check in the browser can be bypassed from devtools.
 - Existing sessions (created before this change) are not counted and keep
   working.
 - No Cloud Function and no server: the project stays static plus Firebase
-  rules. Rules cannot count children, so the cap is expressed as **5 fixed
+  rules. Rules cannot count children, so the cap is expressed as **10 fixed
   slots**.
 
 ## Data model
 
 ```
 liveSlots:
-  0..4:
+  0..9:
     code: string          # the session holding this slot
 sessions/{CODE}/meta:
-  liveSlot: number        # 0..4, the slot the session was created in (new)
+  liveSlot: number        # 0..9, the slot the session was created in (new)
   createdAt: number       # now: server time, now enforced by the rules
 ```
 
@@ -52,7 +52,7 @@ A slot is **free** when any of these holds:
 "liveSlots": {
   ".read": "auth != null",
   "$n": {
-    ".write": "auth != null && $n.matches(/^[0-4]$/) && newData.exists() && newData.parent().parent().child('sessions/' + newData.child('code').val() + '/meta/facilitatorId').val() === auth.uid && newData.parent().parent().child('sessions/' + newData.child('code').val() + '/meta/liveSlot').val() + '' === $n && (!data.exists() || !root.child('sessions/' + data.child('code').val() + '/meta').exists() || root.child('sessions/' + data.child('code').val() + '/state/phase').val() === 'finished' || root.child('sessions/' + data.child('code').val() + '/meta/createdAt').val() < now - 43200000)",
+    ".write": "auth != null && $n.matches(/^[0-9]$/) && newData.exists() && newData.parent().parent().child('sessions/' + newData.child('code').val() + '/meta/facilitatorId').val() === auth.uid && newData.parent().parent().child('sessions/' + newData.child('code').val() + '/meta/liveSlot').val() + '' === $n && (!data.exists() || !root.child('sessions/' + data.child('code').val() + '/meta').exists() || root.child('sessions/' + data.child('code').val() + '/state/phase').val() === 'finished' || root.child('sessions/' + data.child('code').val() + '/meta/createdAt').val() < now - 43200000)",
     ".validate": "newData.hasChildren(['code']) && newData.child('code').isString() && newData.child('code').val().matches(/^[A-Z2-9]{6}$/)",
     "code": { ".validate": "newData.isString()" },
     "$other": { ".validate": false }
@@ -71,7 +71,7 @@ A slot is **free** when any of these holds:
 ### `sessions/$code/meta`
 
 - `liveSlot` is added to the required children and validated:
-  `newData.isNumber() && newData.val() >= 0 && newData.val() <= 4 && newData.val() % 1 === 0`.
+  `newData.isNumber() && newData.val() >= 0 && newData.val() <= 9 && newData.val() % 1 === 0`.
 - The write rule gains
   `newData.parent().parent().parent().child('liveSlots/' + newData.child('liveSlot').val() + '/code').val() === $code`:
   a session can only be created in a slot that names it, in the same atomic
@@ -88,7 +88,7 @@ Existing sessions are unaffected: their `meta` is never written again
 ### `src/lib/liveSessionSlots.ts` (new, pure)
 
 ```ts
-export const MAX_LIVE_SESSIONS = 5;
+export const MAX_LIVE_SESSIONS = 10;
 export const LIVE_SLOT_LEASE_MS = 12 * 60 * 60 * 1000;
 
 interface Holder { phase?: string; createdAt?: number } // undefined: session missing
@@ -122,14 +122,14 @@ Unit tested, including each condition, a full set, and a missing holder.
 `t.errors.liveSessionsFull(max)` in English and French, shown by the creation
 page like the other errors:
 
-- EN: `5 sessions are already running. Try again in a while.`
-- FR: `5 sessions sont déjà en cours. Réessayez dans un moment.`
+- EN: `10 sessions are already running. Try again in a while.`
+- FR: `10 sessions sont déjà en cours. Réessayez dans un moment.`
 
 The number comes from `MAX_LIVE_SESSIONS`.
 
 ### Rules and constant stay in step
 
-The rules hard-code slots `0..4` and the 12-hour lease; the app has
+The rules hard-code slots `0..9` and the 12-hour lease; the app has
 `MAX_LIVE_SESSIONS` and `LIVE_SLOT_LEASE_MS`. A unit test reads
 `database.rules.json` and fails when the slot regex, the lease value or the
 constants disagree.
@@ -148,19 +148,20 @@ not affected.
 
 Unit tests only for code, as the project has no Firebase emulator:
 `freeLiveSlots`, the rules-versus-constant test, the new message in both
-languages (the existing i18n test checks both languages have the same keys).
+languages (the French messages are typed as the English ones, so a missing key
+fails `tsc`).
 
 The rules are verified by hand against the live database, with the author's
-agreement since it writes real sessions: a throwaway script creates 5 sessions,
-expects the 6th to be refused, finishes one, then expects the next creation to
+agreement since it writes real sessions: a throwaway script creates 10 sessions,
+expects the 11th to be refused, finishes one, then expects the next creation to
 succeed in its slot. Nothing is written by the check beyond those sessions.
-The expectation that comparing a missing holder behaves as "free" (condition 3)
-is part of this check.
+Condition 3 (a deleted holder) cannot be produced on the live database, since
+sessions are only deletable after six months: it rests on reading the rule.
 
 ## Out of scope
 
-- Per-user limits. One browser can hold up to all 5 slots.
-- A shorter lease for a session nobody joined. Someone could create 5 empty
+- Per-user limits. One browser can hold up to all 10 slots.
+- A shorter lease for a session nobody joined. Someone could create 10 empty
   sessions and hold every slot for up to 12 hours; the author frees a slot by
   deleting `liveSlots/{n}` in the Firebase console. A shorter lease for
   unjoined sessions is a possible later change.
