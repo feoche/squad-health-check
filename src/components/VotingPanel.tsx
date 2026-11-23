@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react';
 import {
   Badge,
-  BUTTON_VARIANT,
   Button,
   FormField,
   FormFieldError,
@@ -94,7 +93,7 @@ function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, 
                   <div className="voting-panel__radio-body">
                     <RadioControl />
                     <RadioLabel>
-                      <Badge color={option.badge}>{option.label}</Badge>
+                      <Badge status={option.badge}>{option.label}</Badge>
                     </RadioLabel>
                   </div>
                 </Radio>
@@ -141,7 +140,7 @@ function VotingPanel({ category, voteMode, onSubmitVote, initialVote, onCancel, 
 
       <div className="actions voting-panel__submit">
         {onCancel && (
-          <Button type="button" variant={BUTTON_VARIANT.outline} onClick={onCancel}>
+          <Button type="button" onClick={onCancel}>
             {t.voting.cancelEdit}
           </Button>
         )}

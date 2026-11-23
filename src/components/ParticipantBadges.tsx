@@ -1,4 +1,4 @@
-import { Badge, BADGE_COLOR, Icon, ICON_NAME } from '@ovhcloud/ods-react';
+import { Badge, BADGE_STATUS, Icon, ICON_NAME } from '@ovhcloud/ods-react';
 import { Participant } from '../types';
 import { t } from '../lib/i18n';
 
@@ -23,7 +23,7 @@ function ParticipantBadges({ participants, facilitatorId, myId }: Props) {
             className={`participant-badges__badge${p.id === facilitatorId ? ' participant-badges__badge--facilitator' : ''}${
               p.id === myId ? ' participant-badges__badge--me' : ''
             }`}
-            color={p.id === myId ? BADGE_COLOR.primary : BADGE_COLOR.neutral}>
+            status={p.id === myId ? BADGE_STATUS.accent : BADGE_STATUS.neutral}>
             {p.id === facilitatorId && <Icon name={ICON_NAME.crown} />}
             {p.name}
             {p.id === myId && t.lobby.you}

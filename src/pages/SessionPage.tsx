@@ -3,7 +3,6 @@ import { useParams } from 'react-router-dom';
 import {
   Button,
   Card,
-  CARD_COLOR,
   FormField,
   FormFieldError,
   FormFieldLabel,
@@ -12,7 +11,7 @@ import {
   ICON_NAME,
   Input,
   Message,
-  MESSAGE_COLOR,
+  MESSAGE_STATUS,
   MessageBody,
   MessageIcon,
   Text,
@@ -182,7 +181,7 @@ function SessionView() {
   if (!joined) {
     return (
       <div className="page page-narrow join-session">
-        <Card className="card-body join-session__card" color={CARD_COLOR.neutral}>
+        <Card className="card-body join-session__card">
           <Text preset={TEXT_PRESET.heading2}>{t.join.title}</Text>
           <Text preset={TEXT_PRESET.paragraph}>
             {t.join.session} <Text preset={TEXT_PRESET.code}><strong>{code}</strong></Text>
@@ -211,7 +210,7 @@ function SessionView() {
             {error != null && (
               <Message
                 className="join-session__error"
-                color={MESSAGE_COLOR.critical}
+                status={MESSAGE_STATUS.critical}
                 dismissible={false}
                 role="alert"
               >
@@ -244,7 +243,7 @@ function SessionView() {
       {!connected && (
         <Message
           className="connection-banner"
-          color={MESSAGE_COLOR.warning}
+          status={MESSAGE_STATUS.warning}
           dismissible={false}
           role="status"
         >

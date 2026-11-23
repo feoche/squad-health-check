@@ -1,4 +1,4 @@
-import { Card, CARD_COLOR, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Category } from '../types';
 import { MAX_SCORE, MIN_SCORE, scoreColor } from '../lib/voteScore';
 import { scoreEnds } from './voteOptions';
@@ -12,7 +12,7 @@ function ScaleCards({ category, large = false }: { category?: Category; large?: 
         { score: MIN_SCORE, text: low },
         { score: MAX_SCORE, text: high },
       ].map(({ score, text }) => (
-        <Card key={score} className="card-body card-compact scale-cards__card" color={CARD_COLOR.neutral}>
+        <Card key={score} className="card-body card-compact scale-cards__card">
           <Text preset={large ? TEXT_PRESET.heading2 : TEXT_PRESET.heading4} as="span" className={`scale-cards__score scale-cards__score--${scoreColor(score)}`}>
             {score}
           </Text>

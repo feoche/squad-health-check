@@ -1,9 +1,8 @@
 import { useRef, useState } from 'react';
 import {
   Button,
-  BUTTON_VARIANT,
+  BUTTON_EMPHASIS,
   Card,
-  CARD_COLOR,
   Icon,
   ICON_NAME,
   Spinner,
@@ -52,7 +51,7 @@ function RevealedReady({ session, onSetReady, focusIfLost }: RevealedReadyProps)
       {session.isReady ? (
         <>
           <Text preset={TEXT_PRESET.paragraph} role="status">{t.participant.readyDone}</Text>
-          <Button variant={BUTTON_VARIANT.ghost} onClick={() => onSetReady(false)}>
+          <Button emphasis={BUTTON_EMPHASIS.low} onClick={() => onSetReady(false)}>
             {t.participant.notReady}
           </Button>
         </>
@@ -84,7 +83,7 @@ function ParticipantView({ session, onSubmitVote, onSetReady }: Props) {
   if (phase === 'lobby') {
     return (
       <div className="page page-narrow participant-view participant-view--lobby">
-        <Card className="card-body participant-view__lobby" color={CARD_COLOR.neutral}>
+        <Card className="card-body participant-view__lobby">
           <Text preset={TEXT_PRESET.heading4} as="h2">
             {t.lobby.participants(session.participants.length)}
           </Text>

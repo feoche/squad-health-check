@@ -1,4 +1,4 @@
-import { Button, BUTTON_SIZE, BUTTON_VARIANT, Card, CARD_COLOR, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Button, BUTTON_SIZE, Card, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { t } from '../lib/i18n';
 import { NamedVote, Vote, VoteMode } from '../types';
 import { colorVotes, rangeVotes } from '../lib/voteScore';
@@ -48,7 +48,7 @@ function ResultsGrid({ votes, voteMode, namedVotes, inline = false, offlineVotes
             {offlineVotes?.length ? ` ${t.facilitator.offlineCount(offlineVotes.length)}` : ''}
           </Text>
           {onResetOffline && offlineVotes?.length ? (
-            <Button size={BUTTON_SIZE.xs} variant={BUTTON_VARIANT.outline} onClick={onResetOffline}>
+            <Button size={BUTTON_SIZE.xs} onClick={onResetOffline}>
               <Icon name={ICON_NAME.undo} />
               {t.facilitator.resetOffline}
             </Button>
@@ -60,7 +60,7 @@ function ResultsGrid({ votes, voteMode, namedVotes, inline = false, offlineVotes
   return inline ? (
     <div className="stack results-grid results-grid--inline">{content}</div>
   ) : (
-    <Card className="card-body results-grid" color={CARD_COLOR.neutral}>{content}</Card>
+    <Card className="card-body results-grid">{content}</Card>
   );
 }
 

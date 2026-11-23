@@ -1,4 +1,4 @@
-import { Card, CARD_COLOR, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Card, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../types';
 import FunStatsBanner from './FunStatsBanner';
 import VoteBreakdown from './VoteBreakdown';
@@ -31,7 +31,7 @@ function SessionFinished({ session }: Props) {
         {session.allResults.map((result) => {
           const cat = session.categories[result.categoryIndex];
           return (
-            <Card key={result.categoryIndex} className="card-body session-finished__card" color={CARD_COLOR.neutral}>
+            <Card key={result.categoryIndex} className="card-body session-finished__card">
               <div className="inline wrap session-finished__heading">
                 <Text preset={TEXT_PRESET.heading4} as="h3">
                   {result.categoryIndex + 1}. {localizeCategory(cat).title} ({t.votes(result.votes.length)})

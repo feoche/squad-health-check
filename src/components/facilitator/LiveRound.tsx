@@ -1,4 +1,4 @@
-import { Badge, BADGE_COLOR, Icon, ICON_NAME } from '@ovhcloud/ods-react';
+import { Badge, BADGE_STATUS, Icon, ICON_NAME } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../../types';
 import { t } from '../../lib/i18n';
 
@@ -26,7 +26,7 @@ function LiveRound({ session }: { session: ClientSessionState }) {
           <li key={p.id} className="live-round__item">
             <Badge
               className={className}
-              color={hasVoted ? BADGE_COLOR.success : BADGE_COLOR.neutral}>
+              status={hasVoted ? BADGE_STATUS.success : BADGE_STATUS.neutral}>
               {hasVoted && <Icon name={ICON_NAME.check} />}
               {isDisconnected && <Icon name={ICON_NAME.cloudXmark} />}
               {p.id === session.facilitatorId && <Icon name={ICON_NAME.crown} />}

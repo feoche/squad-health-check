@@ -1,9 +1,7 @@
 import {
   Card,
-  CARD_COLOR,
   ICON_NAME,
   Message,
-  MESSAGE_COLOR,
   MessageBody,
   MessageIcon,
   Text,
@@ -142,7 +140,7 @@ function FacilitatorView({ session, actions }: Props) {
   );
 
   const notes = (
-    <Card className="card-body facilitator-view__notes" color={CARD_COLOR.neutral}>
+    <Card className="card-body facilitator-view__notes">
       {session.facilitatorNotesLoaded ? (
         <NoteFields
           key={current}
@@ -158,19 +156,19 @@ function FacilitatorView({ session, actions }: Props) {
   const main = (
     <>
       {phase === 'lobby' && (
-        <Card className="card-body facilitator-view__share" color={CARD_COLOR.neutral}>
+        <Card className="card-body facilitator-view__share">
           <SharePanel code={session.code} />
         </Card>
       )}
 
       {phase === 'collecting' && (
         <>
-          <Card className="card-body facilitator-view__share" color={CARD_COLOR.neutral}>
+          <Card className="card-body facilitator-view__share">
             <Text preset={TEXT_PRESET.paragraph}>{t.collecting.shareHint}</Text>
             <SharePanel code={session.code} />
           </Card>
           {session.facilitatorVotes && (
-            <Card className="card-body facilitator-view__collecting" color={CARD_COLOR.neutral}>
+            <Card className="card-body facilitator-view__collecting">
               <Text preset={TEXT_PRESET.heading3} as="h2">{t.collecting.title}</Text>
               <CollectingView session={session} onSubmitVote={actions.submitVote} />
             </Card>
@@ -179,7 +177,7 @@ function FacilitatorView({ session, actions }: Props) {
       )}
 
       {phase === 'intro' && (
-        <Card className="card-body facilitator-view__intro-script" color={CARD_COLOR.neutral}>
+        <Card className="card-body facilitator-view__intro-script">
           <Text preset={TEXT_PRESET.heading3} as="h2">{t.facilitator.introScriptTitle}</Text>
           {[
             ...t.facilitator.introScript,
@@ -237,7 +235,6 @@ function FacilitatorView({ session, actions }: Props) {
       {(phase === 'lobby' || phase === 'collecting') && showHint && (
         <Message
           className="message-full facilitator-view__presenter-hint"
-          color={MESSAGE_COLOR.information}
           onRemove={dismissHint}
         >
           <MessageIcon name={ICON_NAME.circleInfo} />

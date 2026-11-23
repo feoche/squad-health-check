@@ -1,4 +1,4 @@
-import { Badge, BADGE_COLOR, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_STATUS, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { ClientSessionState } from '../../types';
 import { completedVoterCount } from '../../lib/deriveClientState';
 import { t } from '../../lib/i18n';
@@ -19,7 +19,7 @@ function CollectingProgress({ session }: { session: ClientSessionState }) {
             <li key={p.id} className="live-round__item">
               <Badge
                 className={`live-round__voter${complete ? ' live-round__voter--voted' : ''}`}
-                color={complete ? BADGE_COLOR.success : BADGE_COLOR.neutral}
+                status={complete ? BADGE_STATUS.success : BADGE_STATUS.neutral}
               >
                 {complete && <Icon name={ICON_NAME.check} />}
                 {p.id === session.facilitatorId && <Icon name={ICON_NAME.crown} />}

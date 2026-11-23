@@ -1,5 +1,5 @@
 import { useRef } from 'react';
-import { Button, BUTTON_VARIANT, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Button, Icon, ICON_NAME, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Vote } from '../types';
 import { t } from '../lib/i18n';
 import { isRangeVote } from '../lib/voteScore';
@@ -26,7 +26,7 @@ function VoteSubmitted({ vote, onEdit }: Props) {
       {vote && !isRangeVote(vote) && <ColorBadge color={vote.color} large />}
       <Text preset={TEXT_PRESET.paragraph}>{t.participant.waitingOthers}</Text>
       {onEdit && (
-        <Button variant={BUTTON_VARIANT.outline} onClick={onEdit}>
+        <Button onClick={onEdit}>
           <Icon name={ICON_NAME.pen} /> {t.voting.edit}
         </Button>
       )}

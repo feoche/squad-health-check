@@ -1,9 +1,8 @@
 import { useRef } from 'react';
 import {
   Button,
-  BUTTON_VARIANT,
+  BUTTON_EMPHASIS,
   Card,
-  CARD_COLOR,
   Icon,
   ICON_NAME,
   Text,
@@ -62,7 +61,7 @@ function FacilitatorControls({ session, actions }: Props) {
               label: t.voting.revealNowCount(voteCount, totalVoters),
               onClick: actions.reveal,
               disabled: !anyVote,
-              variant: anyVote ? BUTTON_VARIANT.default : BUTTON_VARIANT.outline,
+              variant: anyVote ? BUTTON_EMPHASIS.high : BUTTON_EMPHASIS.medium,
             }
           : phase === 'revealed'
             ? isLastCategory
@@ -71,7 +70,7 @@ function FacilitatorControls({ session, actions }: Props) {
             : null;
 
   return (
-    <Card className="card-body facilitator-controls" color={CARD_COLOR.neutral}>
+    <Card className="card-body facilitator-controls">
       {(phase === 'voting' || phase === 'revealed') && <LiveRound session={session} />}
       {phase === 'collecting' && <CollectingProgress session={session} />}
       {unfinished.length > 0 && (
@@ -85,7 +84,7 @@ function FacilitatorControls({ session, actions }: Props) {
       )}
       {disconnectedHint && <Text preset={TEXT_PRESET.caption}>{disconnectedHint}</Text>}
       {action && (
-        <Button ref={button} variant={action.variant} onClick={action.onClick} disabled={action.disabled}>
+        <Button ref={button} emphasis={action.variant} onClick={action.onClick} disabled={action.disabled}>
           {action.label}
           {action.icon && <Icon name={action.icon} />}
         </Button>

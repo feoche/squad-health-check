@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Badge, BADGE_COLOR, Icon, ICON_NAME } from '@ovhcloud/ods-react';
+import { Badge, BADGE_STATUS, Icon, ICON_NAME } from '@ovhcloud/ods-react';
 import { formatElapsed, isFarOverSlot, isOverSlot } from '../lib/roundTimer';
 import { subscribeServerTimeOffset } from '../lib/sessionStore';
 import { t } from '../lib/i18n';
@@ -35,7 +35,7 @@ function RoundTimer({ startedAt, categoryMinutes }: Props) {
     <Badge
       role="timer"
       className={`round-timer${over ? ' round-timer--over' : ''}`}
-      color={farOver ? BADGE_COLOR.critical : over ? BADGE_COLOR.warning : BADGE_COLOR.information}
+      status={farOver ? BADGE_STATUS.critical : over ? BADGE_STATUS.warning : BADGE_STATUS.information}
       title={label}
       aria-label={`${label}: ${time}`}
     >

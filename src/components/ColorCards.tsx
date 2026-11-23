@@ -1,11 +1,11 @@
-import { Badge, BADGE_SIZE, Card, CARD_COLOR, type CardColor, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_SIZE, Card, CARD_STATUS, type CardStatus, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Category } from '../types';
 import { COLOR_OPTIONS, colorDescription } from './voteOptions';
 import { t } from '../lib/i18n';
 
-const CARD_COLORS: Record<'green' | 'red', CardColor> = {
-  green: CARD_COLOR.success,
-  red: CARD_COLOR.critical,
+const CARD_COLORS: Record<'green' | 'red', CardStatus> = {
+  green: CARD_STATUS.success,
+  red: CARD_STATUS.critical,
 };
 
 /**
@@ -27,11 +27,11 @@ function ColorCards({
         <Card
           key={option.value}
           className={`card-body card-compact color-cards__card color-cards__card--${option.value}`}
-          color={CARD_COLORS[option.value]}
+          status={CARD_COLORS[option.value]}
         >
           <Badge
             className="self-start color-cards__badge"
-            color={option.badge}
+            status={option.badge}
             size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}
           >
             {option.label}

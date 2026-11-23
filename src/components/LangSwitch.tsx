@@ -1,4 +1,4 @@
-import { Button, BUTTON_SIZE, BUTTON_VARIANT } from '@ovhcloud/ods-react';
+import { Button, BUTTON_SIZE, BUTTON_EMPHASIS } from '@ovhcloud/ods-react';
 import { LANG, switchLang, t } from '../lib/i18n';
 
 /** Inline SVG flags: emoji flags render as bare letters on Windows. */
@@ -32,7 +32,7 @@ function LangSwitch() {
     <Button
       className="lang-switch"
       size={BUTTON_SIZE.xs}
-      variant={BUTTON_VARIANT.ghost}
+      emphasis={BUTTON_EMPHASIS.low}
       lang={other}
       aria-label={t.switchLang}
       title={t.switchLang}

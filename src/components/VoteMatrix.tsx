@@ -3,7 +3,7 @@ import {
   BADGE_SIZE,
   Button,
   BUTTON_SIZE,
-  BUTTON_VARIANT,
+  BUTTON_EMPHASIS,
   Icon,
   ICON_NAME,
   Text,
@@ -27,6 +27,13 @@ interface Props {
 
 const countOf = (votes: ColorVote[], color: VoteColor, trend: VoteTrend) =>
   votes.filter((v) => v.color === color && v.trend === trend).length;
+
+/** The light tint of each health colour (the ODS palette's 100 step), behind a vote cell */
+const CELL_TINT: Record<string, string> = {
+  success: 'var(--ods-palette-green-100)',
+  warning: 'var(--ods-palette-orange-100)',
+  critical: 'var(--ods-palette-red-100)',
+};
 
 /** Votes cross-tabulated by health color (rows) and trend (columns). */
 function VoteMatrix({ votes, compact = false, offlineVotes = [], onAdjust }: Props) {
@@ -56,7 +63,7 @@ function VoteMatrix({ votes, compact = false, offlineVotes = [], onAdjust }: Pro
         {COLOR_OPTIONS.map(({ value: color, label, badge }) => (
           <tr key={color} className={`vote-matrix__row vote-matrix__row--${color}`}>
             <th scope="row" className="vote-matrix__row-header">
-              <Badge color={badge} size={compact ? BADGE_SIZE.md : BADGE_SIZE.lg}>
+              <Badge status={badge} size={compact ? BADGE_SIZE.md : BADGE_SIZE.lg}>
                 {label}
               </Badge>
             </th>
@@ -69,7 +76,7 @@ function VoteMatrix({ votes, compact = false, offlineVotes = [], onAdjust }: Pro
                   className="vote-matrix__cell"
                   style={
                     {
-                      '--cell-color': `var(--ods-color-${badge}-100)`,
+                      '--cell-color': CELL_TINT[badge],
                       '--cell-strength': `${(n / max) * 100}%`,
                     } as React.CSSProperties
                   }
@@ -92,7 +99,7 @@ function VoteMatrix({ votes, compact = false, offlineVotes = [], onAdjust }: Pro
                     <span className="inline vote-matrix__adjust">
                       <Button
                         size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
+                        emphasis={BUTTON_EMPHASIS.low}
                         disabled={!added}
                         aria-label={messages.facilitator.removeOfflineVote(label, trendLabel)}
                         title={messages.facilitator.removeOfflineVote(label, trendLabel)}
@@ -102,7 +109,7 @@ function VoteMatrix({ votes, compact = false, offlineVotes = [], onAdjust }: Pro
                       </Button>
                       <Button
                         size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
+                        emphasis={BUTTON_EMPHASIS.low}
                         aria-label={messages.facilitator.addOfflineVote(label, trendLabel)}
                         title={messages.facilitator.addOfflineVote(label, trendLabel)}
                         onClick={() => onAdjust({ color, trend }, 1)}

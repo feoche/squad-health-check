@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import {
   Button,
-  BUTTON_VARIANT,
+  BUTTON_EMPHASIS,
   Icon,
   ICON_NAME,
   Message,
   MessageBody,
   MessageIcon,
-  MESSAGE_COLOR,
+  MESSAGE_STATUS,
   ProgressBar,
   Text,
   TEXT_PRESET,
@@ -101,7 +101,7 @@ function CollectingView({ session, onSubmitVote }: Props) {
                     t.collecting.notAnswered
                   )}
                 </Text>
-                <Button variant={BUTTON_VARIANT.ghost} onClick={() => setStep(i)}>
+                <Button emphasis={BUTTON_EMPHASIS.low} onClick={() => setStep(i)}>
                   <Icon name={answered ? ICON_NAME.pen : ICON_NAME.arrowRight} />
                   {answered ? t.collecting.edit : t.collecting.answer}
                   <span className="visually-hidden"> {title}</span>
@@ -162,19 +162,19 @@ function CollectingView({ session, onSubmitVote }: Props) {
         />
       )}
       {failed && (
-        <Message color={MESSAGE_COLOR.critical} dismissible={false} role="alert">
+        <Message status={MESSAGE_STATUS.critical} dismissible={false} role="alert">
           <MessageIcon name={ICON_NAME.hexagonExclamation} />
           <MessageBody>{failed === 'closed' ? t.collecting.closed : t.errors.generic}</MessageBody>
         </Message>
       )}
       <div className="actions collecting-view__nav">
         {step > 0 && (
-          <Button variant={BUTTON_VARIANT.outline} onClick={() => setStep(step - 1)}>
+          <Button onClick={() => setStep(step - 1)}>
             <Icon name={ICON_NAME.arrowLeft} />
             {t.collecting.previous}
           </Button>
         )}
-        <Button variant={BUTTON_VARIANT.ghost} onClick={() => setStep(step + 1)}>
+        <Button emphasis={BUTTON_EMPHASIS.low} onClick={() => setStep(step + 1)}>
           {answered ? t.collecting.next : t.collecting.skip}
           <Icon name={ICON_NAME.arrowRight} />
         </Button>

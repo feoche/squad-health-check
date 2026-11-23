@@ -1,13 +1,12 @@
 import { DragEvent, useEffect, useId, useRef, useState } from 'react';
 import {
   Badge,
-  BADGE_COLOR,
+  BADGE_STATUS,
   Button,
-  BUTTON_COLOR,
+  BUTTON_STATUS,
   BUTTON_SIZE,
-  BUTTON_VARIANT,
+  BUTTON_EMPHASIS,
   Card,
-  CARD_COLOR,
   FormField,
   FormFieldError,
   FormFieldLabel,
@@ -16,7 +15,6 @@ import {
   ICON_NAME,
   Input,
   Message,
-  MESSAGE_COLOR,
   MessageBody,
   MessageIcon,
   Tab,
@@ -251,7 +249,6 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
     >
       <Message
         className="category-editor__hint"
-        color={MESSAGE_COLOR.information}
         dismissible={false}
       >
         <MessageIcon name={ICON_NAME.circleInfo} />
@@ -342,7 +339,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
         <Button
           type="button"
           size={BUTTON_SIZE.sm}
-          variant={BUTTON_VARIANT.ghost}
+          emphasis={BUTTON_EMPHASIS.low}
           onClick={onCancel}
         >
           {t.cancel}
@@ -407,7 +404,6 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                     }${dragIndex === i ? ' category-editor__item--dragging' : ''}${
                       editingIndex === i ? ' category-editor__item--editing' : ''
                     }`}
-                    color={CARD_COLOR.neutral}
                     draggable={canDrag}
                     onDragStart={(e) => {
                       e.dataTransfer.effectAllowed = 'move';
@@ -424,7 +420,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                       <div className="category-editor__row">
                         <Icon name={ICON_NAME.dragDrop} className="category-editor__drag-handle" aria-hidden />
                         <span className="category-editor__position-slot" aria-hidden>
-                          <Badge className="category-editor__position" color={BADGE_COLOR.primary}>
+                          <Badge className="category-editor__position" status={BADGE_STATUS.accent}>
                             {i + 1}
                           </Badge>
                         </span>
@@ -440,7 +436,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                         <div className="inline category-editor__item-actions">
                           <Button
                             size={BUTTON_SIZE.xs}
-                            variant={BUTTON_VARIANT.ghost}
+                            emphasis={BUTTON_EMPHASIS.low}
                             disabled={!canDrag || i === 0}
                             onClick={() => move(i, -1)}
                             aria-label={t.editor.moveUp(title)}
@@ -451,7 +447,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                           </Button>
                           <Button
                             size={BUTTON_SIZE.xs}
-                            variant={BUTTON_VARIANT.ghost}
+                            emphasis={BUTTON_EMPHASIS.low}
                             disabled={!canDrag || i === categories.length - 1}
                             onClick={() => move(i, 1)}
                             aria-label={t.editor.moveDown(title)}
@@ -462,7 +458,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                           </Button>
                           <Button
                             size={BUTTON_SIZE.xs}
-                            variant={BUTTON_VARIANT.ghost}
+                            emphasis={BUTTON_EMPHASIS.low}
                             onClick={() => startEdit(i)}
                             aria-label={t.editor.edit(title)}
                             title={t.editor.edit(title)}
@@ -472,8 +468,8 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                           </Button>
                           <Button
                             size={BUTTON_SIZE.xs}
-                            variant={BUTTON_VARIANT.ghost}
-                            color={BUTTON_COLOR.critical}
+                            emphasis={BUTTON_EMPHASIS.low}
+                            status={BUTTON_STATUS.critical}
                             onClick={() => remove(i)}
                             aria-label={t.editor.remove(title)}
                             title={t.editor.remove(title)}
@@ -497,7 +493,7 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                   const { title, subtitle, positiveDescription } = localizeCategory(cat);
                   return (
                     <li key={cat.name} className="category-editor__list-item">
-                      <Card className="card-body card-compact" color={CARD_COLOR.neutral}>
+                      <Card className="card-body card-compact">
                         <div className="category-editor__row">
                           <div className="grow category-editor__label">
                             <Text preset={TEXT_PRESET.label}>{title}</Text>
@@ -515,8 +511,8 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                             {!isBuiltInCategory(cat) && (
                               <Button
                                 size={BUTTON_SIZE.xs}
-                                variant={BUTTON_VARIANT.ghost}
-                                color={BUTTON_COLOR.critical}
+                                emphasis={BUTTON_EMPHASIS.low}
+                                status={BUTTON_STATUS.critical}
                                 onClick={() => forget(cat, index)}
                                 aria-label={t.editor.deleteSuggestion(title)}
                                 title={t.editor.deleteSuggestion(title)}
@@ -526,7 +522,6 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
                             )}
                             <Button
                               size={BUTTON_SIZE.xs}
-                              variant={BUTTON_VARIANT.outline}
                               onClick={() => addSuggestion(cat, index)}
                               aria-label={t.editor.addSuggestion(title)}
                               title={t.editor.addSuggestion(title)}
@@ -545,18 +540,18 @@ function CategoryEditor({ categories, onChange, onReset }: Props) {
           )}
 
           {isAdding ? (
-            <Card className="card-body category-editor__new" color={CARD_COLOR.neutral}>
+            <Card className="card-body category-editor__new">
               <Text preset={TEXT_PRESET.heading4} as="h3">{t.editor.addTitle}</Text>
               {renderForm(saveAdd, cancelAdd)}
             </Card>
           ) : (
             <div className="inline category-editor__add">
-              <Button variant={BUTTON_VARIANT.outline} onClick={startAdd} data-focus="add">
+              <Button onClick={startAdd} data-focus="add">
                 <Icon name={ICON_NAME.plus} />
                 {t.editor.add}
               </Button>
               {customized && (
-                <Button variant={BUTTON_VARIANT.ghost} onClick={reset}>
+                <Button emphasis={BUTTON_EMPHASIS.low} onClick={reset}>
                   <Icon name={ICON_NAME.undo} />
                   {t.editor.reset}
                 </Button>

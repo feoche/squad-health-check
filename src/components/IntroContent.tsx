@@ -1,6 +1,5 @@
 import {
   Card,
-  CARD_COLOR,
   Icon,
   Text,
   TEXT_PRESET,
@@ -51,7 +50,7 @@ function IntroContent({ categories, anonymity, voteMode, compact = false }: Prop
       <Text preset={TEXT_PRESET.paragraph}>{t.intro.trendsHint}</Text>
       <div className="grid-3 intro-content__trends">
         {TREND_OPTIONS.map(({ value, label, icon }) => (
-          <Card key={value} className="card-body card-compact intro-content__trend" color={CARD_COLOR.neutral}>
+          <Card key={value} className="card-body card-compact intro-content__trend">
             <Icon name={icon} className="intro-content__trend-icon" />
             <Text preset={TEXT_PRESET.paragraph} className="intro-content__trend-label">
               {label}

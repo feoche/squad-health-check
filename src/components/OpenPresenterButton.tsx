@@ -1,4 +1,4 @@
-import { Button, BUTTON_SIZE, BUTTON_VARIANT, Icon, ICON_NAME } from '@ovhcloud/ods-react';
+import { Button, BUTTON_SIZE, BUTTON_EMPHASIS, Icon, ICON_NAME } from '@ovhcloud/ods-react';
 import { t } from '../lib/i18n';
 
 const presenterUrl = (code: string) =>
@@ -27,7 +27,7 @@ function OpenPresenterButton({ code, className, inHeader = false }: Props) {
     <Button
       className={className ? `open-presenter-button ${className}` : 'open-presenter-button'}
       size={inHeader ? BUTTON_SIZE.xs : BUTTON_SIZE.sm}
-      variant={inHeader ? BUTTON_VARIANT.outline : BUTTON_VARIANT.ghost}
+      emphasis={inHeader ? BUTTON_EMPHASIS.medium : BUTTON_EMPHASIS.low}
       aria-label={t.presenter.openNewWindow}
       onClick={open}
     >

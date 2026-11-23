@@ -7,7 +7,7 @@ import { COLOR_OPTIONS } from './voteOptions';
 function ColorBadge({ color, large = false }: { color: VoteColor; large?: boolean }) {
   const option = COLOR_OPTIONS.find((o) => o.value === color)!;
   return (
-    <Badge color={option.badge} size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}>
+    <Badge status={option.badge} size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}>
       {option.label}
     </Badge>
   );

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Button,
   BUTTON_SIZE,
-  BUTTON_VARIANT,
   Icon,
   ICON_NAME,
   Tooltip,
@@ -40,7 +39,6 @@ function SessionCodeButton({ code }: { code: string }) {
           <Button
             className={copied ? 'session-code-button session-code-button--copied' : 'session-code-button'}
             size={BUTTON_SIZE.xs}
-            variant={BUTTON_VARIANT.outline}
             onClick={copy}
           >
             {/* Phones show the word alone; screen readers still hear the label */}

@@ -2,10 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
-  BUTTON_COLOR,
-  BUTTON_VARIANT,
   Card,
-  CARD_COLOR,
   FormField,
   FormFieldError,
   FormFieldHelper,
@@ -51,7 +48,7 @@ function Home() {
       </div>
 
       <div className="grid-2 home__actions">
-        <Card className="card-body home__join" color={CARD_COLOR.neutral}>
+        <Card className="card-body home__join">
           <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
             <Icon name={ICON_NAME.chainLink} />
             {t.home.joinTitle}
@@ -91,24 +88,23 @@ function Home() {
             <Button
               className="home__card-action"
               type="submit"
-              color={BUTTON_COLOR.primary}
             >
               {t.home.joinButton}
             </Button>
           </form>
         </Card>
 
-        <Card className="card-body home__create" color={CARD_COLOR.neutral}>
+        <Card className="card-body home__create">
           <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
             <Icon name={ICON_NAME.plus} />
             {t.home.createTitle}
           </Text>
           <Text preset={TEXT_PRESET.paragraph}>{t.home.createText}</Text>
-          <Button className="home__card-action" variant={BUTTON_VARIANT.outline} onClick={() => navigate('/create')}>{t.home.createButton}</Button>
+          <Button className="home__card-action" onClick={() => navigate('/create')}>{t.home.createButton}</Button>
         </Card>
       </div>
 
-      <Card className="card-body home__how-it-works" color={CARD_COLOR.neutral}>
+      <Card className="card-body home__how-it-works">
         <Text preset={TEXT_PRESET.heading4} as="h3" className="inline">
           <Icon name={ICON_NAME.list} />
           {t.home.howItWorks}

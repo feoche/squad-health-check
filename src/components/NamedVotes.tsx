@@ -18,7 +18,7 @@ function NamedVotes({ votes }: { votes: NamedVote[] }) {
           const summary = range ? t.results.scoreOutOf(String(vote.score)) : color.label;
           return (
             <li key={id} className="named-votes__item">
-              <Badge className="named-votes__badge" color={color.badge} size={BADGE_SIZE.lg}>
+              <Badge className="named-votes__badge" status={color.badge} size={BADGE_SIZE.lg}>
                 {quick && <span aria-hidden="true">⚡ </span>}
                 <span className="named-votes__name">{name ?? t.results.unknownVoter}</span>
                 {range && <span aria-hidden="true">{vote.score}</span>}

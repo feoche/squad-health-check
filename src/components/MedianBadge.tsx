@@ -10,7 +10,7 @@ function MedianBadge({ score, large = false, voteMode = 'colors' }: { score: num
   const color = COLOR_OPTIONS.find((o) => o.value === cell.color)!;
   if (voteMode === 'range') {
     return (
-      <Badge className="vote-summary__badge" color={color.badge} size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}>
+      <Badge className="vote-summary__badge" status={color.badge} size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}>
         {t.results.scoreOutOf(formatScore(score))}
       </Badge>
     );
@@ -18,7 +18,7 @@ function MedianBadge({ score, large = false, voteMode = 'colors' }: { score: num
   const trend = TREND_OPTIONS.find((o) => o.value === cell.trend)!;
 
   return (
-    <Badge className="vote-summary__badge" color={color.badge} size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}>
+    <Badge className="vote-summary__badge" status={color.badge} size={large ? BADGE_SIZE.lg : BADGE_SIZE.md}>
       <span>{color.label}</span>
       <span className="visually-hidden">, {trend.label}</span>
       <Icon name={trend.icon} aria-hidden />

@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Card,
-  CARD_COLOR,
   FormField,
   FormFieldError,
   FormFieldLabel,
   Message,
-  MESSAGE_COLOR,
+  MESSAGE_STATUS,
   MessageBody,
   MessageIcon,
   ICON_NAME,
@@ -112,7 +111,7 @@ function CreateSession() {
           onReset={resetCategories}
         />
 
-        <Card className="card-body stack create-session__settings" color={CARD_COLOR.neutral}>
+        <Card className="card-body stack create-session__settings">
           <Text preset={TEXT_PRESET.heading4} as="h3">{t.settings.title}</Text>
           <Toggle
             checked={settings.facilitatorVotes}
@@ -151,7 +150,7 @@ function CreateSession() {
             <FormFieldError id={minutesErrorId}>{t.settings.minutesInvalid(MIN_CATEGORY_MINUTES, MAX_CATEGORY_MINUTES)}</FormFieldError>
           </FormField>
           {categories.length > 0 && (
-            <Message className="create-session__time-hint" color={MESSAGE_COLOR.information} dismissible={false}>
+            <Message className="create-session__time-hint" dismissible={false}>
               <MessageIcon name={ICON_NAME.circleInfo} />
               <MessageBody>
                 {t.editor.timeHint(categories.length)}
@@ -208,7 +207,7 @@ function CreateSession() {
           {(noCategories || error != null) && (
             <Message
               className="create-session__error"
-              color={MESSAGE_COLOR.critical}
+              status={MESSAGE_STATUS.critical}
               dismissible={false}
               role="alert"
             >

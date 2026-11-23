@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { Badge, BADGE_COLOR, BADGE_SIZE, Range, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
+import { Badge, BADGE_STATUS, BADGE_SIZE, Range, Text, TEXT_PRESET } from '@ovhcloud/ods-react';
 import { Category } from '../types';
 import { MAX_SCORE, MIN_SCORE, scoreColor } from '../lib/voteScore';
 import { t } from '../lib/i18n';
@@ -34,13 +34,13 @@ function ScoreInput({ category, score, invalid, onChange }: Props) {
     <div className="score-input">
       <ul className="score-input__ends">
         <li className="score-input__end">
-          <Badge className="score-input__end-badge" color={BADGE_COLOR.critical} aria-hidden="true">{MIN_SCORE}</Badge>
+          <Badge className="score-input__end-badge" status={BADGE_STATUS.critical} aria-hidden="true">{MIN_SCORE}</Badge>
           <Text preset={TEXT_PRESET.paragraph} className="score-input__description">
             <span className="visually-hidden">{t.voting.scaleLow}: </span>{low}
           </Text>
         </li>
         <li className="score-input__end">
-          <Badge className="score-input__end-badge" color={BADGE_COLOR.success} aria-hidden="true">{MAX_SCORE}</Badge>
+          <Badge className="score-input__end-badge" status={BADGE_STATUS.success} aria-hidden="true">{MAX_SCORE}</Badge>
           <Text preset={TEXT_PRESET.paragraph} className="score-input__description">
             <span className="visually-hidden">{t.voting.scaleHigh}: </span>{high}
           </Text>
@@ -66,7 +66,7 @@ function ScoreInput({ category, score, invalid, onChange }: Props) {
         {score === null ? (
           t.voting.scoreNone
         ) : (
-          <Badge color={COLOR_OPTIONS.find((o) => o.value === scoreColor(score))!.badge} size={BADGE_SIZE.lg}>
+          <Badge status={COLOR_OPTIONS.find((o) => o.value === scoreColor(score))!.badge} size={BADGE_SIZE.lg}>
             {t.voting.scoreValue(score)}
           </Badge>
         )}

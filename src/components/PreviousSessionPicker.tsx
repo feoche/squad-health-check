@@ -1,10 +1,10 @@
 import {
   Button,
-  BUTTON_VARIANT,
+  BUTTON_EMPHASIS,
   Icon,
   ICON_NAME,
   Message,
-  MESSAGE_COLOR,
+  MESSAGE_STATUS,
   MessageBody,
   MessageIcon,
   Text,
@@ -58,19 +58,19 @@ function PreviousSessionPicker({ previous, onImport, onRemove }: Props) {
       </div>
 
       {invalid && (
-        <Message className="message-full" color={MESSAGE_COLOR.critical} dismissible={false} role="alert">
+        <Message className="message-full" status={MESSAGE_STATUS.critical} dismissible={false} role="alert">
           <MessageIcon name={ICON_NAME.triangleExclamation} />
           <MessageBody>{t.notes.invalidImport}</MessageBody>
         </Message>
       )}
 
       <div className="inline wrap">
-        <Button ref={importButton} variant={BUTTON_VARIANT.outline} onClick={() => fileInput.current?.click()}>
+        <Button ref={importButton} onClick={() => fileInput.current?.click()}>
           <Icon name={ICON_NAME.upload} />
           {previous ? t.notes.changePrevious : t.notes.importPrevious}
         </Button>
         {previous && (
-          <Button variant={BUTTON_VARIANT.ghost} onClick={remove}>
+          <Button emphasis={BUTTON_EMPHASIS.low} onClick={remove}>
             <Icon name={ICON_NAME.xmark} />
             {t.notes.removePrevious}
           </Button>

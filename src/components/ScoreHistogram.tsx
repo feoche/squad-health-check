@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
   Button,
   BUTTON_SIZE,
-  BUTTON_VARIANT,
+  BUTTON_EMPHASIS,
   Icon,
   ICON_NAME,
   Radio,
@@ -101,7 +101,7 @@ function ScoreHistogram({ votes, compact = false, offlineVotes = [], onAdjust }:
                     <span className="inline vote-matrix__adjust">
                       <Button
                         size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
+                        emphasis={BUTTON_EMPHASIS.low}
                         disabled={!removal}
                         aria-label={messages.facilitator.removeOfflineScore(score, trendLabel(removal?.trend ?? addTrend))}
                         title={messages.facilitator.removeOfflineScore(score, trendLabel(removal?.trend ?? addTrend))}
@@ -111,7 +111,7 @@ function ScoreHistogram({ votes, compact = false, offlineVotes = [], onAdjust }:
                       </Button>
                       <Button
                         size={BUTTON_SIZE.xs}
-                        variant={BUTTON_VARIANT.ghost}
+                        emphasis={BUTTON_EMPHASIS.low}
                         aria-label={messages.facilitator.addOfflineScore(score, trendLabel(addTrend))}
                         title={messages.facilitator.addOfflineScore(score, trendLabel(addTrend))}
                         onClick={() => onAdjust({ score, trend: addTrend }, 1)}

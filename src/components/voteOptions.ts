@@ -1,4 +1,4 @@
-import { BADGE_COLOR, ICON_NAME, type BadgeColor, type IconName } from '@ovhcloud/ods-react';
+import { BADGE_STATUS, ICON_NAME, type BadgeStatus, type IconName } from '@ovhcloud/ods-react';
 import { Category, VoteColor, VoteTrend } from '../types';
 import { t } from '../lib/i18n';
 import { localizeCategory } from '../lib/localizeCategory';
@@ -19,13 +19,13 @@ export const COLOR_OPTIONS = withLabels<
     value: VoteColor;
     /** Category field describing this color; orange has none and is not described anywhere */
     field?: 'positiveDescription' | 'negativeDescription';
-    badge: BadgeColor;
+    badge: BadgeStatus;
   }
 >(
   [
-    { value: 'green', field: 'positiveDescription', badge: BADGE_COLOR.success },
-    { value: 'orange', badge: BADGE_COLOR.warning },
-    { value: 'red', field: 'negativeDescription', badge: BADGE_COLOR.critical },
+    { value: 'green', field: 'positiveDescription', badge: BADGE_STATUS.success },
+    { value: 'orange', badge: BADGE_STATUS.warning },
+    { value: 'red', field: 'negativeDescription', badge: BADGE_STATUS.critical },
   ],
   () => t.colors,
 );
